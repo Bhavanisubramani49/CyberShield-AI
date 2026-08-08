@@ -115,6 +115,67 @@ export interface EventStats {
   avg_latency_ms: number;
 }
 
+export interface ModalityMetric {
+  modality: string;
+  label: string;
+  total_events: number;
+  threats_detected: number;
+  avg_risk_score: number;
+}
+
+export interface RecentThreatItem {
+  event_id: string;
+  timestamp: string;
+  modality: string;
+  sender_id: string;
+  classification: string;
+  risk_level: string;
+  risk_score: number;
+  ai_model: string;
+  action: string;
+  content_preview: string;
+}
+
+export interface DashboardSummaryData {
+  period: string;
+  total_events: number;
+  threats_detected: number;
+  threats_blocked: number;
+  threats_quarantined: number;
+  events_under_review: number;
+  safe_events: number;
+  avg_latency_ms: number;
+  threat_distribution: Record<string, { count: number; percentage: number }>;
+  risk_distribution: Record<string, { count: number; percentage: number }>;
+  action_distribution: Record<string, { count: number; percentage: number }>;
+  modality_analytics: ModalityMetric[];
+  ai_model_performance: RegisteredAIModel[];
+  top_threat_types: string[];
+  top_risk_sources: string[];
+  recent_threats: RecentThreatItem[];
+  quarantine_summary: {
+    total_quarantined: number;
+    critical_threats: number;
+    pending_review: number;
+    released_safe: number;
+    blocked_permanently: number;
+  };
+  protection_status: string;
+}
+
+export interface RegisteredAIModel {
+  name: string;
+  modality: string;
+  version: string;
+  status: string;
+  type?: string;
+  description: string;
+  accuracy?: number;
+  precision?: number;
+  recall?: number;
+  f1_score?: number;
+}
+
 export interface SystemHealth {
   status: string;
   project_name: string;

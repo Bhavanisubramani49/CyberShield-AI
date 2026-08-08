@@ -47,6 +47,16 @@ async def test_api():
         dataset_names = [d["dataset_name"] for d in res_datasets.json()]
         assert "sms_scam_dataset.csv" in dataset_names
 
+        # 3d. Test Dashboard Consolidated Analytics Endpoint (Module 11)
+        res_dashboard = await client.get("/api/v1/dashboard/summary?period=all")
+        print(f"GET /api/v1/dashboard/summary => Status: {res_dashboard.status_code}, Total: {res_dashboard.json()['total_events']}")
+        assert res_dashboard.status_code == 200
+        dash_data = res_dashboard.json()
+        assert "threat_distribution" in dash_data
+        assert "risk_distribution" in dash_data
+        assert "modality_analytics" in dash_data
+        assert dash_data["protection_status"] == "OPERATIONAL"
+
         # 4. Test Events Analysis Endpoint
         res_event = await client.post("/api/v1/events/analyze", json={
             "content_type": "message",
