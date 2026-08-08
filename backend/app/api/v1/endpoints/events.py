@@ -77,15 +77,31 @@ async def get_event_statistics():
 async def stream_security_events():
     """
     Real-time SSE event stream pushing active security events from database to connected monitoring surfaces.
+    Handles client disconnects and resource cleanup safely.
     """
     async def event_generator():
-        while True:
-            events = event_processor_service.get_all_events(page=1, limit=10)
-            data = json.dumps([e.model_dump() for e in events])
-            yield f"data: {data}\n\n"
-            await asyncio.sleep(3.0)
+        try:
+            while True:
+                events = event_processor_service.get_all_events(page=1, limit=10)
+                data = json.dumps([e.model_dump() for e in events])
+                yield f"data: {data}\n\n"
+                await asyncio.sleep(3.0)
+        except (asyncio.CancelledError, GeneratorExit):
+            # Client disconnected cleanly
+            pass
+        except Exception as e:
+            # Fallback safe close
+            yield f"data: []\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(), 
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @router.get("/events/{event_id}", response_model=SecurityEventSchema, summary="Get Event Details by ID from Database")
 async def get_event_by_id(event_id: str):
