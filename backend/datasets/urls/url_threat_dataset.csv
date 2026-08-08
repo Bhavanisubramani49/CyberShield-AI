@@ -1,0 +1,11 @@
+label,url
+malicious,http://192.168.1.1/free-reward.xyz
+malicious,http://192.168.1.1/bank-login.xyz
+malicious,http://verify-account-security-alert.xyz/update
+malicious,http://free-giftcard-portal.top/claim
+malicious,http://online-banking-confirm.click/login
+safe,https://cybershield.ai/documentation
+safe,https://github.com/fastapi/fastapi
+safe,https://react.dev/reference/react
+safe,https://vitejs.dev/guide
+safe,https://sqlite.org/docs.html

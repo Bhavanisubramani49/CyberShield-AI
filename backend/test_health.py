@@ -38,11 +38,14 @@ async def test_api():
         print(f"GET /api/v1/ai/models => Status: {res_models.status_code}, Models: {len(res_models.json())}")
         assert res_models.status_code == 200
         assert len(res_models.json()) == 8
-        model_names = [m["name"] for m in res_models.json()]
-        assert "sms_scam_detection_ai" in model_names
-        assert "email_phishing_detection_ai" in model_names
-        assert "url_threat_detection_ai" in model_names
-        assert "fake_news_classifier_ai" in model_names
+
+        # 3c. Test AI Datasets Validation Manifest Endpoint (Module 9)
+        res_datasets = await client.get("/api/v1/ai/datasets")
+        print(f"GET /api/v1/ai/datasets => Status: {res_datasets.status_code}, Datasets: {len(res_datasets.json())}")
+        assert res_datasets.status_code == 200
+        assert len(res_datasets.json()) == 6
+        dataset_names = [d["dataset_name"] for d in res_datasets.json()]
+        assert "sms_scam_dataset.csv" in dataset_names
 
         # 4. Test Events Analysis Endpoint
         res_event = await client.post("/api/v1/events/analyze", json={

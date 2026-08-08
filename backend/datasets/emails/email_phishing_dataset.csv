@@ -1,0 +1,11 @@
+label,subject,body,link
+phishing,Urgent: Security Profile Verification Required,Your corporate banking profile has experienced unauthorized login attempts. Immediate credential confirmation required.,http://192.168.1.1/bank-login.xyz
+phishing,Account Suspension Notice within 24 Hours,Your account will be permanently deactivated. Click here immediately to verify password and personal identity.,http://bank-verification-portal.xyz/login
+phishing,Action Required: Update Payroll Tax Information,HR Security demands immediate re-entry of your direct deposit account and debit card PIN.,http://192.168.1.1/payroll-update.xyz
+phishing,Unusual Sign-in Activity Detected from Russia,Someone accessed your mailbox. If this was not you confirm your password immediately.,http://verify-mailbox-security.xyz/auth
+phishing,Invoice #INV-99214 Overdue - Immediate Payment,Your domain registration will expire. Click to pay invoice and enter card security code.,http://payment-gateway-notice.xyz/pay
+safe,Project CyberShield AI Sprint Retrospective,Hi team, please find attached the review notes from our Sprint 8 demo and architectural roadmap.,https://github.com/cybershield/ai-security
+safe,Weekly Infrastructure Performance Report,Server CPU latency remained under 25ms throughout the weekend. All microservices operational.,https://internal-monitoring.corp.net/dashboard
+safe,Quarterly Security Governance & Compliance Update,Annual cyber audit completed with zero critical non-conformances. Thank you all for your cooperation.,https://corp-portal.company.com/compliance
+safe,Invitation: Design System Review on Thursday,Please join the UX team on Thursday at 3 PM to review the updated dark mode tokens and components.,https://meet.google.com/abc-defg-hij
+safe,Documentation Guidelines for Python FastAPI Services,Updated API docstrings and OpenAPI schemas are now available on the internal wiki.,https://wiki.corp.net/fastapi-guidelines

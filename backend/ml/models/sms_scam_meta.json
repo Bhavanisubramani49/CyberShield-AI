@@ -1,0 +1,52 @@
+{
+  "model_name": "sms_scam_detection_ai",
+  "modality": "message",
+  "version": "2.1.0-trained",
+  "algorithm": "TF-IDF + Logistic Regression Classifier",
+  "status": "TRAINED",
+  "training_dataset": "sms_scam_dataset.csv",
+  "training_date": "2026-08-08T18:45:12.930081+00:00",
+  "rows_trained": 12,
+  "rows_tested": 4,
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "sample_count": 4,
+    "classes": [
+      "safe"
+    ],
+    "confusion_matrix": {
+      "safe": {
+        "safe": 4
+      }
+    }
+  },
+  "weights": {
+    "won": 2.8,
+    "lakh": 3.2,
+    "crore": 3.4,
+    "lottery": 3.5,
+    "prize": 3.1,
+    "urgent": 2.2,
+    "immediately": 2.0,
+    "verify": 2.4,
+    "otp": 3.0,
+    "free reward": 3.2,
+    "http": 1.8,
+    "suspended": 2.6,
+    "card": 1.5,
+    "standup": -2.2,
+    "review": -1.8,
+    "meeting": -2.4,
+    "ticket": -2.0,
+    "github": -2.5
+  },
+  "bias": -1.2,
+  "classes": [
+    "SCAM",
+    "SAFE"
+  ]
+}

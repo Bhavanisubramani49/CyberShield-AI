@@ -1,0 +1,35 @@
+{
+  "model_name": "fake_profile_analyzer_ai",
+  "modality": "profile",
+  "version": "2.1.0-trained",
+  "algorithm": "Account Velocity & Follower Ratio Random Forest Classifier",
+  "status": "TRAINED",
+  "training_dataset": "profile_anomaly_dataset.csv",
+  "training_date": "2026-08-08T18:44:13.616866+00:00",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "sample_count": 6,
+    "classes": [
+      "fake_profile",
+      "safe"
+    ],
+    "confusion_matrix": {
+      "fake_profile": {
+        "fake_profile": 3,
+        "safe": 0
+      },
+      "safe": {
+        "fake_profile": 0,
+        "safe": 3
+      }
+    }
+  },
+  "classes": [
+    "FAKE_PROFILE",
+    "SAFE"
+  ]
+}

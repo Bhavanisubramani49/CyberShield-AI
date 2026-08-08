@@ -1,0 +1,9 @@
+label,filename,file_type,size_kb
+malicious,urgent_payroll_update.xlsm,Macro-Enabled Spreadsheet (.xlsm),485
+malicious,security_patch_v2.exe,Windows Executable (.exe),1250
+malicious,employee_bonus_list.pdf.exe,Disguised Executable (.exe),820
+malicious,run_update_script.bat,Windows Batch Script (.bat),14
+safe,annual_security_report.pdf,Standard PDF Document (.pdf),1820
+safe,quarterly_roadmap.png,PNG Image Document (.png),450
+safe,system_configuration.json,JSON Data File (.json),28
+safe,developer_guide.md,Markdown Documentation (.md),15

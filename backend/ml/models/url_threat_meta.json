@@ -1,0 +1,35 @@
+{
+  "model_name": "url_threat_detection_ai",
+  "modality": "url",
+  "version": "2.1.0-trained",
+  "algorithm": "Lexical Feature Vector + Threshold Classifier",
+  "status": "TRAINED",
+  "training_dataset": "url_threat_dataset.csv",
+  "training_date": "2026-08-08T18:45:12.932511+00:00",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "sample_count": 10,
+    "classes": [
+      "malicious",
+      "safe"
+    ],
+    "confusion_matrix": {
+      "malicious": {
+        "malicious": 5,
+        "safe": 0
+      },
+      "safe": {
+        "malicious": 0,
+        "safe": 5
+      }
+    }
+  },
+  "classes": [
+    "MALICIOUS",
+    "SAFE"
+  ]
+}

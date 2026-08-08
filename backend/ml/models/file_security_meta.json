@@ -1,0 +1,35 @@
+{
+  "model_name": "file_security_pipeline",
+  "modality": "file",
+  "version": "2.1.0-trained",
+  "algorithm": "PE Signature & Macro Anomaly Classifier",
+  "status": "TRAINED",
+  "training_dataset": "file_security_dataset.csv",
+  "training_date": "2026-08-08T18:44:13.617909+00:00",
+  "metrics": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "sample_count": 8,
+    "classes": [
+      "malicious",
+      "safe"
+    ],
+    "confusion_matrix": {
+      "malicious": {
+        "malicious": 4,
+        "safe": 0
+      },
+      "safe": {
+        "malicious": 0,
+        "safe": 4
+      }
+    }
+  },
+  "classes": [
+    "MALICIOUS",
+    "SAFE"
+  ]
+}
