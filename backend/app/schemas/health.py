@@ -1,11 +1,12 @@
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 class HealthStatus(BaseModel):
     status: str
     project_name: str
     version: str
     environment: str
+    database: Optional[str] = "connected"
     platforms_connected: Dict[str, str]
     active_ai_models: List[str]
     timestamp: str

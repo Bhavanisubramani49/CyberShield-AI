@@ -9,44 +9,16 @@ from app.schemas.events import (
     TimelineStepSchema,
     EventStatsSchema
 )
+from app.db.repository import event_repository
 
 class EventProcessorService:
     def __init__(self):
-        self._events: List[SecurityEventSchema] = []
-        self._counter = 10001
-        self._seed_initial_events()
+        self._counter = 10080
 
     def _generate_event_id(self) -> str:
         eid = f"EVT-{self._counter}"
         self._counter += 1
         return eid
-
-    def _seed_initial_events(self):
-        """Seed baseline demonstration events for the prototype"""
-        sample_1 = self.process_and_store_event(
-            event_id="EVT-10001",
-            content_type="message",
-            sender_type="simulated_attacker",
-            sender_name="Attacker Persona (+91 98400 12345)",
-            payload={"text": "Congratulations! You won ₹10,00,000 lottery cash prize. Click here immediately to claim: http://192.168.1.1/free-reward.xyz"},
-            user_action_override="QUARANTINE"
-        )
-        sample_2 = self.process_and_store_event(
-            event_id="EVT-10002",
-            content_type="email",
-            sender_type="simulated_attacker",
-            sender_name="security-alert@bank-verify.net",
-            payload={"subject": "Urgent: Your account is scheduled for immediate suspension", "body": "Your banking security profile requires immediate password re-verification.", "link": "http://192.168.1.1/bank-login.xyz"},
-            user_action_override="BLOCK"
-        )
-        sample_3 = self.process_and_store_event(
-            event_id="EVT-10003",
-            content_type="message",
-            sender_type="normal_user",
-            sender_name="Alice Johnson (+91 98111 22233)",
-            payload={"text": "Hi Alex, are we still meeting at 3 PM today to review the project documentation?"},
-            user_action_override="ALLOW"
-        )
 
     def route_ai_model(self, content_type: str) -> str:
         mapping = {
@@ -263,18 +235,16 @@ class EventProcessorService:
             )
             ai_result = self.analyze_payload(req)
 
-        # Decide final action and receiver surface
         receiver_surface = self.route_receiver_surface(content_type)
         final_action = user_action_override or ai_result.recommendation
         
-        # Build 6-stage lifecycle timeline
-        timeline = [
-            TimelineStepSchema(step="Event Created", status="DONE", timestamp=now_time, detail="Dispatched in Sender Platform"),
-            TimelineStepSchema(step="Event Received", status="DONE", timestamp=now_time, detail="Ingested into CyberShield Event Bus"),
-            TimelineStepSchema(step="AI Analysis Started", status="DONE", timestamp=now_time, detail=f"Routed to {ai_result.model}"),
-            TimelineStepSchema(step="AI Analysis Completed", status="DONE", timestamp=now_time, detail=f"Classification: {ai_result.classification} ({ai_result.risk_score}/100)"),
-            TimelineStepSchema(step="Security Decision", status="DONE", timestamp=now_time, detail=f"Action: {ai_result.recommendation}"),
-            TimelineStepSchema(step="Receiver Routed", status="DONE", timestamp=now_time, detail=f"Target: {receiver_surface}")
+        timeline_steps = [
+            {"step": "Event Created", "status": "DONE", "timestamp": now_time, "detail": "Dispatched in Sender Platform"},
+            {"step": "Event Received", "status": "DONE", "timestamp": now_time, "detail": "Ingested into SQLite Database"},
+            {"step": "AI Analysis Started", "status": "DONE", "timestamp": now_time, "detail": f"Routed to {ai_result.model}"},
+            {"step": "AI Analysis Completed", "status": "DONE", "timestamp": now_time, "detail": f"Classification: {ai_result.classification} ({ai_result.risk_score}/100)"},
+            {"step": "Security Decision", "status": "DONE", "timestamp": now_time, "detail": f"Action: {ai_result.recommendation}"},
+            {"step": "Receiver Routed", "status": "DONE", "timestamp": now_time, "detail": f"Target: {receiver_surface}"}
         ]
 
         content_preview = str(
@@ -287,99 +257,63 @@ class EventProcessorService:
             "Simulated Content"
         )
 
-        event = SecurityEventSchema(
-            event_id=event_id,
-            sender_id=sender_name,
-            sender_type=sender_type,
-            receiver_id="Receiver Platform",
-            receiver_surface=receiver_surface,
-            platform="CyberShield-Simulation-Hub",
-            content_type=content_type,
-            content_preview=content_preview,
-            created_at=now_iso,
-            received_at=now_iso,
-            processed_at=now_iso,
-            status="analyzed",
-            classification=ai_result.classification,
-            risk_score=ai_result.risk_score,
-            risk_level=ai_result.risk_level,
-            confidence=ai_result.confidence,
-            ai_model=ai_result.model,
-            forensic_reasons=ai_result.reasons,
-            recommended_action=ai_result.recommendation,
-            final_action=final_action,
-            user_action=final_action,
-            ai_result=ai_result,
-            timeline=timeline
+        event_dict = {
+            "event_id": event_id,
+            "sender_id": sender_name,
+            "sender_type": sender_type,
+            "receiver_surface": receiver_surface,
+            "content_type": content_type,
+            "content_preview": content_preview,
+            "content_reference": payload.get("link") or payload.get("url"),
+            "status": "analyzed",
+            "classification": ai_result.classification,
+            "risk_score": ai_result.risk_score,
+            "risk_level": ai_result.risk_level,
+            "confidence": ai_result.confidence,
+            "ai_model": ai_result.model,
+            "forensic_reasons": ai_result.reasons,
+            "recommended_action": ai_result.recommendation,
+            "final_action": final_action,
+            "user_action": final_action,
+            "created_at": now_iso,
+            "received_at": now_iso,
+            "processed_at": now_iso
+        }
+
+        # Store permanently via Repository layer
+        return event_repository.create_event(event_dict, timeline_steps)
+
+    def get_all_events(
+        self,
+        modality: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        action: Optional[str] = None,
+        classification: Optional[str] = None,
+        status: Optional[str] = None,
+        page: int = 1,
+        limit: int = 20
+    ) -> List[SecurityEventSchema]:
+        return event_repository.get_events(
+            modality=modality,
+            risk_level=risk_level,
+            action=action,
+            classification=classification,
+            status=status,
+            page=page,
+            limit=limit
         )
-
-        # Check for existing event_id to update or insert
-        for i, existing in enumerate(self._events):
-            if existing.event_id == event_id:
-                self._events[i] = event
-                return event
-
-        self._events.insert(0, event)
-        return event
-
-    def get_all_events(self) -> List[SecurityEventSchema]:
-        return self._events
 
     def get_event_by_id(self, event_id: str) -> Optional[SecurityEventSchema]:
-        for e in self._events:
-            if e.event_id == event_id:
-                return e
-        return None
+        return event_repository.get_event(event_id)
 
-    def update_event_action(self, event_id: str, new_action: str) -> Optional[SecurityEventSchema]:
-        allowed_actions = ["ALLOW", "BLOCK", "QUARANTINE", "REVIEW", "PENDING"]
-        if new_action.upper() not in allowed_actions:
-            raise ValueError(f"Invalid security action: {new_action}. Allowed: {allowed_actions}")
+    def update_event_action(self, event_id: str, new_action: str, actor: str = "Authenticated Security Officer") -> Optional[SecurityEventSchema]:
+        return event_repository.update_event_action(event_id, new_action, actor)
 
-        for e in self._events:
-            if e.event_id == event_id:
-                # State transition validation
-                e.user_action = new_action.upper()
-                e.final_action = new_action.upper()
-                e.timeline.append(
-                    TimelineStepSchema(
-                        step="User Decision Applied",
-                        status="DONE",
-                        timestamp=datetime.now().strftime("%H:%M:%S"),
-                        detail=f"Officer override applied: {new_action.upper()}"
-                    )
-                )
-                return e
-        return None
+    def delete_event(self, event_id: str) -> bool:
+        return event_repository.delete_event(event_id)
 
     def get_event_stats(self) -> EventStatsSchema:
-        total = len(self._events)
-        safe = sum(1 for e in self._events if e.user_action == "ALLOW" or e.classification == "SAFE")
-        blocked = sum(1 for e in self._events if e.user_action == "BLOCK")
-        quarantined = sum(1 for e in self._events if e.user_action == "QUARANTINE")
-        review = sum(1 for e in self._events if e.user_action == "REVIEW")
-        threats = sum(1 for e in self._events if e.classification not in ["SAFE", "PENDING"])
-
-        modality_dist: Dict[str, int] = {}
-        total_latency = 0.0
-        for e in self._events:
-            modality_dist[e.content_type] = modality_dist.get(e.content_type, 0) + 1
-            if e.ai_result:
-                total_latency += e.ai_result.processing_time_ms
-
-        avg_latency = round(total_latency / total, 2) if total > 0 else 24.5
-
-        return EventStatsSchema(
-            total_events=total,
-            safe_events=safe,
-            threats_detected=threats,
-            blocked=blocked,
-            quarantined=quarantined,
-            under_review=review,
-            allowed=safe,
-            modality_distribution=modality_dist,
-            avg_latency_ms=avg_latency
-        )
+        return event_repository.get_statistics()
 
 # Global singleton service instance
 event_processor_service = EventProcessorService()

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from datetime import datetime, timezone
 from app.core.config import settings
 from app.schemas.health import HealthStatus, SystemMetrics
+from app.db.database import check_db_health
 
 router = APIRouter()
 
@@ -9,13 +10,14 @@ router = APIRouter()
 async def get_health_status():
     """
     Returns the foundational health check status for CyberShield AI.
-    Verifies that the backend, event pipeline, and architecture layer are operational.
+    Verifies that the backend, SQLite database, and AI architecture layer are operational.
     """
     return HealthStatus(
         status="healthy",
         project_name=settings.PROJECT_NAME,
         version=settings.VERSION,
         environment=settings.ENVIRONMENT,
+        database=check_db_health(),
         platforms_connected={
             "platform_1_sender": "online (simulation-ready)",
             "platform_2_receiver": "online (multi-app-ready)",

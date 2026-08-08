@@ -36,6 +36,7 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+backend/data/
 .env
 !.env.example
 

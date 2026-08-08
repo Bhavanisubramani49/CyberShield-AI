@@ -21,6 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Automatically initialize SQLite tables and baseline seed
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
 # Include v1 API routes
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["System Health"])
 app.include_router(events.router, prefix=settings.API_V1_STR, tags=["Security Events & Analysis"])
