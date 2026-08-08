@@ -1,0 +1,77 @@
+export type PlatformMode = 
+  | 'dashboard' 
+  | 'sender' 
+  | 'receiver' 
+  | 'security_engine';
+
+export type ContentType = 
+  | 'message' 
+  | 'email' 
+  | 'url' 
+  | 'news' 
+  | 'image' 
+  | 'video' 
+  | 'profile' 
+  | 'file';
+
+export type SenderAccountType = 
+  | 'normal_user' 
+  | 'unknown_user' 
+  | 'fake_account' 
+  | 'simulated_attacker' 
+  | 'simulated_hacker';
+
+export type ThreatClassification = 
+  | 'SAFE' 
+  | 'SCAM' 
+  | 'PHISHING' 
+  | 'MALICIOUS' 
+  | 'FAKE_NEWS' 
+  | 'MANIPULATED' 
+  | 'DEEPFAKE' 
+  | 'SUSPICIOUS' 
+  | 'UNKNOWN';
+
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type SecurityAction = 'BLOCK' | 'REVIEW' | 'ALLOW' | 'PENDING';
+
+export interface AISecurityResult {
+  classification: ThreatClassification;
+  confidence: number;
+  risk_level: RiskLevel;
+  reasons: string[];
+  recommendation: SecurityAction;
+  model: string;
+  timestamp: string;
+  processing_time_ms?: number;
+}
+
+export interface SecurityEvent {
+  event_id: string;
+  sender_id: string;
+  sender_type: SenderAccountType;
+  receiver_id: string;
+  platform: string;
+  content_type: ContentType;
+  content_preview: string;
+  content_reference?: string;
+  timestamp: string;
+  status: 'received' | 'analyzing' | 'analyzed' | 'blocked' | 'reviewed' | 'allowed';
+  ai_result?: AISecurityResult;
+  user_action?: SecurityAction;
+}
+
+export interface SystemHealth {
+  status: string;
+  project_name: string;
+  version: string;
+  environment: string;
+  platforms_connected: {
+    platform_1_sender: string;
+    platform_2_receiver: string;
+    platform_3_cybershield_ai: string;
+  };
+  active_ai_models: string[];
+  timestamp: string;
+}
