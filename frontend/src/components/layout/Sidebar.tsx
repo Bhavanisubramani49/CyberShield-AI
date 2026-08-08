@@ -1,136 +1,141 @@
 import React from 'react';
 import { 
-  LayoutDashboard, 
+  Shield, 
   Send, 
   Inbox, 
-  ShieldCheck, 
-  Layers, 
-  Lock
+  LayoutDashboard, 
+  History, 
+  Settings, 
+  Lock,
+  ChevronRight
 } from 'lucide-react';
-import { PlatformMode } from '../../types';
+import { NavigationPage } from '../../types';
 
 interface SidebarProps {
-  currentMode: PlatformMode;
-  setMode: (mode: PlatformMode) => void;
+  currentPage: NavigationPage;
+  setPage: (page: NavigationPage) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentMode, setMode }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
   const menuItems = [
     {
-      id: 'dashboard' as PlatformMode,
-      label: 'Command Center',
-      subtext: 'Overview & Architecture',
-      icon: LayoutDashboard,
-      badge: 'Hub'
+      id: 'home' as NavigationPage,
+      label: 'CyberShield AI / Home',
+      subtext: 'Central Defense & Threat Guard',
+      icon: Shield,
+      badge: 'Core'
     },
     {
-      id: 'sender' as PlatformMode,
-      label: 'Platform 1: Sender',
-      subtext: 'Attack Simulation & Content',
+      id: 'sender' as NavigationPage,
+      label: 'Sender Platform',
+      subtext: 'Attack Simulation & Test Hub',
       icon: Send,
       badge: 'P1'
     },
     {
-      id: 'receiver' as PlatformMode,
-      label: 'Platform 2: Receiver',
-      subtext: 'Multi-App Interceptor',
+      id: 'receiver' as NavigationPage,
+      label: 'Receiver Platform',
+      subtext: 'Multi-App Simulated Surfaces',
       icon: Inbox,
       badge: 'P2'
     },
     {
-      id: 'security_engine' as PlatformMode,
-      label: 'Platform 3: CyberShield AI',
-      subtext: 'AI Model Router & Risk',
-      icon: ShieldCheck,
-      badge: 'P3'
+      id: 'dashboard' as NavigationPage,
+      label: 'Security Dashboard',
+      subtext: 'Analytics & Threat Distribution',
+      icon: LayoutDashboard,
+      badge: 'Metrics'
+    },
+    {
+      id: 'history' as NavigationPage,
+      label: 'Security History',
+      subtext: 'Incident Logs & Quarantine',
+      icon: History,
+      badge: 'Audit'
+    },
+    {
+      id: 'settings' as NavigationPage,
+      label: 'Settings',
+      subtext: 'Privacy, Adapters & Shields',
+      icon: Settings,
+      badge: 'Config'
     }
   ];
 
   return (
-    <aside style={{
-      width: '280px',
-      background: 'rgba(10, 15, 26, 0.95)',
-      borderRight: '1px solid var(--border-subtle)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '20px 16px',
-      gap: '24px'
-    }}>
-      <div>
-        <span style={{ 
+    <aside className="desktop-sidebar">
+      <div style={{ padding: '24px 18px 16px 18px' }}>
+        <div style={{ 
           fontSize: '0.7rem', 
           fontWeight: 700, 
           textTransform: 'uppercase', 
           letterSpacing: '1px', 
-          color: 'var(--text-muted)' 
+          color: 'var(--text-muted)',
+          marginBottom: '12px'
         }}>
-          Core Platforms
-        </span>
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+          Navigation Center
+        </div>
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentMode === item.id;
+            const isActive = currentPage === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setMode(item.id)}
+                onClick={() => setPage(item.id)}
+                className={`nav-item-btn ${isActive ? 'active' : ''}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isActive ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(59, 130, 246, 0.2))' : 'transparent',
-                  border: isActive ? '1px solid var(--border-cyan)' : '1px solid transparent',
-                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.2s ease',
-                  width: '100%'
+                  position: 'relative'
                 }}
               >
-                <div style={{
-                  color: isActive ? 'var(--color-cyan)' : 'var(--text-muted)',
+                <div className="nav-icon" style={{
+                  color: isActive ? 'var(--color-green)' : 'var(--text-muted)',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <Icon size={20} />
+                  <Icon size={19} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                   <div style={{ 
                     fontSize: '0.85rem', 
                     fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#fff' : 'inherit'
+                    color: isActive ? '#ffffff' : 'var(--text-secondary)'
                   }}>
                     {item.label}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.subtext}
                   </div>
                 </div>
-                <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>
-                  {item.badge}
-                </span>
+                {isActive && (
+                  <ChevronRight size={14} color="var(--color-green)" />
+                )}
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Module 1 Architecture Specs Box */}
-      <div className="glass-panel" style={{ padding: '16px', marginTop: 'auto', background: 'rgba(5, 8, 16, 0.6)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <Layers size={16} color="var(--color-cyan)" />
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            Module 1 Active
-          </span>
-        </div>
-        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-          Project foundation verified. Fast-API backend + Cross-Platform responsive frontend ready for 33-module cycle.
-        </p>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.7rem', color: 'var(--color-safe)' }}>
-          <Lock size={12} />
-          <span>Protected Sandbox</span>
+      {/* Bottom Protection Engine Badge */}
+      <div style={{ marginTop: 'auto', padding: '18px' }}>
+        <div className="cyber-card" style={{ padding: '14px', background: 'rgba(19, 28, 46, 0.95)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span className="live-dot" />
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ffffff' }}>
+              CyberShield Defense
+            </span>
+          </div>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+            Real-time multi-modal monitoring initialized for authorized communication events.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', fontSize: '0.7rem', color: 'var(--color-green)' }}>
+            <Lock size={12} />
+            <span>Encrypted Sandbox Active</span>
+          </div>
         </div>
       </div>
     </aside>

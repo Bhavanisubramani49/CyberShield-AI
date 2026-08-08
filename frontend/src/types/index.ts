@@ -1,8 +1,10 @@
-export type PlatformMode = 
-  | 'dashboard' 
+export type NavigationPage = 
+  | 'home' 
   | 'sender' 
   | 'receiver' 
-  | 'security_engine';
+  | 'dashboard' 
+  | 'history' 
+  | 'settings';
 
 export type ContentType = 
   | 'message' 
