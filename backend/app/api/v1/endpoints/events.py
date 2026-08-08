@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 import time
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
 from app.schemas.events import (
     EventAnalyzeRequest, 
     EventSendRequest, 
@@ -13,6 +14,9 @@ router = APIRouter()
 
 # In-memory shared event repository for prototype simulations
 SIMULATED_EVENTS_DB: List[SecurityEventSchema] = []
+
+class UserActionUpdateRequest(BaseModel):
+    action: str
 
 def analyze_payload(req: EventAnalyzeRequest) -> AISecurityResultSchema:
     start_time = time.time()
@@ -171,10 +175,6 @@ def analyze_payload(req: EventAnalyzeRequest) -> AISecurityResultSchema:
 
 @router.post("/events/analyze", response_model=AISecurityResultSchema, summary="Analyze Security Event via Model Router")
 async def analyze_security_event(req: EventAnalyzeRequest):
-    """
-    Routes incoming simulation content to the appropriate specialized AI detector.
-    Returns standardized risk score, Explainable AI reasons, and recommended action.
-    """
     try:
         return analyze_payload(req)
     except Exception as e:
@@ -182,9 +182,6 @@ async def analyze_security_event(req: EventAnalyzeRequest):
 
 @router.post("/events/send", response_model=SecurityEventSchema, summary="Send Security Event to Receiver Platform")
 async def send_security_event(req: EventSendRequest):
-    """
-    Transfers the simulated event into the Receiver Platform queue.
-    """
     event = SecurityEventSchema(
         event_id=req.event_id,
         sender_id=req.sender_name,
@@ -196,7 +193,7 @@ async def send_security_event(req: EventSendRequest):
         timestamp=datetime.now(timezone.utc).isoformat(),
         status="analyzed",
         ai_result=req.ai_result,
-        user_action="PENDING"
+        user_action=req.ai_result.recommendation
     )
     SIMULATED_EVENTS_DB.insert(0, event)
     return event
@@ -204,3 +201,11 @@ async def send_security_event(req: EventSendRequest):
 @router.get("/events", response_model=List[SecurityEventSchema], summary="Get Event Simulation History")
 async def get_security_events():
     return SIMULATED_EVENTS_DB
+
+@router.post("/events/{event_id}/action", response_model=SecurityEventSchema, summary="Update User Action for Receiver Event")
+async def update_event_action(event_id: str, req: UserActionUpdateRequest):
+    for evt in SIMULATED_EVENTS_DB:
+        if evt.event_id == event_id:
+            evt.user_action = req.action
+            return evt
+    raise HTTPException(status_code=404, detail="Security event not found in simulation queue")
