@@ -33,6 +33,17 @@ async def test_api():
         print(f"GET /api/v1/metrics => Status: {res_metrics.status_code}")
         assert res_metrics.status_code == 200
 
+        # 3b. Test AI Models Registry Endpoint (Module 8 Multimodal Registry)
+        res_models = await client.get("/api/v1/ai/models")
+        print(f"GET /api/v1/ai/models => Status: {res_models.status_code}, Models: {len(res_models.json())}")
+        assert res_models.status_code == 200
+        assert len(res_models.json()) == 8
+        model_names = [m["name"] for m in res_models.json()]
+        assert "sms_scam_detection_ai" in model_names
+        assert "email_phishing_detection_ai" in model_names
+        assert "url_threat_detection_ai" in model_names
+        assert "fake_news_classifier_ai" in model_names
+
         # 4. Test Events Analysis Endpoint
         res_event = await client.post("/api/v1/events/analyze", json={
             "content_type": "message",
