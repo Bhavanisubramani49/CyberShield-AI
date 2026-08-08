@@ -8,22 +8,34 @@ import {
   Settings, 
   X, 
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  User,
+  LogOut,
+  Sun,
+  Moon
 } from 'lucide-react';
-import { NavigationPage } from '../../types';
+import { NavigationPage, UserProfile, ThemeMode } from '../../types';
 
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   currentPage: NavigationPage;
   setPage: (page: NavigationPage) => void;
+  user: UserProfile | null;
+  theme: ThemeMode;
+  setTheme: (t: ThemeMode) => void;
+  onLogout: () => void;
 }
 
 export const MobileDrawer: React.FC<MobileDrawerProps> = ({ 
   isOpen, 
   onClose, 
   currentPage, 
-  setPage 
+  setPage,
+  user,
+  theme,
+  setTheme,
+  onLogout
 }) => {
   if (!isOpen) return null;
 
@@ -34,6 +46,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     { id: 'dashboard' as NavigationPage, label: 'Security Dashboard', icon: LayoutDashboard, desc: 'Threat Distribution' },
     { id: 'history' as NavigationPage, label: 'Security History', icon: History, desc: 'Audit & Quarantine' },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings, desc: 'Privacy & Configuration' },
+    { id: 'profile' as NavigationPage, label: 'User Profile', icon: User, desc: 'Security Credentials' },
   ];
 
   const handleSelect = (page: NavigationPage) => {
@@ -60,7 +73,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               <ShieldCheck size={18} color="var(--color-green)" />
             </div>
             <div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#ffffff' }}>CyberShield AI</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>CyberShield AI</div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Android Navigation Menu</div>
             </div>
           </div>
@@ -74,7 +87,30 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </button>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+        {/* User Card */}
+        {user && (
+          <div style={{ padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--color-green)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>
+                {user.fullName.charAt(0)}
+              </div>
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>{user.fullName}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{user.email}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="btn btn-ghost"
+              style={{ padding: '4px' }}
+              title="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun size={15} color="var(--color-warning)" /> : <Moon size={15} color="var(--color-blue)" />}
+            </button>
+          </div>
+        )}
+
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
@@ -83,38 +119,44 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 key={item.id}
                 onClick={() => handleSelect(item.id)}
                 className={`nav-item-btn ${isActive ? 'active' : ''}`}
-                style={{ minHeight: '48px' }}
+                style={{ minHeight: '44px' }}
               >
                 <div className="nav-icon" style={{
                   color: isActive ? 'var(--color-green)' : 'var(--text-muted)',
                   display: 'flex',
                   alignItems: 'center'
                 }}>
-                  <Icon size={20} />
+                  <Icon size={18} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                   <div style={{ 
-                    fontSize: '0.88rem', 
+                    fontSize: '0.85rem', 
                     fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#ffffff' : 'var(--text-secondary)'
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
                   }}>
                     {item.label}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                     {item.desc}
                   </div>
                 </div>
-                {isActive && <ChevronRight size={16} color="var(--color-green)" />}
+                {isActive && <ChevronRight size={15} color="var(--color-green)" />}
               </button>
             );
           })}
         </nav>
 
-        <div style={{ marginTop: 'auto', padding: '12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--color-green)' }}>
-            <span className="live-dot" />
-            <span>8 AI Protection Engines Active</span>
-          </div>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button
+            onClick={() => {
+              onClose();
+              onLogout();
+            }}
+            className="btn btn-outline"
+            style={{ width: '100%', borderColor: 'rgba(239, 68, 68, 0.3)', color: 'var(--color-danger)', fontSize: '0.8rem' }}
+          >
+            <LogOut size={14} /> Sign Out Session
+          </button>
         </div>
       </div>
     </>

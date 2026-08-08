@@ -6,17 +6,19 @@ import {
   LayoutDashboard, 
   History, 
   Settings, 
-  Lock,
-  ChevronRight
+  Lock, 
+  ChevronRight, 
+  User 
 } from 'lucide-react';
-import { NavigationPage } from '../../types';
+import { NavigationPage, UserProfile } from '../../types';
 
 interface SidebarProps {
   currentPage: NavigationPage;
   setPage: (page: NavigationPage) => void;
+  user: UserProfile | null;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) => {
   const menuItems = [
     {
       id: 'home' as NavigationPage,
@@ -103,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
                   <div style={{ 
                     fontSize: '0.85rem', 
                     fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#ffffff' : 'var(--text-secondary)'
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
                   }}>
                     {item.label}
                   </div>
@@ -120,21 +122,59 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage }) => {
         </nav>
       </div>
 
-      {/* Bottom Protection Engine Badge */}
-      <div style={{ marginTop: 'auto', padding: '18px' }}>
-        <div className="cyber-card" style={{ padding: '14px', background: 'rgba(19, 28, 46, 0.95)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+      {/* User Section & Bottom Protection Engine Badge */}
+      <div style={{ marginTop: 'auto', padding: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {user && (
+          <div 
+            onClick={() => setPage('profile')}
+            className="cyber-card" 
+            style={{ 
+              padding: '10px 12px', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: currentPage === 'profile' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-card)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--color-green)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.75rem',
+                fontWeight: 700
+              }}>
+                {user.fullName.charAt(0)}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.fullName}
+                </div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                  {user.role}
+                </div>
+              </div>
+            </div>
+            <User size={14} color="var(--text-muted)" />
+          </div>
+        )}
+
+        <div className="cyber-card" style={{ padding: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span className="live-dot" />
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ffffff' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               CyberShield Defense
             </span>
           </div>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-            Real-time multi-modal monitoring initialized for authorized communication events.
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', fontSize: '0.7rem', color: 'var(--color-green)' }}>
-            <Lock size={12} />
-            <span>Encrypted Sandbox Active</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.68rem', color: 'var(--color-green)' }}>
+            <Lock size={11} />
+            <span>Authenticated Session Active</span>
           </div>
         </div>
       </div>

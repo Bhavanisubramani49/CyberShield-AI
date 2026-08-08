@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, LayoutDashboard, History, Settings } from 'lucide-react';
+import { Shield, LayoutDashboard, History, Settings, User } from 'lucide-react';
 import { NavigationPage } from '../../types';
 
 interface MobileBottomNavProps {
@@ -13,6 +13,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentPage, s
     { id: 'dashboard' as NavigationPage, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'history' as NavigationPage, label: 'History', icon: History },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings },
+    { id: 'profile' as NavigationPage, label: 'Profile', icon: User },
   ];
 
   return (
@@ -26,7 +27,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentPage, s
             onClick={() => setPage(tab.id)}
             className={`mobile-bottom-btn ${isActive ? 'active' : ''}`}
           >
-            <Icon size={20} color={isActive ? 'var(--color-green)' : 'var(--text-muted)'} />
+            <Icon size={18} color={isActive ? 'var(--color-green)' : 'var(--text-muted)'} />
             <span>{tab.label}</span>
           </button>
         );

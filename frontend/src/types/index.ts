@@ -4,7 +4,21 @@ export type NavigationPage =
   | 'receiver' 
   | 'dashboard' 
   | 'history' 
-  | 'settings';
+  | 'settings'
+  | 'profile';
+
+export type AuthScreen = 'login' | 'register' | 'forgot_password';
+
+export type ThemeMode = 'dark' | 'light';
+
+export interface UserProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  accountStatus: 'ACTIVE_PROTECTED' | 'VERIFIED' | 'LIMITED';
+  createdAt: string;
+}
 
 export type ContentType = 
   | 'message' 
