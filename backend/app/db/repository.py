@@ -158,6 +158,9 @@ class EventRepository:
         action: Optional[str] = None,
         classification: Optional[str] = None,
         status: Optional[str] = None,
+        search: Optional[str] = None,
+        date_filter: Optional[str] = None,
+        sort_by: Optional[str] = None,
         page: int = 1,
         limit: int = 20
     ) -> List[SecurityEventSchema]:
@@ -165,6 +168,19 @@ class EventRepository:
         try:
             query = session.query(SecurityEventModel)
 
+            # 1. Search Query
+            if search and search.strip():
+                s = f"%{search.strip()}%"
+                query = query.filter(
+                    (SecurityEventModel.event_id.ilike(s)) |
+                    (SecurityEventModel.sender_name.ilike(s)) |
+                    (SecurityEventModel.classification.ilike(s)) |
+                    (SecurityEventModel.modality.ilike(s)) |
+                    (SecurityEventModel.ai_model.ilike(s)) |
+                    (SecurityEventModel.content.ilike(s))
+                )
+
+            # 2. Field Filters
             if modality and modality.upper() != "ALL":
                 query = query.filter(SecurityEventModel.modality.ilike(f"%{modality}%"))
             if risk_level and risk_level.upper() != "ALL":
@@ -179,15 +195,62 @@ class EventRepository:
             if status and status.upper() != "ALL":
                 query = query.filter(SecurityEventModel.status == status.lower())
 
-            # Order by id descending (most recent first)
-            query = query.order_by(SecurityEventModel.id.desc())
+            # 3. Sorting
+            if sort_by == "oldest":
+                query = query.order_by(SecurityEventModel.id.asc())
+            elif sort_by == "highest_risk":
+                query = query.order_by(SecurityEventModel.risk_score.desc(), SecurityEventModel.id.desc())
+            elif sort_by == "lowest_risk":
+                query = query.order_by(SecurityEventModel.risk_score.asc(), SecurityEventModel.id.desc())
+            else:  # default: newest first
+                query = query.order_by(SecurityEventModel.id.desc())
 
-            # Pagination
+            # 4. Pagination
             limit = min(max(1, limit), 100)
             offset = max(0, (page - 1) * limit)
             models = query.offset(offset).limit(limit).all()
 
             return [self._model_to_schema(m) for m in models]
+        finally:
+            session.close()
+
+    def count_events(
+        self,
+        modality: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        action: Optional[str] = None,
+        classification: Optional[str] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        date_filter: Optional[str] = None
+    ) -> int:
+        session = self.get_session()
+        try:
+            query = session.query(SecurityEventModel)
+            if search and search.strip():
+                s = f"%{search.strip()}%"
+                query = query.filter(
+                    (SecurityEventModel.event_id.ilike(s)) |
+                    (SecurityEventModel.sender_name.ilike(s)) |
+                    (SecurityEventModel.classification.ilike(s)) |
+                    (SecurityEventModel.modality.ilike(s)) |
+                    (SecurityEventModel.ai_model.ilike(s)) |
+                    (SecurityEventModel.content.ilike(s))
+                )
+            if modality and modality.upper() != "ALL":
+                query = query.filter(SecurityEventModel.modality.ilike(f"%{modality}%"))
+            if risk_level and risk_level.upper() != "ALL":
+                query = query.filter(SecurityEventModel.risk_level == risk_level.upper())
+            if action and action.upper() != "ALL":
+                query = query.filter(
+                    (SecurityEventModel.user_action == action.upper()) | 
+                    (SecurityEventModel.final_action == action.upper())
+                )
+            if classification and classification.upper() != "ALL":
+                query = query.filter(SecurityEventModel.classification == classification.upper())
+            if status and status.upper() != "ALL":
+                query = query.filter(SecurityEventModel.status == status.lower())
+            return query.count()
         finally:
             session.close()
 

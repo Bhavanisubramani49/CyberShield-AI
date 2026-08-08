@@ -5,7 +5,7 @@
   "algorithm": "TF-IDF + Logistic Regression Classifier",
   "status": "TRAINED",
   "training_dataset": "sms_scam_dataset.csv",
-  "training_date": "2026-08-08T18:56:46.935605+00:00",
+  "training_date": "2026-08-08T19:05:47.714659+00:00",
   "rows_trained": 12,
   "rows_tested": 4,
   "metrics": {

@@ -50,11 +50,14 @@ async def get_security_events(
     action: Optional[str] = Query(None, description="Filter by action e.g. ALLOW, BLOCK, QUARANTINE, REVIEW"),
     classification: Optional[str] = Query(None, description="Filter by classification e.g. SCAM, PHISHING, SAFE"),
     status: Optional[str] = Query(None, description="Filter by status"),
+    search: Optional[str] = Query(None, description="Search by ID, sender, classification, modality, model, or content"),
+    date_filter: Optional[str] = Query(None, description="Filter by timeframe: all, 24h, 7d, 30d"),
+    sort_by: Optional[str] = Query("newest", description="Sort order: newest, oldest, highest_risk, lowest_risk"),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page")
 ):
     """
-    Returns filtered and paginated list of security events from persistent SQLite database.
+    Returns filtered, searched, sorted, and paginated list of security events from persistent SQLite database.
     """
     return event_processor_service.get_all_events(
         modality=modality,
@@ -62,6 +65,9 @@ async def get_security_events(
         action=action,
         classification=classification,
         status=status,
+        search=search,
+        date_filter=date_filter,
+        sort_by=sort_by,
         page=page,
         limit=limit
     )

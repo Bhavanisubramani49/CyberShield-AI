@@ -135,6 +135,9 @@ class EventProcessorService:
         action: Optional[str] = None,
         classification: Optional[str] = None,
         status: Optional[str] = None,
+        search: Optional[str] = None,
+        date_filter: Optional[str] = None,
+        sort_by: Optional[str] = None,
         page: int = 1,
         limit: int = 20
     ) -> List[SecurityEventSchema]:
@@ -144,8 +147,31 @@ class EventProcessorService:
             action=action,
             classification=classification,
             status=status,
+            search=search,
+            date_filter=date_filter,
+            sort_by=sort_by,
             page=page,
             limit=limit
+        )
+
+    def count_events(
+        self,
+        modality: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        action: Optional[str] = None,
+        classification: Optional[str] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        date_filter: Optional[str] = None
+    ) -> int:
+        return event_repository.count_events(
+            modality=modality,
+            risk_level=risk_level,
+            action=action,
+            classification=classification,
+            status=status,
+            search=search,
+            date_filter=date_filter
         )
 
     def get_event_by_id(self, event_id: str) -> Optional[SecurityEventSchema]:

@@ -344,7 +344,17 @@ export async function sendEventAPI(event: SecurityEvent): Promise<boolean> {
   }
 }
 
-export async function fetchEventsAPI(filters?: { modality?: string; risk_level?: string; action?: string; page?: number; limit?: number }): Promise<SecurityEvent[]> {
+export async function fetchEventsAPI(filters?: { 
+  modality?: string; 
+  risk_level?: string; 
+  action?: string; 
+  classification?: string;
+  search?: string;
+  date_filter?: string;
+  sort_by?: string;
+  page?: number; 
+  limit?: number; 
+}): Promise<SecurityEvent[]> {
   let backendEvents: SecurityEvent[] = [];
   try {
     let url = `${API_BASE_URL}/events`;
@@ -352,6 +362,10 @@ export async function fetchEventsAPI(filters?: { modality?: string; risk_level?:
     if (filters?.modality && filters.modality !== 'ALL') params.append('modality', filters.modality);
     if (filters?.risk_level && filters.risk_level !== 'ALL') params.append('risk_level', filters.risk_level);
     if (filters?.action && filters.action !== 'ALL') params.append('action', filters.action);
+    if (filters?.classification && filters.classification !== 'ALL') params.append('classification', filters.classification);
+    if (filters?.search && filters.search.trim()) params.append('search', filters.search.trim());
+    if (filters?.date_filter && filters.date_filter !== 'all') params.append('date_filter', filters.date_filter);
+    if (filters?.sort_by) params.append('sort_by', filters.sort_by);
     if (filters?.page) params.append('page', String(filters.page));
     if (filters?.limit) params.append('limit', String(filters.limit));
 
@@ -381,9 +395,66 @@ export async function fetchEventsAPI(filters?: { modality?: string; risk_level?:
       }
     });
 
-    return Array.from(uniqueMap.values());
+    let list = Array.from(uniqueMap.values());
+
+    // Apply client-side filters if operating in offline/fallback mode
+    if (filters?.search && filters.search.trim()) {
+      const q = filters.search.toLowerCase();
+      list = list.filter(e => 
+        e.event_id.toLowerCase().includes(q) ||
+        (e.sender_id && e.sender_id.toLowerCase().includes(q)) ||
+        (e.ai_result?.classification && e.ai_result.classification.toLowerCase().includes(q)) ||
+        (e.content_type && e.content_type.toLowerCase().includes(q)) ||
+        (e.content_preview && e.content_preview.toLowerCase().includes(q))
+      );
+    }
+    if (filters?.classification && filters.classification !== 'ALL') {
+      list = list.filter(e => e.ai_result?.classification === filters.classification);
+    }
+    if (filters?.modality && filters.modality !== 'ALL') {
+      const mod = filters.modality.toLowerCase();
+      list = list.filter(e => e.content_type === mod);
+    }
+    if (filters?.risk_level && filters.risk_level !== 'ALL') {
+      list = list.filter(e => e.ai_result?.risk_level === filters.risk_level);
+    }
+    if (filters?.action && filters.action !== 'ALL') {
+      list = list.filter(e => e.user_action === filters.action || e.final_action === filters.action);
+    }
+
+    if (filters?.sort_by === 'oldest') {
+      list.reverse();
+    } else if (filters?.sort_by === 'highest_risk') {
+      list.sort((a, b) => (b.ai_result?.risk_score || 0) - (a.ai_result?.risk_score || 0));
+    } else if (filters?.sort_by === 'lowest_risk') {
+      list.sort((a, b) => (a.ai_result?.risk_score || 0) - (b.ai_result?.risk_score || 0));
+    }
+
+    return list;
   } catch (e) {
     return [];
+  }
+}
+
+export async function deleteEventAPI(eventId: string): Promise<boolean> {
+  try {
+    const raw = localStorage.getItem(LOCAL_EVENTS_STORAGE_KEY);
+    if (raw) {
+      const list: SecurityEvent[] = JSON.parse(raw);
+      const updated = list.filter(e => e.event_id !== eventId);
+      localStorage.setItem(LOCAL_EVENTS_STORAGE_KEY, JSON.stringify(updated));
+    }
+  } catch (e) {
+    console.warn('Local storage delete error:', e);
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${eventId}`, {
+      method: 'DELETE'
+    });
+    return res.ok;
+  } catch (e) {
+    return true; // Local simulation deleted
   }
 }
 
