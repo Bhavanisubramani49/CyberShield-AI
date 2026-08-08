@@ -41,6 +41,12 @@ class SecurityEventModel(Base):
         cascade="all, delete-orphan",
         passive_deletes=True
     )
+    notifications = relationship(
+        "NotificationModel", 
+        back_populates="event", 
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
 
 class EventTimelineModel(Base):
     __tablename__ = "event_timelines"
@@ -65,3 +71,22 @@ class EventActionModel(Base):
     actor = Column(String(128), nullable=False, default="Authenticated Security Officer")
 
     event = relationship("SecurityEventModel", back_populates="actions")
+
+class NotificationModel(Base):
+    __tablename__ = "security_notifications"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    notification_id = Column(String(64), unique=True, index=True, nullable=False)
+    event_id = Column(String(64), ForeignKey("security_events.event_id", ondelete="CASCADE"), index=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    severity = Column(String(32), index=True, nullable=False)  # INFO, REVIEW, WARNING, HIGH_RISK, CRITICAL
+    classification = Column(String(64), nullable=False)
+    risk_score = Column(Integer, nullable=False, default=0)
+    risk_level = Column(String(32), nullable=False, default="LOW")
+    action = Column(String(64), nullable=False, default="ALLOW")
+    is_read = Column(Integer, nullable=False, default=0, index=True)
+    created_at = Column(String(64), nullable=False)
+    read_at = Column(String(64), nullable=True)
+
+    event = relationship("SecurityEventModel", back_populates="notifications")

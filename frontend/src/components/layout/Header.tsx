@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Menu, 
   X, 
   Activity, 
   Monitor, 
-  Smartphone,
-  Sun,
-  Moon,
-  LogOut
+  Smartphone, 
+  Sun, 
+  Moon, 
+  LogOut,
+  Bell
 } from 'lucide-react';
-import { SystemHealth, UserProfile, ThemeMode, NavigationPage } from '../../types';
+import { SystemHealth, UserProfile, ThemeMode, NavigationPage, NotificationUnreadStats } from '../../types';
+import { fetchUnreadNotificationStatsAPI } from '../../services/api';
 
 interface HeaderProps {
   health: SystemHealth | null;
@@ -37,6 +39,28 @@ export const Header: React.FC<HeaderProps> = ({
   setPage,
   onLogout
 }) => {
+  const [unreadStats, setUnreadStats] = useState<NotificationUnreadStats>({
+    unread_count: 0,
+    critical_count: 0,
+    high_risk_count: 0,
+    review_count: 0,
+    total_count: 0
+  });
+
+  useEffect(() => {
+    loadUnread();
+    const interval = setInterval(loadUnread, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUnread = async () => {
+    try {
+      const stats = await fetchUnreadNotificationStatsAPI();
+      setUnreadStats(stats);
+    } catch (e) {
+      // Handled
+    }
+  };
   return (
     <header style={{
       display: 'flex',
@@ -127,16 +151,43 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
+        {/* Notification Bell & Live Alert Badge */}
+        <button
+          onClick={() => setPage('notifications')}
+          className="btn btn-outline"
+          style={{
+            position: 'relative',
+            padding: '6px 12px',
+            height: '34px',
+            minWidth: deviceMode === 'android' ? '48px' : 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          title="Security Notifications & Alert Center"
+          aria-label="Security notifications"
+        >
+          <Bell size={15} color={unreadStats.critical_count > 0 ? 'var(--color-danger)' : unreadStats.unread_count > 0 ? 'var(--color-warning)' : 'var(--color-green)'} />
+          {unreadStats.unread_count > 0 && (
+            <span 
+              className={`badge ${unreadStats.critical_count > 0 ? 'badge-danger' : 'badge-green'}`} 
+              style={{ fontSize: '0.62rem', padding: '1px 6px', fontWeight: 800 }}
+            >
+              {unreadStats.unread_count}
+            </span>
+          )}
+        </button>
+
         {/* Theme Toggle Button */}
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="btn btn-outline"
-          style={{ padding: '6px 10px', height: '34px' }}
+          style={{ padding: '6px 10px', height: '34px', minWidth: deviceMode === 'android' ? '48px' : 'auto' }}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? <Sun size={15} color="var(--color-warning)" /> : <Moon size={15} color="var(--color-blue)" />}
-          <span style={{ fontSize: '0.75rem', textTransform: 'capitalize' }}>{theme}</span>
+          <span style={{ fontSize: '0.75rem', textTransform: 'capitalize', display: deviceMode === 'android' ? 'none' : 'inline' }}>{theme}</span>
         </button>
 
         {/* Viewport Switcher (Windows Desktop vs Android Mobile View) */}

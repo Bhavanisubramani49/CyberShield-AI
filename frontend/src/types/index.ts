@@ -5,6 +5,7 @@ export type NavigationPage =
   | 'monitor' 
   | 'dashboard' 
   | 'history' 
+  | 'notifications'
   | 'settings' 
   | 'profile';
 
@@ -188,4 +189,30 @@ export interface SystemHealth {
   };
   active_ai_models: string[];
   timestamp: string;
+}
+
+export type NotificationSeverity = 'INFO' | 'REVIEW' | 'WARNING' | 'HIGH_RISK' | 'CRITICAL';
+
+export interface SecurityNotification {
+  id?: number;
+  notification_id: string;
+  event_id: string;
+  title: string;
+  message: string;
+  severity: NotificationSeverity | string;
+  classification: string;
+  risk_score: number;
+  risk_level: string;
+  action: string;
+  is_read: boolean;
+  created_at: string;
+  read_at?: string | null;
+}
+
+export interface NotificationUnreadStats {
+  unread_count: number;
+  critical_count: number;
+  high_risk_count: number;
+  review_count: number;
+  total_count: number;
 }

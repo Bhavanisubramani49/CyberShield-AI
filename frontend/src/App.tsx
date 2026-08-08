@@ -18,6 +18,8 @@ import { NavigationPage, SystemHealth, UserProfile, AuthScreen, ThemeMode } from
 import { fetchHealth } from './services/api';
 import { getStoredUser, setStoredUser, getStoredTheme, setStoredTheme, DEFAULT_USER } from './services/auth';
 
+import { NotificationsPage } from './pages/NotificationsPage';
+
 export const App: React.FC = () => {
   // Authentication & Session State
   const [user, setUser] = useState<UserProfile | null>(() => {
@@ -147,6 +149,7 @@ export const App: React.FC = () => {
                   {currentPage === 'monitor' && <MonitorPage />}
                   {currentPage === 'dashboard' && <DashboardPage health={health} />}
                   {currentPage === 'history' && <HistoryPage />}
+                  {currentPage === 'notifications' && <NotificationsPage />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}
                   {currentPage === 'profile' && (
                     <ProfilePage 

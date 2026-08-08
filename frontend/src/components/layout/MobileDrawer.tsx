@@ -13,7 +13,8 @@ import {
   User, 
   LogOut, 
   Sun, 
-  Moon 
+  Moon,
+  Bell 
 } from 'lucide-react';
 import { NavigationPage, UserProfile, ThemeMode } from '../../types';
 
@@ -47,6 +48,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     { id: 'monitor' as NavigationPage, label: 'Communication Monitor', icon: Activity, desc: 'Real-Time Event Stream & Bus' },
     { id: 'dashboard' as NavigationPage, label: 'Security Dashboard', icon: LayoutDashboard, desc: 'Threat Distribution' },
     { id: 'history' as NavigationPage, label: 'Security History', icon: History, desc: 'Audit & Quarantine' },
+    { id: 'notifications' as NavigationPage, label: 'Notification Center', icon: Bell, desc: 'Real-Time Alerts & Threat Dispatch' },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings, desc: 'Privacy & Configuration' },
     { id: 'profile' as NavigationPage, label: 'User Profile', icon: User, desc: 'Security Credentials' },
   ];

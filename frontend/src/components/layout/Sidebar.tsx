@@ -9,7 +9,8 @@ import {
   Settings, 
   Lock, 
   ChevronRight, 
-  User 
+  User,
+  Bell
 } from 'lucide-react';
 import { NavigationPage, UserProfile } from '../../types';
 
@@ -62,6 +63,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
       subtext: 'Incident Logs & Quarantine',
       icon: History,
       badge: 'Audit'
+    },
+    {
+      id: 'notifications' as NavigationPage,
+      label: 'Notification Center',
+      subtext: 'Real-Time Alerts & Threat Dispatch',
+      icon: Bell,
+      badge: 'Alerts'
     },
     {
       id: 'settings' as NavigationPage,

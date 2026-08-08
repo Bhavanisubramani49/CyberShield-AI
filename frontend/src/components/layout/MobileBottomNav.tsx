@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, LayoutDashboard, History, Settings, User } from 'lucide-react';
+import { Shield, LayoutDashboard, History, Settings, Bell } from 'lucide-react';
 import { NavigationPage } from '../../types';
 
 interface MobileBottomNavProps {
@@ -11,9 +11,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ currentPage, s
   const tabs = [
     { id: 'home' as NavigationPage, label: 'Home', icon: Shield },
     { id: 'dashboard' as NavigationPage, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'notifications' as NavigationPage, label: 'Alerts', icon: Bell },
     { id: 'history' as NavigationPage, label: 'History', icon: History },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings },
-    { id: 'profile' as NavigationPage, label: 'Profile', icon: User },
   ];
 
   return (

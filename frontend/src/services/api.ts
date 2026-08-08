@@ -7,7 +7,9 @@ import {
   SecurityAction,
   EventStats,
   DashboardSummaryData,
-  RegisteredAIModel
+  RegisteredAIModel,
+  SecurityNotification,
+  NotificationUnreadStats
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -455,6 +457,126 @@ export async function deleteEventAPI(eventId: string): Promise<boolean> {
     return res.ok;
   } catch (e) {
     return true; // Local simulation deleted
+  }
+}
+
+// ----------------------------------------------------
+// Real-Time Notification & Alert Center APIs (Module 13)
+// ----------------------------------------------------
+
+export async function fetchNotificationsAPI(filters?: { 
+  severity?: string; 
+  is_read?: boolean; 
+  page?: number; 
+  limit?: number 
+}): Promise<SecurityNotification[]> {
+  try {
+    let url = `${API_BASE_URL}/notifications`;
+    const params = new URLSearchParams();
+    if (filters?.severity && filters.severity !== 'ALL') params.append('severity', filters.severity);
+    if (filters?.is_read !== undefined) params.append('is_read', String(filters.is_read));
+    if (filters?.page) params.append('page', String(filters.page));
+    if (filters?.limit) params.append('limit', String(filters.limit));
+
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn('Notifications API offline, deriving from stored events:', e);
+  }
+
+  // Resilient fallback derived directly from real events
+  const events = await fetchEventsAPI();
+  return events.map(e => {
+    const isCrit = e.ai_result?.risk_level === 'CRITICAL';
+    const isHigh = e.ai_result?.risk_level === 'HIGH';
+    const isRev = e.ai_result?.risk_level === 'MEDIUM' || e.user_action === 'REVIEW';
+    const severity = isCrit ? 'CRITICAL' : isHigh ? 'HIGH_RISK' : isRev ? 'REVIEW' : 'INFO';
+    const title = isCrit 
+      ? `🚨 Critical Security Threat: ${e.ai_result?.classification}` 
+      : isHigh 
+        ? `⚠️ High-Risk Content: ${e.ai_result?.classification}` 
+        : isRev 
+          ? `🔎 Review Required: ${e.ai_result?.classification}` 
+          : `✓ Safe Content Verified`;
+
+    return {
+      notification_id: `NOTIF-${e.event_id.replace('EVT-', '')}`,
+      event_id: e.event_id,
+      title: title,
+      message: e.content_preview,
+      severity: severity,
+      classification: e.ai_result?.classification || 'SAFE',
+      risk_score: e.ai_result?.risk_score || 15,
+      risk_level: e.ai_result?.risk_level || 'LOW',
+      action: (e.user_action || e.final_action || 'ALLOW') as string,
+      is_read: e.user_action !== 'REVIEW' && e.ai_result?.classification === 'SAFE',
+      created_at: e.timestamp || e.created_at || new Date().toISOString()
+    };
+  });
+}
+
+export async function fetchUnreadNotificationStatsAPI(): Promise<NotificationUnreadStats> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/unread`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Handled by local derivation
+  }
+
+  const notifs = await fetchNotificationsAPI();
+  const unread = notifs.filter(n => !n.is_read);
+  return {
+    unread_count: unread.length,
+    critical_count: unread.filter(n => n.severity === 'CRITICAL').length,
+    high_risk_count: unread.filter(n => n.severity === 'HIGH_RISK').length,
+    review_count: unread.filter(n => n.severity === 'REVIEW').length,
+    total_count: notifs.length
+  };
+}
+
+export async function markNotificationReadAPI(notificationId: string, isRead: boolean = true): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read?is_read=${isRead}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return res.ok;
+  } catch (e) {
+    return true;
+  }
+}
+
+export async function markAllNotificationsReadAPI(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return res.ok;
+  } catch (e) {
+    return true;
+  }
+}
+
+export async function deleteNotificationAPI(notificationId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
+      method: 'DELETE'
+    });
+    return res.ok;
+  } catch (e) {
+    return true;
   }
 }
 

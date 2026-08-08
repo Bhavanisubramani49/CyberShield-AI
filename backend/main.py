@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import health, events, ai, dashboard
+from app.api.v1.endpoints import health, events, ai, dashboard, notifications
 from app.db.database import init_db
 
 app = FastAPI(
@@ -32,6 +32,7 @@ app.include_router(health.router, prefix=settings.API_V1_STR, tags=["System Heal
 app.include_router(events.router, prefix=settings.API_V1_STR, tags=["Security Events & Analysis"])
 app.include_router(ai.router, prefix=settings.API_V1_STR, tags=["AI Engine Registry"])
 app.include_router(dashboard.router, prefix=settings.API_V1_STR, tags=["Security Dashboard & Analytics"])
+app.include_router(notifications.router, prefix=settings.API_V1_STR, tags=["Real-Time Security Notifications"])
 
 @app.get("/", tags=["Root"])
 async def root():
