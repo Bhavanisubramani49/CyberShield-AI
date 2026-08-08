@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import health
+from app.api.v1.endpoints import health, events
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -23,6 +23,7 @@ app.add_middleware(
 
 # Include v1 API routes
 app.include_router(health.router, prefix=settings.API_V1_STR, tags=["System Health"])
+app.include_router(events.router, prefix=settings.API_V1_STR, tags=["Security Events & Analysis"])
 
 @app.get("/", tags=["Root"])
 async def root():

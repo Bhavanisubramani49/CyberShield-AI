@@ -50,7 +50,7 @@ export type ThreatClassification =
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type SecurityAction = 'BLOCK' | 'REVIEW' | 'ALLOW' | 'PENDING';
+export type SecurityAction = 'BLOCK' | 'REVIEW' | 'ALLOW' | 'QUARANTINE' | 'PENDING';
 
 export interface AISecurityResult {
   classification: ThreatClassification;
