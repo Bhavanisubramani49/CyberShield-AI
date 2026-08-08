@@ -6,6 +6,7 @@ import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomePage } from './pages/HomePage';
 import { SenderPage } from './pages/SenderPage';
 import { ReceiverPage } from './pages/ReceiverPage';
+import { MonitorPage } from './pages/MonitorPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -143,6 +144,7 @@ export const App: React.FC = () => {
                   {currentPage === 'home' && <HomePage health={health} />}
                   {currentPage === 'sender' && <SenderPage />}
                   {currentPage === 'receiver' && <ReceiverPage />}
+                  {currentPage === 'monitor' && <MonitorPage />}
                   {currentPage === 'dashboard' && <DashboardPage health={health} />}
                   {currentPage === 'history' && <HistoryPage />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}

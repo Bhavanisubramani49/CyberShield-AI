@@ -1,4 +1,12 @@
-import { SystemHealth, AISecurityResult, SecurityEvent, ContentType, SenderAccountType, SecurityAction } from '../types';
+import { 
+  SystemHealth, 
+  AISecurityResult, 
+  SecurityEvent, 
+  ContentType, 
+  SenderAccountType, 
+  SecurityAction,
+  EventStats
+} from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 const LOCAL_EVENTS_STORAGE_KEY = 'cybershield_simulated_events';
@@ -72,6 +80,7 @@ export async function analyzeEventAPI(
       return {
         classification: contentType === 'message' ? 'SCAM' : 'PHISHING',
         confidence: 0.98,
+        risk_score: 96,
         risk_level: 'CRITICAL',
         reasons: ['Urgency call-to-action detected', 'Unsolicited financial or credential demand', 'Deceptive communication pattern'],
         recommendation: 'QUARANTINE',
@@ -86,6 +95,7 @@ export async function analyzeEventAPI(
     return {
       classification: 'MALICIOUS',
       confidence: 0.99,
+      risk_score: 98,
       risk_level: 'CRITICAL',
       reasons: ['Direct IP or deceptive high-risk TLD', 'Homograph phishing pattern', 'Flagged in threat intelligence dataset'],
       recommendation: 'BLOCK',
@@ -99,6 +109,7 @@ export async function analyzeEventAPI(
     return {
       classification: 'FAKE_NEWS',
       confidence: 0.94,
+      risk_score: 78,
       risk_level: 'HIGH',
       reasons: ['Sensationalist clickbait linguistic pattern', 'Unsubstantiated factual claim', 'Linguistic distortion score high'],
       recommendation: 'REVIEW',
@@ -112,6 +123,7 @@ export async function analyzeEventAPI(
     return {
       classification: 'DEEPFAKE',
       confidence: 0.96,
+      risk_score: 92,
       risk_level: 'CRITICAL',
       reasons: ['Temporal frame inconsistency across 48 frames', 'Facial boundary blending artifacts', 'Spectral frequency anomalies'],
       recommendation: 'BLOCK',
@@ -125,6 +137,7 @@ export async function analyzeEventAPI(
     return {
       classification: 'MANIPULATED',
       confidence: 0.95,
+      risk_score: 88,
       risk_level: 'HIGH',
       reasons: ['Pixel-level copy-move inconsistency', 'EXIF metadata distortion', 'GAN synthesis residual flags'],
       recommendation: 'QUARANTINE',
@@ -138,6 +151,7 @@ export async function analyzeEventAPI(
     return {
       classification: 'MALICIOUS',
       confidence: 0.98,
+      risk_score: 97,
       risk_level: 'CRITICAL',
       reasons: ['High-risk macro or executable file signature', 'Simulated suspicious PE header', 'Dangerous script execution flags'],
       recommendation: 'QUARANTINE',
@@ -150,6 +164,7 @@ export async function analyzeEventAPI(
   return {
     classification: 'SAFE',
     confidence: 0.97,
+    risk_score: 14,
     risk_level: 'LOW',
     reasons: ['Legitimate conversational profile', 'Zero threat keywords or anomalous signatures detected'],
     recommendation: 'ALLOW',
@@ -219,18 +234,28 @@ export async function fetchEventsAPI(): Promise<SecurityEvent[]> {
       // Seed initial high-quality demonstration events across modalities
       const initialSeed: SecurityEvent[] = [
         {
-          event_id: 'EVT-9041',
+          event_id: 'EVT-10001',
           sender_id: 'Attacker Persona (+91 98400 12345)',
           sender_type: 'simulated_attacker',
           receiver_id: 'Simulated Receiver',
+          receiver_surface: 'Messages / SMS',
           platform: 'CyberShield-Simulation-Hub',
           content_type: 'message',
           content_preview: 'Congratulations! You won ₹10,00,000 lottery cash prize. Click here immediately: http://192.168.1.1/free-reward.xyz',
           timestamp: '10:42:15 AM',
           status: 'analyzed',
+          classification: 'SCAM',
+          risk_score: 96,
+          risk_level: 'CRITICAL',
+          confidence: 0.98,
+          ai_model: 'sms_scam_detection_ai',
+          forensic_reasons: ['Unsolicited lottery cash prize claim', 'Urgency language detected', 'Suspicious unverified IP link'],
+          recommended_action: 'QUARANTINE',
+          final_action: 'QUARANTINE',
           ai_result: {
             classification: 'SCAM',
             confidence: 0.98,
+            risk_score: 96,
             risk_level: 'CRITICAL',
             reasons: ['Unsolicited lottery cash prize claim', 'Urgency language detected', 'Suspicious unverified IP link'],
             recommendation: 'QUARANTINE',
@@ -238,21 +263,39 @@ export async function fetchEventsAPI(): Promise<SecurityEvent[]> {
             timestamp: new Date().toISOString(),
             processing_time_ms: 28.4
           },
-          user_action: 'QUARANTINE'
+          user_action: 'QUARANTINE',
+          timeline: [
+            { step: 'Event Created', status: 'DONE', timestamp: '10:42:11', detail: 'Dispatched in Sender Platform' },
+            { step: 'Event Received', status: 'DONE', timestamp: '10:42:12', detail: 'Ingested into CyberShield Event Bus' },
+            { step: 'AI Analysis Started', status: 'DONE', timestamp: '10:42:12', detail: 'Routed to sms_scam_detection_ai' },
+            { step: 'AI Analysis Completed', status: 'DONE', timestamp: '10:42:13', detail: 'Classification: SCAM (96/100)' },
+            { step: 'Security Decision', status: 'DONE', timestamp: '10:42:13', detail: 'Action: QUARANTINE' },
+            { step: 'Receiver Routed', status: 'DONE', timestamp: '10:42:13', detail: 'Target: Messages / SMS' }
+          ]
         },
         {
-          event_id: 'EVT-9038',
+          event_id: 'EVT-10002',
           sender_id: 'security-alert@bank-verify.net',
           sender_type: 'simulated_attacker',
           receiver_id: 'Simulated Receiver',
+          receiver_surface: 'Email Inbox',
           platform: 'CyberShield-Simulation-Hub',
           content_type: 'email',
           content_preview: 'Urgent: Your banking security profile requires immediate password re-verification.',
           timestamp: '10:38:02 AM',
           status: 'analyzed',
+          classification: 'PHISHING',
+          risk_score: 94,
+          risk_level: 'CRITICAL',
+          confidence: 0.97,
+          ai_model: 'email_phishing_detection_ai',
+          forensic_reasons: ['Credential harvesting language', 'Urgent suspension threat', 'Deceptive verification link'],
+          recommended_action: 'BLOCK',
+          final_action: 'BLOCK',
           ai_result: {
             classification: 'PHISHING',
             confidence: 0.97,
+            risk_score: 94,
             risk_level: 'CRITICAL',
             reasons: ['Credential harvesting language', 'Urgent suspension threat', 'Deceptive verification link'],
             recommendation: 'BLOCK',
@@ -260,21 +303,39 @@ export async function fetchEventsAPI(): Promise<SecurityEvent[]> {
             timestamp: new Date().toISOString(),
             processing_time_ms: 38.1
           },
-          user_action: 'BLOCK'
+          user_action: 'BLOCK',
+          timeline: [
+            { step: 'Event Created', status: 'DONE', timestamp: '10:38:01', detail: 'Dispatched via Email Generator' },
+            { step: 'Event Received', status: 'DONE', timestamp: '10:38:01', detail: 'Ingested into CyberShield Bus' },
+            { step: 'AI Analysis Started', status: 'DONE', timestamp: '10:38:02', detail: 'Routed to email_phishing_detection_ai' },
+            { step: 'AI Analysis Completed', status: 'DONE', timestamp: '10:38:02', detail: 'Classification: PHISHING (94/100)' },
+            { step: 'Security Decision', status: 'DONE', timestamp: '10:38:02', detail: 'Action: BLOCK' },
+            { step: 'Receiver Routed', status: 'DONE', timestamp: '10:38:02', detail: 'Target: Email Inbox' }
+          ]
         },
         {
-          event_id: 'EVT-9025',
+          event_id: 'EVT-10003',
           sender_id: 'Alice Johnson (+91 98111 22233)',
           sender_type: 'normal_user',
           receiver_id: 'Simulated Receiver',
+          receiver_surface: 'Messages / SMS',
           platform: 'CyberShield-Simulation-Hub',
           content_type: 'message',
           content_preview: 'Hi Alex, are we still meeting at 3 PM today to review the project documentation?',
           timestamp: '10:25:40 AM',
           status: 'analyzed',
+          classification: 'SAFE',
+          risk_score: 14,
+          risk_level: 'LOW',
+          confidence: 0.96,
+          ai_model: 'sms_scam_detection_ai',
+          forensic_reasons: ['Standard conversational linguistic profile', 'Zero threat keywords or anomalous links'],
+          recommended_action: 'ALLOW',
+          final_action: 'ALLOW',
           ai_result: {
             classification: 'SAFE',
             confidence: 0.96,
+            risk_score: 14,
             risk_level: 'LOW',
             reasons: ['Standard conversational linguistic profile', 'Zero threat keywords or anomalous links'],
             recommendation: 'ALLOW',
@@ -282,51 +343,13 @@ export async function fetchEventsAPI(): Promise<SecurityEvent[]> {
             timestamp: new Date().toISOString(),
             processing_time_ms: 19.4
           },
-          user_action: 'ALLOW'
-        },
-        {
-          event_id: 'EVT-9018',
-          sender_id: 'Social Bot @crypto_reward_99',
-          sender_type: 'fake_account',
-          receiver_id: 'Simulated Receiver',
-          platform: 'CyberShield-Simulation-Hub',
-          content_type: 'profile',
-          content_preview: 'Profile: @giveaway_reward_bot_99 (12 followers / 4820 following)',
-          timestamp: '10:18:22 AM',
-          status: 'analyzed',
-          ai_result: {
-            classification: 'SUSPICIOUS',
-            confidence: 0.93,
-            risk_level: 'HIGH',
-            reasons: ['Anomalous follower/following ratio (>100:1)', 'Automated account velocity flag', 'Promotional spam heuristic'],
-            recommendation: 'REVIEW',
-            model: 'fake_profile_analyzer_ai',
-            timestamp: new Date().toISOString(),
-            processing_time_ms: 29.8
-          },
-          user_action: 'REVIEW'
-        },
-        {
-          event_id: 'EVT-9012',
-          sender_id: 'Global News Feed Simulator',
-          sender_type: 'fake_account',
-          receiver_id: 'Simulated Receiver',
-          platform: 'CyberShield-Simulation-Hub',
-          content_type: 'news',
-          content_preview: 'SHOCKING: Central Government to ban all digital payment apps starting tomorrow!',
-          timestamp: '10:12:05 AM',
-          status: 'analyzed',
-          ai_result: {
-            classification: 'FAKE_NEWS',
-            confidence: 0.94,
-            risk_level: 'HIGH',
-            reasons: ['Sensationalist clickbait headline', 'Unsubstantiated factual claim', 'High linguistic distortion score'],
-            recommendation: 'REVIEW',
-            model: 'fake_news_classifier_ai',
-            timestamp: new Date().toISOString(),
-            processing_time_ms: 45.2
-          },
-          user_action: 'REVIEW'
+          user_action: 'ALLOW',
+          timeline: [
+            { step: 'Event Created', status: 'DONE', timestamp: '10:25:39', detail: 'Dispatched by Normal User' },
+            { step: 'Event Received', status: 'DONE', timestamp: '10:25:39', detail: 'Ingested into Bus' },
+            { step: 'AI Analysis Completed', status: 'DONE', timestamp: '10:25:40', detail: 'Classification: SAFE (14/100)' },
+            { step: 'Receiver Routed', status: 'DONE', timestamp: '10:25:40', detail: 'Delivered to Messages / SMS' }
+          ]
         }
       ];
       localStorage.setItem(LOCAL_EVENTS_STORAGE_KEY, JSON.stringify(initialSeed));
@@ -339,6 +362,44 @@ export async function fetchEventsAPI(): Promise<SecurityEvent[]> {
   }
 }
 
+export async function fetchEventStatsAPI(): Promise<EventStats> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/stats`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Fallback to local computation
+  }
+
+  const events = await fetchEventsAPI();
+  const total = events.length;
+  const safe = events.filter(e => e.user_action === 'ALLOW' || e.ai_result?.classification === 'SAFE').length;
+  const blocked = events.filter(e => e.user_action === 'BLOCK').length;
+  const quarantined = events.filter(e => e.user_action === 'QUARANTINE' || e.ai_result?.recommendation === 'QUARANTINE').length;
+  const review = events.filter(e => e.user_action === 'REVIEW' || e.ai_result?.recommendation === 'REVIEW').length;
+  const threats = events.filter(e => e.ai_result?.classification !== 'SAFE').length;
+
+  const modalityDist: Record<string, number> = {};
+  events.forEach(e => {
+    modalityDist[e.content_type] = (modalityDist[e.content_type] || 0) + 1;
+  });
+
+  return {
+    total_events: total,
+    safe_events: safe,
+    threats_detected: threats,
+    blocked: blocked,
+    quarantined: quarantined,
+    under_review: review,
+    allowed: safe,
+    modality_distribution: modalityDist,
+    avg_latency_ms: 22.4
+  };
+}
+
 export async function updateEventActionAPI(eventId: string, action: SecurityAction): Promise<void> {
   try {
     const raw = localStorage.getItem(LOCAL_EVENTS_STORAGE_KEY);
@@ -346,7 +407,7 @@ export async function updateEventActionAPI(eventId: string, action: SecurityActi
       const list: SecurityEvent[] = JSON.parse(raw);
       const updated = list.map(evt => {
         if (evt.event_id === eventId) {
-          return { ...evt, user_action: action };
+          return { ...evt, user_action: action, final_action: action };
         }
         return evt;
       });
@@ -363,6 +424,6 @@ export async function updateEventActionAPI(eventId: string, action: SecurityActi
       body: JSON.stringify({ action })
     });
   } catch (e) {
-    // Fallback handled locally
+    // Handled
   }
 }

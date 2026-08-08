@@ -3,16 +3,17 @@ import {
   Shield, 
   Send, 
   Inbox, 
+  Activity,
   LayoutDashboard, 
   History, 
   Settings, 
   X, 
-  ShieldCheck,
-  ChevronRight,
-  User,
-  LogOut,
-  Sun,
-  Moon
+  ShieldCheck, 
+  ChevronRight, 
+  User, 
+  LogOut, 
+  Sun, 
+  Moon 
 } from 'lucide-react';
 import { NavigationPage, UserProfile, ThemeMode } from '../../types';
 
@@ -31,11 +32,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   isOpen, 
   onClose, 
   currentPage, 
-  setPage,
-  user,
-  theme,
-  setTheme,
-  onLogout
+  setPage, 
+  user, 
+  theme, 
+  setTheme, 
+  onLogout 
 }) => {
   if (!isOpen) return null;
 
@@ -43,6 +44,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     { id: 'home' as NavigationPage, label: 'CyberShield AI / Home', icon: Shield, desc: 'Central Threat Guard' },
     { id: 'sender' as NavigationPage, label: 'Sender Platform', icon: Send, desc: 'Attack Simulation Hub' },
     { id: 'receiver' as NavigationPage, label: 'Receiver Platform', icon: Inbox, desc: 'Multi-App Simulated Surfaces' },
+    { id: 'monitor' as NavigationPage, label: 'Communication Monitor', icon: Activity, desc: 'Real-Time Event Stream & Bus' },
     { id: 'dashboard' as NavigationPage, label: 'Security Dashboard', icon: LayoutDashboard, desc: 'Threat Distribution' },
     { id: 'history' as NavigationPage, label: 'Security History', icon: History, desc: 'Audit & Quarantine' },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings, desc: 'Privacy & Configuration' },

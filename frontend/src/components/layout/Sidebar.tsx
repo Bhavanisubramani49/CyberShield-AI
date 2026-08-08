@@ -3,6 +3,7 @@ import {
   Shield, 
   Send, 
   Inbox, 
+  Activity,
   LayoutDashboard, 
   History, 
   Settings, 
@@ -40,6 +41,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
       subtext: 'Multi-App Simulated Surfaces',
       icon: Inbox,
       badge: 'P2'
+    },
+    {
+      id: 'monitor' as NavigationPage,
+      label: 'Communication Monitor',
+      subtext: 'Real-Time Event Stream & Bus',
+      icon: Activity,
+      badge: 'Stream'
     },
     {
       id: 'dashboard' as NavigationPage,
