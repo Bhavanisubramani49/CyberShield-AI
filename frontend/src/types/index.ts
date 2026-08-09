@@ -8,6 +8,8 @@ export type NavigationPage =
   | 'notifications'
   | 'permissions'
   | 'demo'
+  | 'external-sender'
+  | 'external-receiver'
   | 'settings' 
   | 'profile';
 
@@ -249,4 +251,53 @@ export interface IntegrationSummary {
   pending_platforms: number;
   disconnected_platforms: number;
   active_integrations: PlatformIntegration[];
+}
+
+export interface GatewaySendRequest {
+  sender_id: string;
+  recipient_id?: string;
+  content_type: string;
+  payload: Record<string, any>;
+  source_app?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface GatewaySendResponse {
+  event_id: string;
+  status: string;
+  decision: 'ALLOW' | 'REVIEW' | 'BLOCK' | 'QUARANTINE';
+  delivered_to_receiver: boolean;
+  receiver_status: 'DELIVERED_NORMAL' | 'INTERCEPTED_AND_QUARANTINED' | 'INTERCEPTED_AND_BLOCKED' | 'PENDING_USER_REVIEW';
+  classification: string;
+  risk_score: number;
+  risk_level: string;
+  reasons: string[];
+  model: string;
+  processing_time_ms: number;
+  timestamp: string;
+}
+
+export interface GatewayHealthResponse {
+  status: string;
+  gateway_version: string;
+  ai_detectors_active: number;
+  persistence: string;
+  active_adapters: number;
+  environment: string;
+  timestamp: string;
+}
+
+export interface GatewayReceiverInboxItem {
+  event_id: string;
+  sender_id: string;
+  recipient_id: string;
+  content_type: string;
+  content_preview: string;
+  delivery_state: 'NORMAL_MESSAGE' | 'CYBERSHIELD_SECURITY_WARNING' | 'PENDING_REVIEW';
+  security_decision: 'ALLOW' | 'REVIEW' | 'BLOCK' | 'QUARANTINE';
+  risk_score: number;
+  risk_level: string;
+  interception_reasons: string[];
+  is_quarantined: boolean;
+  timestamp: string;
 }

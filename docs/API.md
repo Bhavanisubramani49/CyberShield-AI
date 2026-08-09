@@ -193,3 +193,69 @@ Interactive ReDoc: `http://127.0.0.1:8000/api/v1/redoc`
 - **Purpose**: Enforces permission checks and normalizes raw incoming event payload.
 - **Query Parameters**: `platform_id` (`simulation`, etc.).
 - **Response**: `200 OK` (`NormalizedEventSchema`) or `403 Forbidden`.
+
+---
+
+## 7. External Gateway & Inter-App Bridge APIs (Module 16)
+
+### `GET /api/v1/gateway/health`
+- **Purpose**: Health heartbeat indicator for the External Sender App and Receiver Mobile App.
+- **Response**: `200 OK`
+```json
+{
+  "status": "HEALTHY",
+  "gateway_version": "1.0.0",
+  "ai_detectors_active": 8,
+  "persistence": "SQLite Persistent",
+  "active_adapters": 7,
+  "environment": "academic_simulation",
+  "timestamp": "2026-08-09T08:00:00.000000Z"
+}
+```
+
+### `POST /api/v1/gateway/send`
+- **Purpose**: Ingests external client synthetic communications through the security gateway, validates the API key, executes the multimodal AI inference pipeline, persists in SQLite, and returns the real-time security decision.
+- **Headers**:
+  - `X-CyberShield-API-Key` (required): Gateway authorization key (default: `cs-sim-key-prod-2026`).
+- **Request Body**:
+```json
+{
+  "sender_id": "Colleague Sarah (+1 555 019 2834)",
+  "recipient_id": "Receiver Mobile Device (+1 555 019 9999)",
+  "content_type": "message",
+  "payload": {
+    "text": "Good morning team, meeting at 10 AM."
+  },
+  "source_app": "CyberShield External Sender Application"
+}
+```
+- **Response**: `200 OK`
+```json
+{
+  "event_id": "EVT-GTW-108291",
+  "status": "PROCESSED",
+  "decision": "ALLOW",
+  "delivered_to_receiver": true,
+  "receiver_status": "DELIVERED_NORMAL",
+  "classification": "SAFE",
+  "risk_score": 12,
+  "risk_level": "LOW",
+  "reasons": ["Authentic conversational pattern", "No financial or urgency trap markers"],
+  "model": "sms_scam_detection_ai",
+  "processing_time_ms": 18.2,
+  "timestamp": "2026-08-09T08:00:00.000000Z"
+}
+```
+
+### `GET /api/v1/gateway/receiver/inbox`
+- **Purpose**: Returns the filtered message feed for the External Receiver Mobile App. Distinguishes normal delivered content from intercepted CyberShield security alert cards.
+- **Query Parameters**:
+  - `recipient_id` (optional): Filter for specific mobile device identifier.
+  - `limit` (int, default: 30)
+- **Response**: `200 OK` (JSON array of `GatewayReceiverInboxItem`).
+
+### `POST /api/v1/gateway/receiver/{event_id}/review-action`
+- **Purpose**: Allows mobile receiver user to interactively `ALLOW` or `BLOCK` a pending review item.
+- **Query Parameters**: `action` (`ALLOW` or `BLOCK`).
+- **Response**: `200 OK` (`{"status": "SUCCESS", "event_id": "...", "new_action": "ALLOW"}`).
+

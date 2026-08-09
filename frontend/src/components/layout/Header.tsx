@@ -9,7 +9,9 @@ import {
   Sun, 
   Moon, 
   LogOut,
-  Bell
+  Bell,
+  Send,
+  Shield
 } from 'lucide-react';
 import { SystemHealth, UserProfile, ThemeMode, NavigationPage, NotificationUnreadStats } from '../../types';
 import { fetchUnreadNotificationStatsAPI } from '../../services/api';
@@ -24,6 +26,7 @@ interface HeaderProps {
   theme: ThemeMode;
   setTheme: (t: ThemeMode) => void;
   setPage: (p: NavigationPage) => void;
+  currentPage?: NavigationPage;
   onLogout: () => void;
 }
 
@@ -37,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   theme,
   setTheme,
   setPage,
+  currentPage = 'home',
   onLogout
 }) => {
   const [unreadStats, setUnreadStats] = useState<NotificationUnreadStats>({
@@ -129,6 +133,39 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Module 16: Three-App Quick Switcher Bar */}
+      <div style={{
+        display: deviceMode === 'android' ? 'none' : 'flex',
+        alignItems: 'center',
+        background: 'rgba(0, 0, 0, 0.3)',
+        padding: '3px',
+        borderRadius: '10px',
+        border: '1px solid var(--border-subtle)',
+        gap: '4px'
+      }}>
+        <button
+          onClick={() => setPage('home')}
+          className={`btn ${currentPage !== 'external-sender' && currentPage !== 'external-receiver' ? 'btn-primary-green' : 'btn-ghost'}`}
+          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
+        >
+          <Shield size={12} /> Command Center
+        </button>
+        <button
+          onClick={() => setPage('external-sender')}
+          className={`btn ${currentPage === 'external-sender' ? 'btn-accent-blue' : 'btn-ghost'}`}
+          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
+        >
+          <Send size={12} /> Sender App
+        </button>
+        <button
+          onClick={() => setPage('external-receiver')}
+          className={`btn ${currentPage === 'external-receiver' ? 'btn-primary-green' : 'btn-ghost'}`}
+          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
+        >
+          <Smartphone size={12} /> Receiver Mobile
+        </button>
       </div>
 
       {/* Right Controls: Telemetry, Theme Switcher, Device Switcher & User Profile */}

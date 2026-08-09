@@ -16,7 +16,8 @@ import {
   Moon,
   Bell,
   Layers,
-  Sparkles 
+  Sparkles,
+  Smartphone 
 } from 'lucide-react';
 import { NavigationPage, UserProfile, ThemeMode } from '../../types';
 
@@ -53,6 +54,8 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
     { id: 'notifications' as NavigationPage, label: 'Notification Center', icon: Bell, desc: 'Real-Time Alerts & Threat Dispatch' },
     { id: 'permissions' as NavigationPage, label: 'Platform Integrations', icon: Layers, desc: 'Adapters & Zero-Trust Scopes' },
     { id: 'demo' as NavigationPage, label: 'Academic Demo Suite', icon: Sparkles, desc: '9 Synthetic Attack Scenarios' },
+    { id: 'external-sender' as NavigationPage, label: 'External Sender App', icon: Send, desc: 'Independent Client Transmission' },
+    { id: 'external-receiver' as NavigationPage, label: 'Receiver Mobile App', icon: Smartphone, desc: 'Filtered Mobile Client Inbox' },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings, desc: 'Privacy & Configuration' },
     { id: 'profile' as NavigationPage, label: 'User Profile', icon: User, desc: 'Security Credentials' },
   ];

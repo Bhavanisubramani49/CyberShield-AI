@@ -19,8 +19,14 @@ Academic Security Testbed & Zero-Trust Defense Architecture
 
 ```mermaid
 flowchart TD
+    subgraph STANDALONE_CLIENTS ["Module 16: Separate Client Applications"]
+        APP1[Standalone External Sender App] -->|HTTPS POST + API Key| GW[CyberShield Core Security Gateway]
+        GW -->|Filtered Inbox Feed| APP2[Standalone External Receiver Mobile App]
+    end
+
     subgraph INGESTION ["1. Ingestion Layer"]
         A[Sender Platform / Test Hub] -->|Raw Payload| B[Platform Integration Adapter]
+        GW -->|Validated Event| B
         C[Standby External Target] -.->|Official OAuth Req.| B
     end
 

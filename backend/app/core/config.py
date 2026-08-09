@@ -16,6 +16,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
     ]
     DATABASE_URL: str = "sqlite+aiosqlite:///./cybershield.db"
+    GATEWAY_API_KEY: str = "cs-sim-key-prod-2026"
+    GATEWAY_RATE_LIMIT_PER_MINUTE: int = 120
 
     model_config = SettingsConfigDict(
         env_file=".env",

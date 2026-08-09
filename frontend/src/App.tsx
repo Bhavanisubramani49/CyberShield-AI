@@ -21,6 +21,8 @@ import { getStoredUser, setStoredUser, getStoredTheme, setStoredTheme, DEFAULT_U
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { DemoModePage } from './pages/DemoModePage';
+import { ExternalSenderApp } from './pages/ExternalSenderApp';
+import { ExternalReceiverApp } from './pages/ExternalReceiverApp';
 
 export const App: React.FC = () => {
   // Authentication & Session State
@@ -72,6 +74,7 @@ export const App: React.FC = () => {
         theme={theme}
         setTheme={handleThemeChange}
         setPage={setPage}
+        currentPage={currentPage}
         onLogout={handleLogout}
       />
 
@@ -154,6 +157,8 @@ export const App: React.FC = () => {
                   {currentPage === 'notifications' && <NotificationsPage />}
                   {currentPage === 'permissions' && <PermissionsPage />}
                   {currentPage === 'demo' && <DemoModePage health={health} />}
+                  {currentPage === 'external-sender' && <ExternalSenderApp />}
+                  {currentPage === 'external-receiver' && <ExternalReceiverApp />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}
                   {currentPage === 'profile' && (
                     <ProfilePage 

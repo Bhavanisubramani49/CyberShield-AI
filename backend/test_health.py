@@ -66,6 +66,43 @@ async def test_api():
         print(f"GET /api/v1/integrations/summary => Status: {res_int_sum.status_code}, Auth: {res_int_sum.json()['authorized_platforms']}")
         assert res_int_sum.status_code == 200
 
+        # 3g. Test External Security Gateway & Inter-App Bridge (Module 16)
+        res_gtw_health = await client.get("/api/v1/gateway/health")
+        print(f"GET /api/v1/gateway/health => Status: {res_gtw_health.status_code}, Persistence: {res_gtw_health.json()['persistence']}")
+        assert res_gtw_health.status_code == 200
+
+        res_gtw_safe = await client.post(
+            "/api/v1/gateway/send",
+            headers={"X-CyberShield-API-Key": "cs-sim-key-prod-2026"},
+            json={
+                "sender_id": "Colleague Sarah (+1 555 019 2834)",
+                "content_type": "message",
+                "payload": {"text": "Good morning team, meeting at 10 AM."}
+            }
+        )
+        print(f"POST /api/v1/gateway/send (Safe) => Status: {res_gtw_safe.status_code}, Decision: {res_gtw_safe.json()['decision']}, Delivered: {res_gtw_safe.json()['delivered_to_receiver']}")
+        assert res_gtw_safe.status_code == 200
+        assert res_gtw_safe.json()["decision"] == "ALLOW"
+        assert res_gtw_safe.json()["delivered_to_receiver"] is True
+
+        res_gtw_threat = await client.post(
+            "/api/v1/gateway/send",
+            headers={"X-CyberShield-API-Key": "cs-sim-key-prod-2026"},
+            json={
+                "sender_id": "Lottery Bot (+91 99999 00000)",
+                "content_type": "message",
+                "payload": {"text": "URGENT: You won ₹10,00,000 lottery cash prize! Call 1800-999-FREE now."}
+            }
+        )
+        print(f"POST /api/v1/gateway/send (Threat) => Status: {res_gtw_threat.status_code}, Decision: {res_gtw_threat.json()['decision']}, Intercepted: {res_gtw_threat.json()['receiver_status']}")
+        assert res_gtw_threat.status_code == 200
+        assert res_gtw_threat.json()["decision"] == "QUARANTINE"
+        assert res_gtw_threat.json()["delivered_to_receiver"] is False
+
+        res_gtw_inbox = await client.get("/api/v1/gateway/receiver/inbox?limit=5")
+        print(f"GET /api/v1/gateway/receiver/inbox => Status: {res_gtw_inbox.status_code}, Total: {len(res_gtw_inbox.json())}")
+        assert res_gtw_inbox.status_code == 200
+
         # 4. Test Events Analysis Endpoint
         res_event = await client.post("/api/v1/events/analyze", json={
             "content_type": "message",

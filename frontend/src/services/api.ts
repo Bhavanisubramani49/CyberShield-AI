@@ -12,7 +12,11 @@ import {
   NotificationUnreadStats,
   PlatformIntegration,
   PermissionDetail,
-  IntegrationSummary
+  IntegrationSummary,
+  GatewaySendRequest,
+  GatewaySendResponse,
+  GatewayHealthResponse,
+  GatewayReceiverInboxItem
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -854,6 +858,64 @@ export async function updatePlatformPermissionsAPI(platformId: string, grantedPe
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: 'Failed to update permissions' }));
     throw new Error(err.detail || 'Permission update failed');
+  }
+  return await res.json();
+}
+
+// ----------------------------------------------------
+// Module 16: External Gateway & Inter-App Bridge APIs
+// ----------------------------------------------------
+
+export async function fetchGatewayHealthAPI(): Promise<GatewayHealthResponse> {
+  const res = await fetch(`${API_BASE_URL}/gateway/health`);
+  if (!res.ok) {
+    throw new Error('CyberShield Security Gateway is unreachable.');
+  }
+  return await res.json();
+}
+
+export async function sendExternalGatewayMessageAPI(
+  req: GatewaySendRequest,
+  apiKey: string = 'cs-sim-key-prod-2026'
+): Promise<GatewaySendResponse> {
+  const res = await fetch(`${API_BASE_URL}/gateway/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CyberShield-API-Key': apiKey
+    },
+    body: JSON.stringify(req)
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Gateway transmission failed.' }));
+    throw new Error(err.detail || `Transmission failed with HTTP ${res.status}`);
+  }
+
+  return await res.json();
+}
+
+export async function fetchReceiverInboxAPI(recipientId?: string): Promise<GatewayReceiverInboxItem[]> {
+  const url = recipientId 
+    ? `${API_BASE_URL}/gateway/receiver/inbox?recipient_id=${encodeURIComponent(recipientId)}`
+    : `${API_BASE_URL}/gateway/receiver/inbox`;
+  
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error('Failed to fetch receiver mobile inbox.');
+  }
+  return await res.json();
+}
+
+export async function submitReceiverReviewActionAPI(
+  eventId: string,
+  action: 'ALLOW' | 'BLOCK'
+): Promise<{ status: string; event_id: string; new_action: string }> {
+  const res = await fetch(`${API_BASE_URL}/gateway/receiver/${eventId}/review-action?action=${action}`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    throw new Error('Failed to submit review action.');
   }
   return await res.json();
 }

@@ -12,7 +12,8 @@ import {
   User,
   Bell,
   Layers,
-  Sparkles
+  Sparkles,
+  Smartphone
 } from 'lucide-react';
 import { NavigationPage, UserProfile } from '../../types';
 
@@ -86,6 +87,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
       subtext: '9 Synthetic Attack Scenarios',
       icon: Sparkles,
       badge: 'Demo'
+    },
+    {
+      id: 'external-sender' as NavigationPage,
+      label: 'External Sender App',
+      subtext: 'Independent Client Transmission',
+      icon: Send,
+      badge: 'App 1'
+    },
+    {
+      id: 'external-receiver' as NavigationPage,
+      label: 'Receiver Mobile App',
+      subtext: 'Filtered Mobile Client Inbox',
+      icon: Smartphone,
+      badge: 'App 2'
     },
     {
       id: 'settings' as NavigationPage,
