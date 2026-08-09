@@ -1,6 +1,5 @@
 export type NavigationPage = 
   | 'home' 
-  | 'sender' 
   | 'receiver' 
   | 'monitor' 
   | 'dashboard' 
@@ -8,8 +7,6 @@ export type NavigationPage =
   | 'notifications'
   | 'permissions'
   | 'demo'
-  | 'external-sender'
-  | 'external-receiver'
   | 'settings' 
   | 'profile';
 
@@ -90,6 +87,8 @@ export interface SecurityEvent {
   content_type: ContentType | string;
   content_preview: string;
   content_reference?: string;
+  raw_content?: string;
+  payload?: Record<string, any>;
   created_at?: string;
   received_at?: string;
   processed_at?: string;

@@ -653,6 +653,8 @@ export async function updateEventActionAPI(eventId: string, action: SecurityActi
   }
 }
 
+export const submitEventActionAPI = updateEventActionAPI;
+
 // ----------------------------------------------------
 // Platform Integration & Permission Architecture (Module 14)
 // ----------------------------------------------------

@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Shield, 
-  Send, 
   Inbox, 
   Activity,
   LayoutDashboard, 
@@ -13,11 +12,10 @@ import {
   User, 
   LogOut, 
   Sun, 
-  Moon,
-  Bell,
-  Layers,
-  Sparkles,
-  Smartphone 
+  Moon, 
+  Bell, 
+  Layers, 
+  Sparkles 
 } from 'lucide-react';
 import { NavigationPage, UserProfile, ThemeMode } from '../../types';
 
@@ -45,17 +43,14 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   if (!isOpen) return null;
 
   const menuItems = [
-    { id: 'home' as NavigationPage, label: 'CyberShield AI / Home', icon: Shield, desc: 'Central Threat Guard' },
-    { id: 'sender' as NavigationPage, label: 'Sender Platform', icon: Send, desc: 'Attack Simulation Hub' },
-    { id: 'receiver' as NavigationPage, label: 'Receiver Platform', icon: Inbox, desc: 'Multi-App Simulated Surfaces' },
+    { id: 'home' as NavigationPage, label: 'Receiver Defense Center', icon: Shield, desc: 'Protection Score & Live Status' },
+    { id: 'receiver' as NavigationPage, label: 'Interactive Sandbox', icon: Inbox, desc: 'Simulated Content Channels' },
     { id: 'monitor' as NavigationPage, label: 'Communication Monitor', icon: Activity, desc: 'Real-Time Event Stream & Bus' },
     { id: 'dashboard' as NavigationPage, label: 'Security Dashboard', icon: LayoutDashboard, desc: 'Threat Distribution' },
     { id: 'history' as NavigationPage, label: 'Security History', icon: History, desc: 'Audit & Quarantine' },
     { id: 'notifications' as NavigationPage, label: 'Notification Center', icon: Bell, desc: 'Real-Time Alerts & Threat Dispatch' },
     { id: 'permissions' as NavigationPage, label: 'Platform Integrations', icon: Layers, desc: 'Adapters & Zero-Trust Scopes' },
     { id: 'demo' as NavigationPage, label: 'Academic Demo Suite', icon: Sparkles, desc: '9 Synthetic Attack Scenarios' },
-    { id: 'external-sender' as NavigationPage, label: 'External Sender App', icon: Send, desc: 'Independent Client Transmission' },
-    { id: 'external-receiver' as NavigationPage, label: 'Receiver Mobile App', icon: Smartphone, desc: 'Filtered Mobile Client Inbox' },
     { id: 'settings' as NavigationPage, label: 'Settings', icon: Settings, desc: 'Privacy & Configuration' },
     { id: 'profile' as NavigationPage, label: 'User Profile', icon: User, desc: 'Security Credentials' },
   ];

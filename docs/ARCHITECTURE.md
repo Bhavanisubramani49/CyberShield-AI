@@ -19,15 +19,20 @@ Academic Security Testbed & Zero-Trust Defense Architecture
 
 ```mermaid
 flowchart TD
-    subgraph STANDALONE_CLIENTS ["Module 16: Separate Client Applications"]
-        APP1[Standalone External Sender App] -->|HTTPS POST + API Key| GW[CyberShield Core Security Gateway]
-        GW -->|Filtered Inbox Feed| APP2[Standalone External Receiver Mobile App]
+    subgraph SENDER_APP ["Application 1: Dedicated Sender Platform (localhost:5174)"]
+        SND[Sender Composer & Personas] -->|HTTPS POST /api/v1/gateway/send + Key| GW[CyberShield Security Gateway]
     end
 
-    subgraph INGESTION ["1. Ingestion Layer"]
-        A[Sender Platform / Test Hub] -->|Raw Payload| B[Platform Integration Adapter]
-        GW -->|Validated Event| B
-        C[Standby External Target] -.->|Official OAuth Req.| B
+    subgraph CYBERSHIELD_CORE ["Application 2: CyberShield AI Core + Receiver Experience (localhost:5173)"]
+        GW --> AI[Multimodal Threat Engine / 8 AI Models]
+        AI --> RISK[Calibrated Risk Engine & Explainable AI]
+        RISK --> DB[(SQLite: cybershield.db)]
+        DB --> SSE[Real-Time SSE Event Bus /events/stream]
+        SSE --> RCV_HOME[Receiver Defense Center]
+        RCV_HOME -->|Safe Content| CHAT_NORMAL[Normal User Delivery / Subtle Badge]
+        RCV_HOME -->|Threat / Dangerous| TOAST_ALERT[🚨 Red In-App Security Toast]
+        TOAST_ALERT --> FOR_MODAL[Deep Forensic Inspection Modal]
+        FOR_MODAL --> USER_CHOICE[User Decision: ALLOW / BLOCK / QUARANTINE / REVIEW]
     end
 
     subgraph SECURITY_GATEWAY ["2. Security Gateway & Normalization"]

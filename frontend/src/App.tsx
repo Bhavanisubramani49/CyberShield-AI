@@ -4,7 +4,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { MobileDrawer } from './components/layout/MobileDrawer';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { HomePage } from './pages/HomePage';
-import { SenderPage } from './pages/SenderPage';
 import { ReceiverPage } from './pages/ReceiverPage';
 import { MonitorPage } from './pages/MonitorPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -21,8 +20,6 @@ import { getStoredUser, setStoredUser, getStoredTheme, setStoredTheme, DEFAULT_U
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
 import { DemoModePage } from './pages/DemoModePage';
-import { ExternalSenderApp } from './pages/ExternalSenderApp';
-import { ExternalReceiverApp } from './pages/ExternalReceiverApp';
 
 export const App: React.FC = () => {
   // Authentication & Session State
@@ -149,7 +146,6 @@ export const App: React.FC = () => {
               <main className="main-viewport">
                 <div className="page-container">
                   {currentPage === 'home' && <HomePage health={health} />}
-                  {currentPage === 'sender' && <SenderPage />}
                   {currentPage === 'receiver' && <ReceiverPage />}
                   {currentPage === 'monitor' && <MonitorPage />}
                   {currentPage === 'dashboard' && <DashboardPage health={health} />}
@@ -157,8 +153,6 @@ export const App: React.FC = () => {
                   {currentPage === 'notifications' && <NotificationsPage />}
                   {currentPage === 'permissions' && <PermissionsPage />}
                   {currentPage === 'demo' && <DemoModePage health={health} />}
-                  {currentPage === 'external-sender' && <ExternalSenderApp />}
-                  {currentPage === 'external-receiver' && <ExternalReceiverApp />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}
                   {currentPage === 'profile' && (
                     <ProfilePage 

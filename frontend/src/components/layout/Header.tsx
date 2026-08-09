@@ -9,9 +9,7 @@ import {
   Sun, 
   Moon, 
   LogOut,
-  Bell,
-  Send,
-  Shield
+  Bell
 } from 'lucide-react';
 import { SystemHealth, UserProfile, ThemeMode, NavigationPage, NotificationUnreadStats } from '../../types';
 import { fetchUnreadNotificationStatsAPI } from '../../services/api';
@@ -40,7 +38,6 @@ export const Header: React.FC<HeaderProps> = ({
   theme,
   setTheme,
   setPage,
-  currentPage = 'home',
   onLogout
 }) => {
   const [unreadStats, setUnreadStats] = useState<NotificationUnreadStats>({
@@ -135,37 +132,30 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Module 16: Three-App Quick Switcher Bar */}
+      {/* Module 17: Interactive Receiver Real-Time Protection Badge */}
       <div style={{
         display: deviceMode === 'android' ? 'none' : 'flex',
         alignItems: 'center',
-        background: 'rgba(0, 0, 0, 0.3)',
-        padding: '3px',
-        borderRadius: '10px',
-        border: '1px solid var(--border-subtle)',
-        gap: '4px'
+        background: 'rgba(16, 185, 129, 0.08)',
+        padding: '5px 14px',
+        borderRadius: '20px',
+        border: '1px solid var(--border-green)',
+        gap: '8px'
       }}>
-        <button
-          onClick={() => setPage('home')}
-          className={`btn ${currentPage !== 'external-sender' && currentPage !== 'external-receiver' ? 'btn-primary-green' : 'btn-ghost'}`}
-          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
-        >
-          <Shield size={12} /> Command Center
-        </button>
-        <button
-          onClick={() => setPage('external-sender')}
-          className={`btn ${currentPage === 'external-sender' ? 'btn-accent-blue' : 'btn-ghost'}`}
-          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
-        >
-          <Send size={12} /> Sender App
-        </button>
-        <button
-          onClick={() => setPage('external-receiver')}
-          className={`btn ${currentPage === 'external-receiver' ? 'btn-primary-green' : 'btn-ghost'}`}
-          style={{ padding: '4px 10px', fontSize: '0.72rem', height: '28px' }}
-        >
-          <Smartphone size={12} /> Receiver Mobile
-        </button>
+        <div style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          background: 'var(--color-green)',
+          boxShadow: '0 0 8px var(--color-green)'
+        }} />
+        <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--color-green)', letterSpacing: '0.02em' }}>
+          RECEIVER DEFENSE ACTIVE
+        </span>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>|</span>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+          External Sender: <code style={{ color: 'var(--color-blue-light)' }}>localhost:5174</code>
+        </span>
       </div>
 
       {/* Right Controls: Telemetry, Theme Switcher, Device Switcher & User Profile */}

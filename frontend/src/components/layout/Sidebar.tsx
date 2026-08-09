@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Shield, 
-  Send, 
   Inbox, 
   Activity,
   LayoutDashboard, 
@@ -12,8 +11,7 @@ import {
   User,
   Bell,
   Layers,
-  Sparkles,
-  Smartphone
+  Sparkles
 } from 'lucide-react';
 import { NavigationPage, UserProfile } from '../../types';
 
@@ -27,24 +25,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
   const menuItems = [
     {
       id: 'home' as NavigationPage,
-      label: 'CyberShield AI / Home',
-      subtext: 'Central Defense & Threat Guard',
+      label: 'Receiver Defense Center',
+      subtext: 'Protection Score & Live Channels',
       icon: Shield,
       badge: 'Core'
     },
     {
-      id: 'sender' as NavigationPage,
-      label: 'Sender Platform',
-      subtext: 'Attack Simulation & Test Hub',
-      icon: Send,
-      badge: 'P1'
-    },
-    {
       id: 'receiver' as NavigationPage,
-      label: 'Receiver Platform',
-      subtext: 'Multi-App Simulated Surfaces',
+      label: 'Interactive Content Sandbox',
+      subtext: 'Safe Feeds & Threat Viewers',
       icon: Inbox,
-      badge: 'P2'
+      badge: 'Channels'
     },
     {
       id: 'monitor' as NavigationPage,
@@ -87,20 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
       subtext: '9 Synthetic Attack Scenarios',
       icon: Sparkles,
       badge: 'Demo'
-    },
-    {
-      id: 'external-sender' as NavigationPage,
-      label: 'External Sender App',
-      subtext: 'Independent Client Transmission',
-      icon: Send,
-      badge: 'App 1'
-    },
-    {
-      id: 'external-receiver' as NavigationPage,
-      label: 'Receiver Mobile App',
-      subtext: 'Filtered Mobile Client Inbox',
-      icon: Smartphone,
-      badge: 'App 2'
     },
     {
       id: 'settings' as NavigationPage,
