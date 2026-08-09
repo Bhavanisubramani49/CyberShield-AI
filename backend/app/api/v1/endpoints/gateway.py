@@ -96,10 +96,10 @@ def receive_external_sender_event(
     event_id = f"EVT-GTW-{int(time.time() * 1000) % 1000000:06d}"
 
     # Map content type & sender persona
-    sender_type = "simulated_attacker"
+    sender_type = "normal_user"
     lower_sender = req.sender_id.lower()
-    if "colleague" in lower_sender or "sarah" in lower_sender or "normal" in lower_sender or "dr." in lower_sender:
-        sender_type = "normal_user"
+    if "attacker" in lower_sender or "phish" in lower_sender or "scammer" in lower_sender or "threat" in lower_sender:
+        sender_type = "simulated_attacker"
     elif "bot" in lower_sender or "fake" in lower_sender:
         sender_type = "fake_account"
 
