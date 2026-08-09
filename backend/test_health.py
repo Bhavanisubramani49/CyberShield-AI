@@ -56,6 +56,16 @@ async def test_api():
         print(f"GET /api/v1/notifications/unread => Status: {res_unread.status_code}, Unread: {res_unread.json()['unread_count']}")
         assert res_unread.status_code == 200
 
+        # 3f. Test Platform Integrations & Permissions Architecture (Module 14)
+        res_integrations = await client.get("/api/v1/integrations")
+        print(f"GET /api/v1/integrations => Status: {res_integrations.status_code}, Adapters: {len(res_integrations.json())}")
+        assert res_integrations.status_code == 200
+        assert len(res_integrations.json()) == 7
+
+        res_int_sum = await client.get("/api/v1/integrations/summary")
+        print(f"GET /api/v1/integrations/summary => Status: {res_int_sum.status_code}, Auth: {res_int_sum.json()['authorized_platforms']}")
+        assert res_int_sum.status_code == 200
+
         # 4. Test Events Analysis Endpoint
         res_event = await client.post("/api/v1/events/analyze", json={
             "content_type": "message",

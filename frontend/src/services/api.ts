@@ -9,7 +9,10 @@ import {
   DashboardSummaryData,
   RegisteredAIModel,
   SecurityNotification,
-  NotificationUnreadStats
+  NotificationUnreadStats,
+  PlatformIntegration,
+  PermissionDetail,
+  IntegrationSummary
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -644,4 +647,213 @@ export async function updateEventActionAPI(eventId: string, action: SecurityActi
   } catch (e) {
     // Handled
   }
+}
+
+// ----------------------------------------------------
+// Platform Integration & Permission Architecture (Module 14)
+// ----------------------------------------------------
+
+export async function fetchIntegrationsAPI(): Promise<PlatformIntegration[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/integrations`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.warn('Integrations API offline, providing safe baseline adapters:', e);
+  }
+
+  // Safe fallback baseline with explicit boundaries
+  return [
+    {
+      platform_id: 'simulation',
+      name: 'CyberShield Simulation Platform',
+      category: 'Academic Sandbox & Threat Hub',
+      status: 'AUTHORIZED_SIMULATION',
+      is_simulation: true,
+      required_permissions: [
+        'READ_MESSAGES', 'READ_EMAIL', 'READ_URLS', 'READ_MEDIA', 
+        'READ_PROFILES', 'READ_FILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT', 
+        'SEND_SIMULATION', 'MANAGE_SECURITY_ACTIONS'
+      ],
+      granted_permissions: [
+        'READ_MESSAGES', 'READ_EMAIL', 'READ_URLS', 'READ_MEDIA', 
+        'READ_PROFILES', 'READ_FILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT', 
+        'SEND_SIMULATION', 'MANAGE_SECURITY_ACTIONS'
+      ],
+      capabilities: ['8-Modality Attack Payloads', 'Real-Time SSE Bus Ingestion', 'Direct Multimodal AI Routing', 'Multi-App Receiver Surfaces'],
+      connection_health: 'ONLINE',
+      last_connected_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Controlled local academic security testbed connecting Sender Platform, Multimodal AI Engine, and Receiver surfaces.',
+      auth_requirement_note: 'Pre-configured and authorized for academic security research within safe project sandbox boundaries.'
+    },
+    {
+      platform_id: 'whatsapp',
+      name: 'WhatsApp Cloud API Integration Target',
+      category: 'Messaging',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_MESSAGES', 'READ_URLS', 'READ_MEDIA', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['Official Meta Cloud Webhook', 'Inbound Threat Scanning', 'Media Attachment Inspection'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Official WhatsApp Business Platform & Cloud API adapter target for threat verification.',
+      auth_requirement_note: 'Requires official Meta Graph API Developer Account, App Secret, and explicit user authorization.'
+    },
+    {
+      platform_id: 'instagram',
+      name: 'Instagram Graph API Integration Target',
+      category: 'Social Media',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_MESSAGES', 'READ_MEDIA', 'READ_PROFILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['Meta Graph Webhook Ingestion', 'DM Safety Check', 'Deepfake & Image Forensics'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Direct Instagram Messaging and Post Content adapter target via Meta Graph API.',
+      auth_requirement_note: 'Requires official Meta Instagram Graph API credentials and authenticated account linking.'
+    },
+    {
+      platform_id: 'facebook',
+      name: 'Facebook Pages & Feed Adapter Target',
+      category: 'Social Media',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_MESSAGES', 'READ_MEDIA', 'READ_PROFILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['Feed Post Verification', 'Fake News Cross-Checking', 'Deepfake Media Detection'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Facebook Social Feed & Messenger integration target for fake news scanning.',
+      auth_requirement_note: 'Requires Meta Business Verification and Page Webhook Subscription.'
+    },
+    {
+      platform_id: 'gmail',
+      name: 'Google Workspace & Gmail API Target',
+      category: 'Email',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_EMAIL', 'READ_URLS', 'READ_FILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['Google Pub/Sub Push', 'Header & DKIM Inspection', 'Phishing AI Analysis'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Official Google Gmail REST API target with OAuth2 consent.',
+      auth_requirement_note: 'Requires Google Cloud OAuth2 Client ID and user consent screen approval.'
+    },
+    {
+      platform_id: 'generic_email',
+      name: 'Enterprise IMAP / SMTP Security Gateway',
+      category: 'Email',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_EMAIL', 'READ_URLS', 'READ_FILES', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['TLS Mail Gateway', 'RFC Header Parsing', 'Phishing Heuristic Engine'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Standard RFC-compliant IMAP/TLS email gateway target.',
+      auth_requirement_note: 'Requires secure TLS credentials and explicit mail gateway routing rules.'
+    },
+    {
+      platform_id: 'generic_social',
+      name: 'Generic Webhook & Social Feed Target',
+      category: 'Social Media',
+      status: 'NOT_CONNECTED',
+      is_simulation: false,
+      required_permissions: ['READ_MESSAGES', 'READ_URLS', 'READ_MEDIA', 'RECEIVE_EVENTS', 'ANALYZE_CONTENT'],
+      granted_permissions: [],
+      capabilities: ['HMAC Webhook Ingestion', 'Misinformation Scoring', 'User Impersonation Checks'],
+      connection_health: 'NOT_CONFIGURED',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      description: 'Standard HMAC-SHA256 authenticated webhook target for enterprise social media streams.',
+      auth_requirement_note: 'Requires verified webhook signing secrets and registered enterprise endpoints.'
+    }
+  ];
+}
+
+export async function fetchIntegrationSummaryAPI(): Promise<IntegrationSummary> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/integrations/summary`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Fallback
+  }
+
+  const list = await fetchIntegrationsAPI();
+  return {
+    total_adapters: list.length,
+    authorized_platforms: list.filter(i => i.status === 'AUTHORIZED_SIMULATION' || i.status === 'AUTHORIZED').length,
+    pending_platforms: list.filter(i => i.status === 'PENDING').length,
+    disconnected_platforms: list.filter(i => i.status !== 'AUTHORIZED_SIMULATION' && i.status !== 'AUTHORIZED').length,
+    active_integrations: list
+  };
+}
+
+export async function fetchPlatformPermissionsAPI(platformId: string): Promise<PermissionDetail[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/integrations/${platformId}/permissions`, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Fallback
+  }
+  return [];
+}
+
+export async function connectPlatformAPI(platformId: string, grantAll: boolean = true): Promise<PlatformIntegration> {
+  const res = await fetch(`${API_BASE_URL}/integrations/${platformId}/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grant_all_permissions: grantAll })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to connect adapter' }));
+    throw new Error(err.detail || 'Connection failed');
+  }
+  return await res.json();
+}
+
+export async function disconnectPlatformAPI(platformId: string): Promise<PlatformIntegration> {
+  const res = await fetch(`${API_BASE_URL}/integrations/${platformId}/disconnect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to disconnect adapter' }));
+    throw new Error(err.detail || 'Disconnection failed');
+  }
+  return await res.json();
+}
+
+export async function updatePlatformPermissionsAPI(platformId: string, grantedPermissions: string[]): Promise<PlatformIntegration> {
+  const res = await fetch(`${API_BASE_URL}/integrations/${platformId}/permissions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ granted_permissions: grantedPermissions })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to update permissions' }));
+    throw new Error(err.detail || 'Permission update failed');
+  }
+  return await res.json();
 }

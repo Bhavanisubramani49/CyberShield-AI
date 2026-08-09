@@ -19,6 +19,7 @@ import { fetchHealth } from './services/api';
 import { getStoredUser, setStoredUser, getStoredTheme, setStoredTheme, DEFAULT_USER } from './services/auth';
 
 import { NotificationsPage } from './pages/NotificationsPage';
+import { PermissionsPage } from './pages/PermissionsPage';
 
 export const App: React.FC = () => {
   // Authentication & Session State
@@ -150,6 +151,7 @@ export const App: React.FC = () => {
                   {currentPage === 'dashboard' && <DashboardPage health={health} />}
                   {currentPage === 'history' && <HistoryPage />}
                   {currentPage === 'notifications' && <NotificationsPage />}
+                  {currentPage === 'permissions' && <PermissionsPage />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}
                   {currentPage === 'profile' && (
                     <ProfilePage 

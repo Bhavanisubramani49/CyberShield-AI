@@ -128,6 +128,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             Active theme preference is automatically remembered across browser refreshes via local storage.
           </div>
         </div>
+
+        {/* Active Integrations & Simulation Sandbox (Module 14) */}
+        <div className="cyber-card" style={{ padding: '22px', gridColumn: '1 / -1' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={18} color="var(--color-green)" />
+            Active Platform Integrations & Sandbox Authority
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px', fontSize: '0.8rem' }}>
+            <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.06)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+              <div style={{ fontWeight: 700, color: 'var(--color-green)', marginBottom: '4px' }}>CyberShield Simulation Platform</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Status: <strong>AUTHORIZED_SIMULATION</strong> (All 10 Scopes Granted)</div>
+            </div>
+            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>External API Adapters</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Status: <strong>6 Targets Standby</strong> (Official OAuth Required)</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

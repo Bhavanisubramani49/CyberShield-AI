@@ -127,6 +127,33 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ theme, setTheme }) =
             ))}
           </div>
         </div>
+
+        {/* Platform Integration & Zero-Trust Permission Overview (Module 14) */}
+        <div className="cyber-card" style={{ padding: '22px', gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              <Database size={18} color="var(--color-green)" />
+              Platform Integration & Permission Architecture
+            </h3>
+            <span className="badge badge-green">1 ACTIVE SANDBOX / 6 TARGETS</span>
+          </div>
+
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: '1.45' }}>
+            CyberShield AI enforces a decoupled adapter layer. The local <strong>CyberShield Simulation Platform</strong> is connected and authorized for sandbox experimentation, while third-party adapters (WhatsApp, Instagram, Facebook, Gmail, etc.) remain in secure disconnected states until official OAuth authorization is granted.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
+            <div style={{ padding: '10px 12px', background: 'rgba(16, 185, 129, 0.06)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+              <strong style={{ color: 'var(--color-green)' }}>Simulation Testbed:</strong> AUTHORIZED (10/10 Scopes)
+            </div>
+            <div style={{ padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>Third-Party Targets:</strong> NOT CONNECTED (Zero Scraping)
+            </div>
+            <div style={{ padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>Security Policy:</strong> Zero External Password Storage
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

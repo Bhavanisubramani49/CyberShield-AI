@@ -90,3 +90,39 @@ class NotificationModel(Base):
     read_at = Column(String(64), nullable=True)
 
     event = relationship("SecurityEventModel", back_populates="notifications")
+
+class PlatformIntegrationModel(Base):
+    __tablename__ = "platform_integrations"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    platform_id = Column(String(64), unique=True, index=True, nullable=False)
+    name = Column(String(128), nullable=False)
+    category = Column(String(64), nullable=False)
+    status = Column(String(64), nullable=False, default="NOT_CONNECTED")
+    is_simulation = Column(Integer, nullable=False, default=0)
+    required_permissions = Column(Text, nullable=False)  # JSON-serialized list
+    granted_permissions = Column(Text, nullable=False, default="[]")  # JSON-serialized list
+    capabilities = Column(Text, nullable=False)  # JSON-serialized list
+    connection_health = Column(String(64), nullable=False, default="OFFLINE")
+    last_connected_at = Column(String(64), nullable=True)
+    created_at = Column(String(64), nullable=False)
+    updated_at = Column(String(64), nullable=False)
+
+    audits = relationship(
+        "IntegrationAuditModel",
+        back_populates="integration",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+class IntegrationAuditModel(Base):
+    __tablename__ = "integration_audits"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    platform_id = Column(String(64), ForeignKey("platform_integrations.platform_id", ondelete="CASCADE"), index=True, nullable=False)
+    action = Column(String(64), nullable=False)
+    result = Column(String(64), nullable=False, default="SUCCESS")
+    details = Column(Text, nullable=True)
+    timestamp = Column(String(64), nullable=False)
+
+    integration = relationship("PlatformIntegrationModel", back_populates="audits")

@@ -248,6 +248,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
           </div>
           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Benchmarked Model Avg</div>
         </div>
+
+        <div className="cyber-card" style={{ padding: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Platform Adapters</span>
+            <Layers size={15} color="var(--color-green)" />
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-green)' }}>
+            1 Auth / 6 Standby
+          </div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Zero-Trust Decoupled Layer</div>
+        </div>
       </div>
 
       {/* 4. Threat & Risk Distribution Visualizer */}

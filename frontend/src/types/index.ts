@@ -6,6 +6,7 @@ export type NavigationPage =
   | 'dashboard' 
   | 'history' 
   | 'notifications'
+  | 'permissions'
   | 'settings' 
   | 'profile';
 
@@ -215,4 +216,36 @@ export interface NotificationUnreadStats {
   high_risk_count: number;
   review_count: number;
   total_count: number;
+}
+
+export interface PermissionDetail {
+  scope: string;
+  title: string;
+  description: string;
+  is_granted: boolean;
+}
+
+export interface PlatformIntegration {
+  platform_id: string;
+  name: string;
+  category: string;
+  status: 'AUTHORIZED_SIMULATION' | 'NOT_CONNECTED' | 'PENDING' | 'AUTHORIZED' | 'DENIED' | 'REVOKED' | 'ERROR' | string;
+  is_simulation: boolean;
+  required_permissions: string[];
+  granted_permissions: string[];
+  capabilities: string[];
+  connection_health: 'ONLINE' | 'OFFLINE' | 'NOT_CONFIGURED' | 'RESTRICTED' | string;
+  last_connected_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  description?: string | null;
+  auth_requirement_note?: string | null;
+}
+
+export interface IntegrationSummary {
+  total_adapters: number;
+  authorized_platforms: number;
+  pending_platforms: number;
+  disconnected_platforms: number;
+  active_integrations: PlatformIntegration[];
 }
