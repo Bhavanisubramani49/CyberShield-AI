@@ -449,6 +449,26 @@ body {
   to { transform: translateX(0); }
 }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.event-row-hover:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+  transform: translateY(-1px);
+}
+
 /* Responsive Rules for Mobile / Android View */
 @media (max-width: 840px) {
   .desktop-sidebar {

@@ -5,7 +5,7 @@
   "algorithm": "TF-IDF + Linear Classifier",
   "status": "TRAINED",
   "training_dataset": "email_phishing_dataset.csv",
-  "training_date": "2026-08-09T10:27:30.957864+00:00",
+  "training_date": "2026-08-09T10:45:00.908803+00:00",
   "metrics": {
     "accuracy": 0.8,
     "precision": 0.8571,

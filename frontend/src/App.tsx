@@ -145,7 +145,7 @@ export const App: React.FC = () => {
               {/* Main Content Viewport */}
               <main className="main-viewport">
                 <div className="page-container">
-                  {currentPage === 'home' && <HomePage health={health} />}
+                  {currentPage === 'home' && <HomePage health={health} setPage={setPage} />}
                   {currentPage === 'receiver' && <ReceiverPage />}
                   {currentPage === 'monitor' && <MonitorPage />}
                   {currentPage === 'dashboard' && <DashboardPage health={health} />}
