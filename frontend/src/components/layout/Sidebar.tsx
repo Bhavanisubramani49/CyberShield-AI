@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   User,
   Bell,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { NavigationPage, UserProfile } from '../../types';
 
@@ -78,6 +79,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, setPage, user }) 
       subtext: 'Adapters & Zero-Trust Scopes',
       icon: Layers,
       badge: 'Adapters'
+    },
+    {
+      id: 'demo' as NavigationPage,
+      label: 'Academic Demo Suite',
+      subtext: '9 Synthetic Attack Scenarios',
+      icon: Sparkles,
+      badge: 'Demo'
     },
     {
       id: 'settings' as NavigationPage,

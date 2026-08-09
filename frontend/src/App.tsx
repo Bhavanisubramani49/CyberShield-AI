@@ -20,6 +20,7 @@ import { getStoredUser, setStoredUser, getStoredTheme, setStoredTheme, DEFAULT_U
 
 import { NotificationsPage } from './pages/NotificationsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import { DemoModePage } from './pages/DemoModePage';
 
 export const App: React.FC = () => {
   // Authentication & Session State
@@ -152,6 +153,7 @@ export const App: React.FC = () => {
                   {currentPage === 'history' && <HistoryPage />}
                   {currentPage === 'notifications' && <NotificationsPage />}
                   {currentPage === 'permissions' && <PermissionsPage />}
+                  {currentPage === 'demo' && <DemoModePage health={health} />}
                   {currentPage === 'settings' && <SettingsPage theme={theme} setTheme={handleThemeChange} />}
                   {currentPage === 'profile' && (
                     <ProfilePage 

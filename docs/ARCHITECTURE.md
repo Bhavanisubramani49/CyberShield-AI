@@ -1,73 +1,158 @@
-# CyberShield AI — System Architecture & Foundation Document
-
-## 1. Executive Summary
-**CyberShield AI** is an AI-powered, cross-platform cybersecurity protection ecosystem designed for **Android and Windows**. It monitors authorized digital communication events in real-time, routes content across 8 specialized AI detection models, computes Explainable AI risk assessments, issues immediate user notifications, and provides user-driven control (**BLOCK / REVIEW / ALLOW / UNBLOCK**).
-
----
-
-## 2. Three-Platform Architecture
+# CyberShield AI — Comprehensive System Architecture Document
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                 PLATFORM 1: SENDER PLATFORM                 │
-│  • Simulated Senders: Normal User, Unknown, Fake, Attacker  │
-│  • Content Modalities: SMS, Email, URL, News, Img, Vid, File│
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼ [Secure Communication Event]
-┌─────────────────────────────────────────────────────────────┐
-│                PLATFORM 2: RECEIVER PLATFORM                │
-│  • Multi-App Simulated Surface: Messages, Email, Social,    │
-│    News Feed, Media/Images, Video Streams, Files, Alerts    │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼ [Event Interception]
-┌─────────────────────────────────────────────────────────────┐
-│            PLATFORM 3: CYBERSHIELD AI SECURITY ENGINE       │
-│  • Event Manager & Content Type Identifier                  │
-│  • AI Model Router (8 Specialized AI Models)                │
-│  • Risk Engine (CRITICAL, HIGH, MEDIUM, LOW)                │
-│  • Explainable AI (Human-Readable Reasons & Recommendations)│
-│  • Immediate Alert Dispatcher                               │
-│  • User Decision: [ BLOCK ] | [ REVIEW ] | [ ALLOW ]        │
-│  • Quarantine & History Manager                             │
-│  • Unified Cross-Platform Security Dashboard                │
-└─────────────────────────────────────────────────────────────┘
+================================================================================
+CYBERSHIELD AI: Cross-Platform Multi-AI Cybersecurity Protection Ecosystem
+Academic Security Testbed & Zero-Trust Defense Architecture
+================================================================================
 ```
 
 ---
 
-## 3. Technology Stack
+## 1. Executive Overview
 
-### Backend
-- **Language**: Python 3.13
-- **Framework**: FastAPI (Asynchronous REST API)
-- **Validation**: Pydantic v2 & Pydantic-Settings
-- **Server**: Uvicorn ASGI
-- **Testing**: Async HTTPX Test Client
-
-### Frontend (Android + Windows Cross-Platform)
-- **Core**: React 18 + TypeScript + Vite
-- **Styling**: Custom CyberShield Glassmorphic Design System (`index.css`)
-- **Icons**: Lucide React
-- **Viewport Engine**: Responsive Adaptive Layout (Full Windows Desktop command view + Android Mobile viewport simulator)
+**CyberShield AI** is an enterprise-grade academic cybersecurity ecosystem and multimodal threat intelligence engine. Built with **React 18 + TypeScript + Vite** on the frontend and **FastAPI + SQLite + SQLAlchemy** on the backend, CyberShield AI monitors incoming digital communications, normalizes heterogeneous events through zero-trust integration adapters, routes payloads across **8 specialized machine learning & heuristic detectors**, computes calibrated Explainable AI risk assessments, and issues real-time security alerts with full user agency (**BLOCK**, **QUARANTINE**, **REVIEW**, **ALLOW**).
 
 ---
 
-## 4. 8 Specialized AI Detection Models Matrix
-1. **SMS Scam Detection**: Detects prize scams, urgent OTP demands, and financial traps.
-2. **Email Phishing Model**: Detects deceptive sender spoofing and credential harvesting.
-3. **URL Threat Detection**: Detects homograph phishing, malicious IP hosts, and anomalous domains.
-4. **Fake News Classifier**: Detects sensationalist linguistic distortion and synthetic disinformation.
-5. **Image Manipulation Model**: Detects generative AI synthesis, spliced pixels, and EXIF flags.
-6. **Deepfake Video Pipeline**: Extracts facial frames and evaluates temporal/GAN inconsistencies.
-7. **Fake Profile Analyzer**: Detects bot swarm patterns, ratio anomalies, and synthetic metadata.
-8. **File Security Pipeline**: Inspects file headers, entropy, macros, and test signatures safely.
+## 2. End-to-End System Workflow
+
+```mermaid
+flowchart TD
+    subgraph INGESTION ["1. Ingestion Layer"]
+        A[Sender Platform / Test Hub] -->|Raw Payload| B[Platform Integration Adapter]
+        C[Standby External Target] -.->|Official OAuth Req.| B
+    end
+
+    subgraph SECURITY_GATEWAY ["2. Security Gateway & Normalization"]
+        B --> D{Zero-Trust Scope Check}
+        D -- Granted --> E[Normalized Security Event]
+        D -- Denied --> F[Reject & Log Audit Row]
+    end
+
+    subgraph AI_PIPELINE ["3. Threat Analysis Engine"]
+        E --> G[Model Router]
+        G --> H1[SMS Scam AI]
+        G --> H2[Email Phishing AI]
+        G --> H3[URL Threat AI]
+        G --> H4[Fake News AI]
+        G --> H5[Image Detector]
+        G --> H6[Deepfake Pipeline]
+        G --> H7[Profile Analyzer]
+        G --> H8[File Inspector]
+        H1 & H2 & H3 & H4 & H5 & H6 & H7 & H8 --> I[Calibrated Risk Engine]
+        I --> J[Explainable AI Synthesis]
+    end
+
+    subgraph DECISION_PERSISTENCE ["4. Decision & Persistence Engine"]
+        J --> K{Automated Decision}
+        K -- Critical / High --> L1[Quarantine / Block]
+        K -- Medium --> L2[Flag for Review]
+        K -- Low --> L3[Allow & Deliver]
+        L1 & L2 & L3 --> M[(SQLite Database: cybershield.db)]
+    end
+
+    subgraph CLIENT_INTERFACES ["5. Client Application & Alert Surfaces"]
+        M --> N[Real-Time SSE Alert Bus]
+        N --> O1[Header Live Bell & Badge]
+        N --> O2[Notification Center]
+        N --> O3[Receiver App Surfaces]
+        N --> O4[Security Dashboard & History]
+        N --> O5[Communication Monitor]
+    end
+```
 
 ---
 
-## 5. Security & Privacy Philosophy
-- **Zero OS Bypass**: Respects Android, Windows, and sandbox boundaries.
-- **Explicit Consent**: Operates with user consent and integration adapters.
-- **Explainability**: Every warning provides explicit reasons and recommendations.
-- **User Agency**: The user retains full control over allow, block, and quarantine recovery.
+## 3. Core Architecture Subsystems
+
+### 3.1 Three-Platform Decoupling
+1. **Platform 1 — Sender Platform (`SenderPage.tsx`)**:
+   - Academic security testbed providing 5 distinct sender personas (*Normal Colleague, Unknown Contact, Financial Institution, Fake Authority, Advanced Cyber Threat Persona*).
+   - Generates test vectors across 8 modalities with pre-loaded safe and malicious attack vectors.
+2. **Platform 2 — Receiver Platform (`ReceiverPage.tsx`)**:
+   - Multi-app simulated reception surfaces (*SMS/Messages, Email Client, Social Media Feed, Web Browser, Media Gallery, Video Stream, Document Vault, System Alerts*).
+   - Safe delivery for verified communications; sandboxed vault isolation for quarantined payloads.
+3. **Platform 3 — CyberShield AI Defense Engine (`backend/app/`)**:
+   - Central Event Processor managing the 6-stage lifecycle (`received` ➔ `normalized` ➔ `analyzed` ➔ `evaluated` ➔ `stored` ➔ `dispatched`).
+
+---
+
+### 3.2 Multimodal Threat Analysis Engine (`backend/app/services/threat_engine.py`)
+
+CyberShield AI deploys 8 specialized detectors operating under a common abstract base class (`BaseThreatDetector`):
+
+| Model Name | Content Modality | Feature Engineering & Architecture | Calibrated Threat Thresholds |
+| :--- | :--- | :--- | :--- |
+| **`sms_scam_detection_ai`** | Messages / SMS | TF-IDF tokenization, lottery/prize trap heuristics, urgency scoring | `SCORE >= 85 -> CRITICAL (QUARANTINE)` |
+| **`email_phishing_classifier`** | Email | DKIM/SPF header checks, deceptive bank keyword matching, link extraction | `SCORE >= 80 -> CRITICAL (BLOCK)` |
+| **`url_threat_evaluator`** | URLs / Links | Lexical entropy, raw IPv4 host detection, homograph lookups, TLD scoring | `SCORE >= 85 -> CRITICAL (QUARANTINE)` |
+| **`fake_news_detector`** | Social / News | Sensation token density, unverified cure patterns, claim exaggeration | `SCORE >= 65 -> HIGH (REVIEW)` |
+| **`image_manipulation_detector`** | Images | Error Level Analysis (ELA), perceptual hashing, GAN noise signatures | `SCORE >= 65 -> HIGH (REVIEW)` |
+| **`deepfake_video_pipeline`** | Video Clips | Temporal facial consistency extractor, blink anomaly heuristics | `SCORE >= 80 -> CRITICAL (BLOCK)` |
+| **`fake_profile_analyzer`** | User Profiles | Follower/following ratio asymmetry, account age, bio link risk | `SCORE >= 65 -> HIGH (REVIEW)` |
+| **`file_security_checker`** | Files & Docs | Magic byte verification, AutoExec VBA macro heuristics, entropy analysis | `SCORE >= 80 -> CRITICAL (QUARANTINE)` |
+
+---
+
+### 3.3 Persistent Database Architecture (`backend/app/db/`)
+
+The persistent storage tier is powered by SQLite via SQLAlchemy (`backend/data/cybershield.db`):
+
+```
+┌───────────────────────────────┐
+│     SecurityEventModel        │
+│ • event_id (Unique PK Index)  │
+│ • modality, classification    │
+│ • risk_score, risk_level      │
+│ • ai_model, forensic_reasons  │
+│ • final_action, user_action   │
+│ • timestamps & audit metadata │
+└──────────────┬────────────────┘
+               │ 1-to-Many Cascading Relationships
+       ┌───────┴───────┬────────────────────────┐
+       ▼               ▼                        ▼
+┌──────────────┐┌──────────────┐┌──────────────────────────────┐
+│EventTimeline ││ EventAction  ││      NotificationModel       │
+│ • step       ││ • action     ││ • notification_id            │
+│ • status     ││ • prev_act   ││ • severity (CRITICAL/HIGH/..) │
+│ • timestamp  ││ • actor      ││ • is_read, read_at           │
+└──────────────┘└──────────────┘└──────────────────────────────┘
+```
+
+---
+
+### 3.4 Zero-Trust Platform Integration & Permissions (`backend/app/integrations/`)
+
+```
+========================================================================
+                      ZERO-TRUST SECURITY BOUNDARY
+========================================================================
+  [CyberShield Sandbox]                 [Third-Party Platforms]
+           │                                      │
+  • Pre-configured                       • WhatsApp, Instagram, Gmail
+  • AUTHORIZED_SIMULATION                • NOT_CONNECTED by Default
+  • 10/10 Local Scopes Granted           • Official OAuth2 / SDK Required
+  • Zero OS/Sandbox Tampering            • Zero Password / Token Scraping
+========================================================================
+```
+
+- **Permission Scopes (`PermissionScope`)**:
+  - `READ_MESSAGES`, `READ_EMAIL`, `READ_URLS`, `READ_MEDIA`, `READ_PROFILES`, `READ_FILES`, `RECEIVE_EVENTS`, `ANALYZE_CONTENT`, `SEND_SIMULATION`, `MANAGE_SECURITY_ACTIONS`.
+- **Normalization Pipeline**: All events must undergo `IntegrationRegistry.normalize_and_validate()` before entering the AI analysis pipeline. Events missing permissions are rejected with HTTP 403 and logged to `IntegrationAuditModel`.
+
+---
+
+### 3.5 Real-Time Notification & SSE Bus (`GET /api/v1/events/stream`)
+
+- **Server-Sent Events (SSE)**: Streams security events directly to the browser with zero polling overhead.
+- **Heartbeat & Auto-Reconnect**: Disconnect-safe design with exponential backoff and local SQLite cache fallback.
+- **Header Indicator**: Dynamic notification bell badge (`🔔 3`) with critical threat highlighting (`badge-danger`).
+
+---
+
+## 4. Cross-Platform Responsive Viewport Engine
+
+- **Windows Desktop Command Center**: High-density analytics, forensic investigation tables, filter chip toolbars, and multimodal inspection modals.
+- **Android Mobile Simulated Viewport**: Native mobile container with bottom navigation bar, touch targets $\ge 48\text{px}$, slide-out drawer menu, and zero horizontal overflow.
+- **Bi-Directional Theme System**: Dark Cybersecurity Slate mode and Enterprise Light mode with instant CSS token switching and local storage persistence.

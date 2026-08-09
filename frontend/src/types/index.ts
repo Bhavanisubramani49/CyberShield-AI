@@ -7,6 +7,7 @@ export type NavigationPage =
   | 'history' 
   | 'notifications'
   | 'permissions'
+  | 'demo'
   | 'settings' 
   | 'profile';
 

@@ -5,7 +5,7 @@
   "algorithm": "Lexical Feature Vector + Threshold Classifier",
   "status": "TRAINED",
   "training_dataset": "url_threat_dataset.csv",
-  "training_date": "2026-08-09T07:50:51.402325+00:00",
+  "training_date": "2026-08-09T08:04:03.261491+00:00",
   "metrics": {
     "accuracy": 1.0,
     "precision": 1.0,
