@@ -63,7 +63,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ setAuthScreen, onLoginSucc
           }}>
             <ShieldCheck size={28} color="var(--color-green)" />
           </div>
-          <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.3px' }}>
+          <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
             CYBERSHIELD <span style={{ color: 'var(--color-green)' }}>AI</span>
           </h2>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '4px' }}>

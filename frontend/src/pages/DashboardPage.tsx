@@ -491,7 +491,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
 
         {/* Selected Threat Forensic Modal */}
         {selectedThreat && (
-          <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.8rem' }}>
+          <div style={{ marginTop: '16px', padding: '16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.8rem' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
               Forensic Report for Event: {selectedThreat.event_id}
             </div>
@@ -502,7 +502,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
               <div><strong>AI Model:</strong> {selectedThreat.ai_model}</div>
               <div><strong>Action Decision:</strong> {selectedThreat.action}</div>
             </div>
-            <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ marginTop: '10px', padding: '8px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <strong>Simulated Content:</strong> "{selectedThreat.content_preview}"
             </div>
           </div>

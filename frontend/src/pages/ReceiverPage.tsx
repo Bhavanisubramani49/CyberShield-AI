@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { SecurityEvent, SecurityAction } from '../types';
 import { fetchEventsAPI, updateEventActionAPI } from '../services/api';
+import { getPlatformLogo } from '../components/common/PlatformLogos';
 
 export const ReceiverPage: React.FC = () => {
   const [events, setEvents] = useState<SecurityEvent[]>([]);
@@ -269,20 +270,23 @@ export const ReceiverPage: React.FC = () => {
               <div key={evt.event_id} className={`cyber-card ${isQuarantined ? 'cyber-card-danger' : isReview ? 'cyber-card-blue' : 'cyber-card-green'}`} style={{ padding: '20px' }}>
                 {/* Event Top Bar */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--color-blue-light)', fontWeight: 700 }}>
-                        {evt.event_id}
-                      </span>
-                      <span className="badge badge-neutral" style={{ fontSize: '0.6rem' }}>
-                        {evt.content_type.toUpperCase()}
-                      </span>
-                      <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                        From: <strong style={{ color: 'var(--text-primary)' }}>{evt.sender_id}</strong>
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      Intercepted: {evt.timestamp} • Model: <code style={{ color: 'var(--color-blue-light)' }}>{evt.ai_result?.model || 'cyber_ai_engine'}</code>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {getPlatformLogo(evt.platform || evt.content_type, 34)}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--color-blue-light)', fontWeight: 700 }}>
+                          {evt.event_id}
+                        </span>
+                        <span className="badge badge-neutral" style={{ fontSize: '0.6rem' }}>
+                          {evt.content_type.toUpperCase()}
+                        </span>
+                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                          From: <strong style={{ color: 'var(--text-primary)' }}>{evt.sender_id}</strong>
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        Intercepted: {evt.timestamp} • Model: <code style={{ color: 'var(--color-blue-light)' }}>{evt.ai_result?.model || 'cyber_ai_engine'}</code>
+                      </div>
                     </div>
                   </div>
 

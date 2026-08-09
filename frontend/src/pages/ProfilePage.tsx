@@ -41,7 +41,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#ffffff' }}>
+                <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {user?.fullName || 'Dr. Alex Vance'}
                 </h2>
                 <span className="badge badge-green" style={{ fontSize: '0.62rem' }}>
@@ -67,37 +67,37 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
         {/* Account Details & Status */}
         <div className="cyber-card" style={{ padding: '22px' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShieldCheck size={18} color="var(--color-green)" />
             Security Profile Credentials
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Officer ID</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', fontFamily: 'var(--font-mono)' }}>{user?.id || 'USR-8821'}</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>{user?.id || 'USR-8821'}</span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Security Clearance</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-green)' }}>LEVEL-4 ARCHITECT</span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Session Encryption</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-blue-light)' }}>TLS 1.3 / AES-256</span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Protection Scope</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff' }}>8 Modalities Monitored</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>8 Modalities Monitored</span>
             </div>
           </div>
         </div>
 
         {/* Theme & Workspace Appearance */}
         <div className="cyber-card" style={{ padding: '22px' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#ffffff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sun size={18} color="var(--color-warning)" />
             Workspace Theme & Display
           </h3>

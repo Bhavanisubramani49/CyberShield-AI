@@ -10,12 +10,8 @@ import {
   Clock, 
   Zap, 
   RefreshCw, 
-  MessageSquare, 
-  Mail, 
   Globe, 
-  FileText, 
   Image as ImageIcon, 
-  Video, 
   Send, 
   Search, 
   ChevronRight, 
@@ -35,6 +31,7 @@ import {
   submitEventActionAPI,
   sendEventAPI
 } from '../services/api';
+import { getPlatformLogo } from '../components/common/PlatformLogos';
 
 interface HomePageProps {
   health: SystemHealth | null;
@@ -197,88 +194,70 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
   // Dynamic Calibrated Security Score (e.g. 88 / 100)
   const defenseScore = Math.max(70, Math.min(99, Math.round(100 - (threatsCount / totalEventsCount) * 16)));
 
-  // 9 Protected Channel Definitions
+  // 9 Protected Channel Definitions with Authentic Logos
   const channels = [
     {
       id: 'whatsapp',
       name: 'WhatsApp',
       modality: 'message',
-      icon: MessageSquare,
-      color: '#25D366',
       badge: 'Chat',
-      desc: 'Simulated WhatsApp chats & OTP flows'
+      desc: 'Encrypted chats, media & OTP authentication flows'
     },
     {
       id: 'instagram',
       name: 'Instagram',
       modality: 'message',
-      icon: Send,
-      color: '#E1306C',
       badge: 'Social',
-      desc: 'Direct inquiries & social bot streams'
+      desc: 'Direct messages, creator inquiries & social bots'
     },
     {
       id: 'messages',
-      name: 'Messages',
+      name: 'Messages / SMS',
       modality: 'message',
-      icon: MessageSquare,
-      color: '#3B82F6',
       badge: 'SMS',
-      desc: 'SMS financial prize & lottery alerts'
+      desc: 'SMS prize alerts, banking codes & urgent links'
     },
     {
       id: 'email',
-      name: 'Email',
+      name: 'Email / Gmail',
       modality: 'email',
-      icon: Mail,
-      color: '#EA4335',
       badge: 'Mail',
-      desc: 'Phishing notices & fake banking links'
+      desc: 'Spear-phishing invoices & deceptive attachments'
     },
     {
       id: 'web',
       name: 'Web & URLs',
       modality: 'url',
-      icon: Globe,
-      color: '#06B6D4',
       badge: 'Browser',
-      desc: 'Deceptive IP hosts & domain reputation'
+      desc: 'Domain reputation, IP hosts & certificate safety'
     },
     {
       id: 'photos',
-      name: 'Photos',
+      name: 'Photos & Gallery',
       modality: 'image',
-      icon: ImageIcon,
-      color: '#A855F7',
       badge: 'Media',
-      desc: 'Pixel manipulation & Error Level Analysis'
+      desc: 'Error Level Analysis (ELA) & pixel manipulation'
     },
     {
       id: 'videos',
-      name: 'Videos',
+      name: 'Videos & Streams',
       modality: 'video',
-      icon: Video,
-      color: '#EC4899',
       badge: 'Stream',
-      desc: 'Temporal deepfake & face-swap scanner'
+      desc: 'Temporal deepfake & facial reenactment scanner'
     },
     {
       id: 'news',
-      name: 'News',
+      name: 'News & Articles',
       modality: 'news',
-      icon: FileText,
-      color: '#F59E0B',
       badge: 'Article',
-      desc: 'Disinformation & viral medical claims'
+      desc: 'Misinformation, synthetic claims & fact checking'
     },
     {
       id: 'files',
-      name: 'Files',
+      name: 'Files & Storage',
       modality: 'file',
-      icon: Lock,
-      color: '#10B981',
       badge: 'Vault',
-      desc: 'Dangerous macros & binary PE inspection'
+      desc: 'Macro inspection, binary entropy & sandbox isolation'
     }
   ];
 
@@ -385,8 +364,9 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             <span style={{ marginLeft: '6px' }}>— Risk: <strong>{liveAlert.ai_result?.risk_score || 94}/100 ({liveAlert.ai_result?.risk_level || 'CRITICAL'})</strong></span>
           </div>
 
-          <div style={{ fontSize: '0.72rem', color: '#fca5a5', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.3)', padding: '6px 10px', borderRadius: 'var(--radius-sm)' }}>
-            Source: <strong>{liveAlert.sender_id}</strong> ({liveAlert.content_type})
+          <div style={{ fontSize: '0.74rem', color: '#fca5a5', marginBottom: '12px', background: 'rgba(0, 0, 0, 0.35)', padding: '6px 10px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {getPlatformLogo(liveAlert.platform || liveAlert.content_type, 20)}
+            <span>Source: <strong>{liveAlert.sender_id}</strong> ({liveAlert.content_type})</span>
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -396,9 +376,9 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 setLiveAlert(null);
               }}
               className="btn btn-primary-green"
-              style={{ flex: 1, padding: '7px 12px', fontSize: '0.76rem', justifyContent: 'center', background: '#ffffff', color: '#090d16', fontWeight: 700 }}
+              style={{ flex: 1, padding: '7px 12px', fontSize: '0.76rem', justifyContent: 'center', background: '#ffffff', color: '#090d16 !important', fontWeight: 700 }}
             >
-              <Eye size={13} /> INSPECT THREAT
+              <Eye size={13} color="#090d16" /> INSPECT THREAT
             </button>
             <button
               onClick={() => handleAction(liveAlert.event_id, 'BLOCK')}
@@ -423,13 +403,13 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               width: '92px',
               height: '92px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.2))',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.15))',
               border: '3.5px solid var(--color-green)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 25px rgba(16, 185, 129, 0.35)',
+              boxShadow: '0 0 25px rgba(16, 185, 129, 0.25)',
               flexShrink: 0
             }}>
               <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--color-green)', lineHeight: 1 }}>
@@ -442,9 +422,9 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.3px', color: '#ffffff' }}>
+                <h1 style={{ fontSize: '1.3rem', fontWeight: 900, letterSpacing: '-0.3px', color: 'var(--text-primary)', margin: 0 }}>
                   CYBERSHIELD <span style={{ color: 'var(--color-green)' }}>AI</span>
-                </span>
+                </h1>
                 <span className="badge badge-green">
                   <span className="live-dot" />
                   PROTECTED
@@ -486,7 +466,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           <div style={{
             marginTop: '16px',
             padding: '10px 14px',
-            background: 'rgba(16, 185, 129, 0.15)',
+            background: 'rgba(16, 185, 129, 0.12)',
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--border-green)',
             fontSize: '0.78rem',
@@ -512,7 +492,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
         }}>
           <div>
             <span style={{ color: 'var(--text-muted)' }}>Threat Protection:</span>{' '}
-            <strong style={{ color: '#ffffff' }}>{health?.active_ai_models?.length || 8} / 8 AI Engines Active</strong>
+            <strong style={{ color: 'var(--text-primary)' }}>{health?.active_ai_models?.length || 8} / 8 AI Engines Active</strong>
           </div>
           <div>
             <span style={{ color: 'var(--text-muted)' }}>Activity:</span>{' '}
@@ -544,7 +524,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Protected Events</span>
             <Activity size={16} color="var(--color-blue-light)" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#ffffff' }}>{totalEventsCount}</div>
+          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)' }}>{totalEventsCount}</div>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Screened across channels</div>
         </div>
 
@@ -580,23 +560,23 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Pending Review</span>
             <Clock size={16} color="var(--color-blue-light)" />
           </div>
-          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#ffffff' }}>{underReviewCount}</div>
+          <div style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)' }}>{underReviewCount}</div>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Awaiting user confirmation</div>
         </div>
       </div>
 
       {/* ========================================================
-          3. NINE PROTECTED CHANNEL CARDS
+          3. NINE PROTECTED CHANNEL CARDS (WITH AUTHENTIC LOGOS)
           ======================================================== */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <ShieldCheck size={18} color="var(--color-green)" />
-              Protected Channels (Simulated Sources)
+              Protected Digital Channels
             </h2>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Click any channel tile to open that channel's interactive content experience & security sandbox.
+              Click any channel tile to open that channel's interactive simulated receiver experience.
             </div>
           </div>
           <span className="badge badge-green" style={{ fontSize: '0.65rem' }}>9 ACTIVE CHANNELS</span>
@@ -604,11 +584,10 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '12px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '14px'
         }}>
           {channels.map((ch) => {
-            const Icon = ch.icon;
             const channelEvents = events.filter(e => e.content_type === ch.modality || e.platform === ch.id);
             const channelThreats = channelEvents.filter(e => e.ai_result?.classification !== 'SAFE').length;
             const isSelected = activeChannel === ch.id;
@@ -626,35 +605,25 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                   position: 'relative'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '10px',
-                    background: `rgba(255, 255, 255, 0.05)`,
-                    border: '1px solid var(--border-subtle)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Icon size={20} color={ch.color} />
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  {/* Authentic App Launcher Logo */}
+                  {getPlatformLogo(ch.id, 42)}
 
                   <span className={`badge ${channelThreats > 0 ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
                     {channelThreats > 0 ? `${channelThreats} THREATS` : 'ACTIVE'}
                   </span>
                 </div>
 
-                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#ffffff', marginBottom: '2px' }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '3px' }}>
                   {ch.name}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '8px', lineHeight: '1.3' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '10px', lineHeight: '1.35', minHeight: '32px' }}>
                   {ch.desc}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
-                  <span>{channelEvents.length} Events</span>
-                  <span style={{ color: channelThreats > 0 ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                  <span><strong>{channelEvents.length}</strong> Events</span>
+                  <span style={{ color: channelThreats > 0 ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 700 }}>
                     {channelThreats} Threats
                   </span>
                 </div>
@@ -670,13 +639,11 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
       {activeChannel && (
         <div className="cyber-card" style={{ padding: '22px', border: '1.5px solid var(--color-green)', animation: 'fadeIn 0.2s ease' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ShieldCheck size={18} color="var(--color-green)" />
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {getPlatformLogo(activeChannel, 36)}
               <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
-                  Interactive Receiver Experience: {channels.find(c => c.id === activeChannel)?.name}
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  Interactive Receiver: {channels.find(c => c.id === activeChannel)?.name}
                 </h3>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   Interactive simulated user client with real-time CyberShield zero-trust threat interception
@@ -704,7 +671,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 flexDirection: 'column',
                 gap: '12px',
                 padding: '14px',
-                background: 'rgba(0, 0, 0, 0.45)',
+                background: 'var(--bg-subtle)',
                 borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)'
               }}>
@@ -755,10 +722,10 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                         </div>
                       ) : (
                         <div>
-                          <div style={{ fontSize: '0.82rem', color: '#ffffff' }}>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
                             {msg.content_preview || msg.raw_content || 'Good morning, meeting confirmed.'}
                           </div>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--color-green)', marginTop: '4px' }}>
+                          <div style={{ fontSize: '0.68rem', color: 'var(--color-green)', marginTop: '4px', fontWeight: 600 }}>
                             ✓ Protected by CyberShield
                           </div>
                         </div>
@@ -776,14 +743,10 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                   value={chatReply}
                   onChange={(e) => setChatReply(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendReply()}
+                  className="cyber-input"
                   style={{
                     flex: 1,
-                    padding: '9px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(0, 0, 0, 0.5)',
-                    border: '1px solid var(--border-subtle)',
-                    color: '#ffffff',
-                    fontSize: '0.8rem'
+                    fontSize: '0.82rem'
                   }}
                 />
                 <button
@@ -809,7 +772,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 {events.filter(e => e.content_type === 'url').slice(0, 6).map((u) => {
                   const isThreat = u.ai_result?.classification !== 'SAFE';
                   return (
-                    <div key={u.event_id} style={{ padding: '14px', background: 'rgba(0,0,0,0.35)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-subtle)' }}>
+                    <div key={u.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-subtle)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -833,7 +796,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                               <ShieldAlert size={12} /> Warning Card
                             </button>
                           ) : (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--color-green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--color-green)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                               <CheckCircle size={13} /> ✓ Protected by CyberShield
                             </span>
                           )}
@@ -864,7 +827,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 {events.filter(e => e.content_type === 'news').slice(0, 5).map((n) => {
                   const isThreat = n.ai_result?.classification !== 'SAFE';
                   return (
-                    <div key={n.event_id} style={{ padding: '14px', background: 'rgba(0,0,0,0.35)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)' }}>
+                    <div key={n.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
                         <span className={`badge ${isThreat ? 'badge-warning' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
                           {isThreat ? 'FAKE NEWS / MISINFORMATION' : 'VERIFIED NEWS'}
@@ -873,7 +836,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                           <Eye size={12} /> {isThreat ? 'View Warning' : 'Article Details'}
                         </button>
                       </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#ffffff' }}>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {n.content_preview || n.raw_content || 'Breaking news headline'}
                       </div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -897,12 +860,12 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 {events.filter(e => e.content_type === 'image').slice(0, 4).map((p) => {
                   const isThreat = p.ai_result?.classification !== 'SAFE';
                   return (
-                    <div key={p.event_id} style={{ padding: '14px', background: 'rgba(0,0,0,0.35)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ height: '90px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                    <div key={p.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
                         <ImageIcon size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
                       </div>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ffffff' }}>{p.content_preview || 'image_payload.png'}</div>
-                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{p.content_preview || 'image_payload.png'}</div>
+                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
                         {isThreat ? `Manipulated (${p.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
                       </div>
                       <button onClick={() => isThreat ? setSecurityWarningEvent(p) : setForensicEvent(p)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
@@ -917,7 +880,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
           {/* 5. OTHER CHANNELS (VIDEOS, FILES, EMAIL) */}
           {activeChannel !== 'whatsapp' && activeChannel !== 'instagram' && activeChannel !== 'messages' && activeChannel !== 'web' && activeChannel !== 'news' && activeChannel !== 'photos' && (
-            <div style={{ padding: '16px', background: 'rgba(0,0,0,0.35)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <div style={{ padding: '16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               Active simulated receiver surface for <strong>{channels.find(c => c.id === activeChannel)?.name}</strong>. All incoming digital items are screened by specialized AI detectors before execution or preview.
             </div>
           )}
@@ -932,7 +895,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
         {/* Threat Distribution Chart */}
         <div className="cyber-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <BarChart3 size={16} color="var(--color-green)" />
               Threat Distribution (Clickable)
             </h3>
@@ -957,17 +920,17 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                     cursor: 'pointer',
                     padding: '6px 10px',
                     borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                    background: isSelected ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-subtle)',
                     border: isSelected ? '1px solid var(--color-green)' : '1px solid transparent',
                     transition: 'all 0.15s ease'
                   }}
                   title={`Click to filter by ${category}`}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '3px' }}>
-                    <span style={{ fontWeight: 600, color: isSafe ? 'var(--color-green)' : '#ffffff' }}>{category}</span>
+                    <span style={{ fontWeight: 700, color: isSafe ? 'var(--color-green)' : 'var(--text-primary)' }}>{category}</span>
                     <span style={{ color: 'var(--text-muted)' }}>{count} ({pct}%)</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(100, 116, 139, 0.2)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${pct}%`,
                       height: '100%',
@@ -984,7 +947,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
         {/* Risk Level Distribution Chart */}
         <div className="cyber-card" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <PieChart size={16} color="var(--color-blue-light)" />
               Risk Level Distribution (Clickable)
             </h3>
@@ -1009,17 +972,17 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                     cursor: 'pointer',
                     padding: '6px 10px',
                     borderRadius: 'var(--radius-sm)',
-                    background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                    background: isSelected ? 'rgba(59, 130, 246, 0.15)' : 'var(--bg-subtle)',
                     border: isSelected ? '1px solid var(--color-blue)' : '1px solid transparent',
                     transition: 'all 0.15s ease'
                   }}
                   title={`Click to filter by ${level}`}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '3px' }}>
-                    <span style={{ fontWeight: 600, color: color }}>{level}</span>
+                    <span style={{ fontWeight: 700, color: color }}>{level}</span>
                     <span style={{ color: 'var(--text-muted)' }}>{count} ({pct}%)</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(100, 116, 139, 0.2)', borderRadius: '3px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${pct}%`,
                       height: '100%',
@@ -1040,7 +1003,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
       <div className="cyber-card" style={{ padding: '22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
               <TrendingUp size={17} color="var(--color-blue-light)" />
               Security Activity & Threat Stream
             </h3>
@@ -1099,14 +1062,10 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             placeholder="Search by sender, ID, content text or threat classification..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="cyber-input"
             style={{
-              width: '100%',
-              padding: '8px 12px 8px 34px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid var(--border-subtle)',
-              color: '#ffffff',
-              fontSize: '0.78rem'
+              paddingLeft: '34px',
+              fontSize: '0.8rem'
             }}
           />
         </div>
@@ -1122,7 +1081,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                   onClick={() => isThreat ? setSecurityWarningEvent(evt) : setForensicEvent(evt)}
                   style={{
                     padding: '12px 16px',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: 'var(--bg-subtle)',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--border-subtle)',
                     display: 'flex',
@@ -1136,23 +1095,11 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                   className="event-row-hover"
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      background: isThreat ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                      border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      {isThreat ? <ShieldAlert size={16} color="var(--color-danger)" /> : <CheckCircle size={16} color="var(--color-green)" />}
-                    </div>
+                    {getPlatformLogo(evt.platform || evt.content_type, 32)}
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <strong style={{ fontSize: '0.82rem', color: '#ffffff' }}>{evt.sender_id}</strong>
+                        <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{evt.sender_id}</strong>
                         <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{evt.event_id}</span>
                         <span className="badge badge-neutral" style={{ fontSize: '0.58rem' }}>{evt.content_type}</span>
                       </div>
@@ -1192,7 +1139,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
+          background: 'var(--bg-modal-overlay)',
           backdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
@@ -1204,6 +1151,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             maxWidth: '560px',
             width: '100%',
             padding: '28px',
+            background: 'var(--bg-card)',
             border: '2px solid var(--color-danger)',
             boxShadow: '0 0 45px rgba(239, 68, 68, 0.4)'
           }}>
@@ -1221,23 +1169,23 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               </div>
               <button
                 onClick={() => setSecurityWarningEvent(null)}
-                style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '1.1rem' }}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '1.1rem' }}
               >
                 ✕
               </button>
             </div>
 
             <div style={{ padding: '12px 14px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239, 68, 68, 0.3)', marginBottom: '14px' }}>
-              <div style={{ fontSize: '0.78rem', color: '#ffffff', marginBottom: '4px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-primary)', marginBottom: '4px' }}>
                 Risk: <strong style={{ color: 'var(--color-danger)' }}>{securityWarningEvent.ai_result?.risk_level || 'CRITICAL'} — {securityWarningEvent.ai_result?.risk_score || 95}/100</strong>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#ffffff' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-primary)' }}>
                 Classification: <strong style={{ color: 'var(--color-danger)', textTransform: 'uppercase' }}>{securityWarningEvent.ai_result?.classification || 'THREAT'}</strong>
               </div>
             </div>
 
             <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Why?
               </div>
               <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
@@ -1252,7 +1200,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 onClick={() => handleAction(securityWarningEvent.event_id, 'BLOCK')}
                 disabled={actionLoading}
                 className="btn btn-primary-green"
-                style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '10px', background: 'var(--color-danger)' }}
+                style={{ justifyContent: 'center', fontSize: '0.78rem', padding: '10px', background: 'var(--color-danger)', border: '1px solid var(--color-danger)' }}
               >
                 <XCircle size={14} /> [BLOCK]
               </button>
@@ -1300,7 +1248,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.85)',
+          background: 'var(--bg-modal-overlay)',
           backdropFilter: 'blur(10px)',
           display: 'flex',
           alignItems: 'center',
@@ -1314,6 +1262,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             maxHeight: '90vh',
             overflowY: 'auto',
             padding: '28px',
+            background: 'var(--bg-card)',
             border: '1.5px solid var(--border-green)',
             boxShadow: '0 0 45px rgba(0, 0, 0, 0.65)'
           }}>
@@ -1321,7 +1270,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShieldCheck size={22} color="var(--color-green)" />
                 <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                     CyberShield Forensic Investigation
                   </h3>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -1367,19 +1316,19 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
             {/* Metadata Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.76rem', marginBottom: '18px' }}>
-              <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Sender Identity:</span>
-                <div style={{ fontWeight: 700, color: '#ffffff', marginTop: '2px' }}>{forensicEvent.sender_id}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>{forensicEvent.sender_id}</div>
               </div>
-              <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Content Modality:</span>
-                <div style={{ fontWeight: 700, color: '#ffffff', marginTop: '2px', textTransform: 'capitalize' }}>{forensicEvent.content_type}</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px', textTransform: 'capitalize' }}>{forensicEvent.content_type}</div>
               </div>
-              <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>AI Model Router:</span>
                 <div style={{ fontWeight: 700, color: 'var(--color-blue-light)', marginTop: '2px' }}>{forensicEvent.ai_result?.model || 'Multimodal Detector'}</div>
               </div>
-              <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Inference Latency:</span>
                 <div style={{ fontWeight: 700, color: 'var(--color-green)', marginTop: '2px' }}>{(forensicEvent.ai_result?.processing_time_ms || 24).toFixed(1)}ms</div>
               </div>
@@ -1392,11 +1341,11 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               </div>
               <div style={{
                 padding: '10px 14px',
-                background: 'rgba(0, 0, 0, 0.5)',
+                background: 'var(--bg-subtle)',
                 borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)',
                 fontSize: '0.78rem',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 fontFamily: 'var(--font-mono)',
                 maxHeight: '90px',
                 overflowY: 'auto'
@@ -1419,7 +1368,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
             {/* User Security Actions */}
             <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '18px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ffffff', marginBottom: '10px' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
                 Select User Action (Preserves Full Agency):
               </div>
 

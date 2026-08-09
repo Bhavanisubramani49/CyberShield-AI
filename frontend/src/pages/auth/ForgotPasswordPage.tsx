@@ -48,7 +48,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ setAuthS
           }}>
             <ShieldCheck size={26} color="var(--color-green)" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Reset Password
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -71,7 +71,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ setAuthS
             }}>
               <CheckCircle2 size={28} color="var(--color-green)" />
             </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '6px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
               Reset Instructions Dispatched
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>

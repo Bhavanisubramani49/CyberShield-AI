@@ -70,7 +70,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ setAuthScreen, onLog
           }}>
             <ShieldCheck size={26} color="var(--color-green)" />
           </div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
             Register Security Account
           </h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>

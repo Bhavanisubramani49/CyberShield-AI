@@ -480,13 +480,13 @@ export const HistoryPage: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
+          background: 'var(--bg-modal-overlay)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
           zIndex: 1000,
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(6px)'
         }}>
           <div className="cyber-card" style={{
             maxWidth: '750px',
@@ -515,7 +515,7 @@ export const HistoryPage: React.FC = () => {
             </div>
 
             {/* Metadata Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', padding: '14px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
               <div>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Sender Identifier:</span>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{selectedEvent.sender_id}</div>
@@ -535,7 +535,7 @@ export const HistoryPage: React.FC = () => {
             </div>
 
             {/* Simulated Content Box */}
-            <div style={{ padding: '14px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+            <div style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Simulated Ingested Content:</span>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', marginTop: '4px', fontFamily: 'var(--font-mono)', lineHeight: '1.4' }}>
                 "{selectedEvent.content_preview}"

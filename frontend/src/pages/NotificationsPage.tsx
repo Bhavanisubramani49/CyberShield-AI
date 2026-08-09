@@ -371,7 +371,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = () => {
         )}
       </div>
 
-      {/* 5. Forensic Inspection Modal (Reusing existing forensic view) */}
+      {/* Deep Forensic Modal */}
       {selectedForensicEvent && (
         <div style={{
           position: 'fixed',
@@ -379,13 +379,13 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
+          background: 'var(--bg-modal-overlay)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
           zIndex: 1000,
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(6px)'
         }}>
           <div className="cyber-card" style={{
             maxWidth: '720px',
@@ -412,7 +412,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = () => {
               </button>
             </div>
 
-            <div style={{ padding: '14px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+            <div style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Simulated Ingested Content:</span>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
                 "{selectedForensicEvent.content_preview}"

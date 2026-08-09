@@ -220,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Viewport Switcher (Windows Desktop vs Android Mobile View) */}
         <div style={{
           display: 'flex',
-          background: 'rgba(0, 0, 0, 0.25)',
+          background: 'var(--bg-subtle)',
           padding: '3px',
           borderRadius: '8px',
           border: '1px solid var(--border-subtle)'

@@ -490,13 +490,13 @@ export const PermissionsPage: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
+          background: 'var(--bg-modal-overlay)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
           zIndex: 1000,
-          backdropFilter: 'blur(4px)'
+          backdropFilter: 'blur(6px)'
         }}>
           <div className="cyber-card" style={{ maxWidth: '560px', width: '100%', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
@@ -510,7 +510,7 @@ export const PermissionsPage: React.FC = () => {
               Connecting to <strong>{oauthNoticePlatform.name}</strong> requires an official developer subscription, registered OAuth2 Client Credentials, and authentic user consent.
             </p>
 
-            <div style={{ padding: '14px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
+            <div style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.6' }}>
               <strong>Zero-Trust Academic Standard:</strong><br />
               • CyberShield AI never performs unauthorized scraping or credential collection.<br />
               • All current simulation testing is routed through the <strong>CyberShield Simulation Platform</strong>.<br />
