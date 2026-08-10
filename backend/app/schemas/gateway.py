@@ -2,15 +2,21 @@ from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 
 class GatewaySendRequest(BaseModel):
-    sender_id: str = Field(..., description="Sender Persona or Phone/Email Identifier (e.g. Attacker Bot +91 99999 11111)")
-    recipient_id: str = Field(default="Receiver Mobile Device (+1 555 019 9999)", description="Target recipient application identifier")
-    content_type: str = Field(default="message", description="Content modality (message, email, url, fake_news, profile, image, video, file)")
-    payload: Dict[str, Any] = Field(..., description="Message/Content payload payload dict (e.g. {'text': '...'})")
+    platform: Optional[str] = Field(default="whatsapp", description="Platform identifier: whatsapp, instagram, messages, email, web, photos, videos, news, files")
+    sender_id: str = Field(..., description="Sender Persona or Account Identifier (e.g. SND-WA-001)")
+    sender_name: Optional[str] = Field(default="Marcus Reynolds", description="Sender display name")
+    recipient_id: str = Field(default="RCV-WA-001", description="Target recipient application identifier")
+    recipient_name: Optional[str] = Field(default="Receiver Mobile User", description="Recipient display name")
+    content_type: str = Field(default="message", description="Content modality (message, email, url, news, image, video, file, profile)")
+    payload: Dict[str, Any] = Field(..., description="Message/Content payload dictionary")
     source_app: Optional[str] = Field(default="CyberShield External Sender App", description="Source client application name")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Optional transmission metadata")
 
 class GatewaySendResponse(BaseModel):
     event_id: str
+    platform: str = "whatsapp"
+    sender_id: str = "Marcus Reynolds"
+    recipient_id: str = "Receiver Mobile User"
     status: str = "PROCESSED"
     decision: str = Field(..., description="Security decision: ALLOW, REVIEW, BLOCK, QUARANTINE")
     delivered_to_receiver: bool = Field(..., description="True if safe content is delivered directly to user inbox; False if intercepted")
@@ -34,6 +40,7 @@ class GatewayHealthResponse(BaseModel):
 
 class GatewayReceiverInboxItem(BaseModel):
     event_id: str
+    platform: str = "whatsapp"
     sender_id: str
     recipient_id: str
     content_type: str

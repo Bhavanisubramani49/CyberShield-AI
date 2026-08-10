@@ -93,22 +93,44 @@ def receive_external_sender_event(
         )
 
     # 1. Generate unique gateway event ID
+    platform = (req.platform or "whatsapp").lower().strip()
     event_id = f"EVT-GTW-{int(time.time() * 1000) % 1000000:06d}"
 
     # Map content type & sender persona
     sender_type = "normal_user"
-    lower_sender = req.sender_id.lower()
+    lower_sender = f"{req.sender_id} {req.sender_name or ''}".lower()
     if "attacker" in lower_sender or "phish" in lower_sender or "scammer" in lower_sender or "threat" in lower_sender:
         sender_type = "simulated_attacker"
     elif "bot" in lower_sender or "fake" in lower_sender:
         sender_type = "fake_account"
 
+    # Infer or normalize modality by platform
+    content_type = req.content_type or "message"
+    if platform == "whatsapp" or platform == "messages":
+        content_type = "message"
+    elif platform == "instagram":
+        content_type = "profile" if ("followers" in req.payload or "bio" in req.payload) else "message"
+    elif platform == "email":
+        content_type = "email"
+    elif platform == "web":
+        content_type = "url"
+    elif platform == "photos":
+        content_type = "image"
+    elif platform == "videos":
+        content_type = "video"
+    elif platform == "news":
+        content_type = "news"
+    elif platform == "files":
+        content_type = "file"
+
     # 2. Execute full analysis & persistence pipeline
     stored_event = event_processor_service.process_and_store_event(
         event_id=event_id,
-        content_type=req.content_type,
+        content_type=content_type,
+        platform=platform,
         sender_type=sender_type,
-        sender_name=req.sender_id,
+        sender_name=req.sender_name or req.sender_id,
+        recipient_id=req.recipient_id,
         payload=req.payload
     )
 
@@ -121,10 +143,10 @@ def receive_external_sender_event(
 
         # Log gateway audit record
         audit = IntegrationAuditModel(
-            platform_id="simulation",
+            platform_id=platform,
             action="GATEWAY_EVENT_PROCESSED",
             result="SUCCESS",
-            details=f"Event {stored_event.event_id} processed for {req.source_app} ({req.sender_id}): {stored_event.classification} ({stored_event.risk_score}/100) -> {stored_event.final_action}",
+            details=f"Event {stored_event.event_id} ({platform}) processed for {req.source_app} ({req.sender_id}): {stored_event.classification} ({stored_event.risk_score}/100) -> {stored_event.final_action}",
             timestamp=datetime.now(timezone.utc).isoformat()
         )
         db.add(audit)
@@ -152,6 +174,9 @@ def receive_external_sender_event(
 
     return GatewaySendResponse(
         event_id=stored_event.event_id,
+        platform=platform,
+        sender_id=req.sender_name or req.sender_id,
+        recipient_id=req.recipient_id,
         status="PROCESSED",
         decision=decision,
         delivered_to_receiver=delivered,

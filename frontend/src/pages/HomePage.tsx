@@ -12,6 +12,8 @@ import {
   RefreshCw, 
   Globe, 
   Image as ImageIcon, 
+  Video,
+  FileText,
   Send, 
   Search, 
   ChevronRight, 
@@ -656,11 +658,11 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </button>
           </div>
 
-          {/* 1. MESSAGES & WHATSAPP & INSTAGRAM CHAT EXPERIENCE */}
-          {(activeChannel === 'whatsapp' || activeChannel === 'instagram' || activeChannel === 'messages') && (
+          {/* 1. WHATSAPP & MESSAGES / SMS CHAT EXPERIENCE */}
+          {(activeChannel === 'whatsapp' || activeChannel === 'messages') && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Incoming communication thread. <strong>Safe messages</strong> are delivered normally with a subtle tag; <strong>Dangerous scam payloads</strong> trigger CyberShield interception.
+                Incoming {channels.find(c => c.id === activeChannel)?.name} thread. <strong>Safe messages</strong> are delivered normally; <strong>Dangerous scam payloads</strong> are quarantined by CyberShield.
               </div>
 
               {/* Chat Thread */}
@@ -675,7 +677,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-subtle)'
               }}>
-                {events.filter(e => e.content_type === 'message' || e.platform === activeChannel).slice(0, 10).map((msg) => {
+                {events.filter(e => e.platform === activeChannel || (activeChannel === 'whatsapp' && e.content_type === 'message' && !e.platform)).slice(0, 10).map((msg) => {
                   const isThreat = msg.ai_result?.classification !== 'SAFE';
                   return (
                     <div
@@ -683,8 +685,8 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                       style={{
                         padding: '12px 14px',
                         borderRadius: 'var(--radius-sm)',
-                        background: isThreat ? 'rgba(239, 68, 68, 0.12)' : 'rgba(59, 130, 246, 0.12)',
-                        border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(59, 130, 246, 0.3)',
+                        background: isThreat ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.08)',
+                        border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)',
                         maxWidth: '85%'
                       }}
                     >
@@ -761,7 +763,111 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </div>
           )}
 
-          {/* 2. WEB & URLS BROWSER SANDBOX */}
+          {/* 2. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX */}
+          {activeChannel === 'instagram' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                Simulated Instagram direct messages & social profile scanner. Inspects bot follower ratios, giveaway spam, and phishing links.
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {events.filter(e => e.platform === 'instagram' || e.content_type === 'profile').slice(0, 6).map((ig) => {
+                  const isThreat = ig.ai_result?.classification !== 'SAFE';
+                  return (
+                    <div key={ig.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                            From: {ig.sender_id}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            Target: {ig.receiver_id || 'RCV-IG-001'}
+                          </div>
+                        </div>
+                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.62rem' }}>
+                          {isThreat ? ig.ai_result?.classification : 'SAFE SOCIAL MESSAGE'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.82rem', color: isThreat ? 'var(--color-danger)' : 'var(--text-primary)', marginBottom: '8px', padding: '8px 10px', background: isThreat ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-card)', borderRadius: '4px' }}>
+                        {ig.content_preview || 'Instagram direct message content'}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                        <span style={{ color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 600 }}>
+                          Risk: {ig.ai_result?.risk_score}/100 ({ig.ai_result?.risk_level})
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {isThreat && (
+                            <button onClick={() => setSecurityWarningEvent(ig)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
+                              <ShieldAlert size={12} /> Warning Card
+                            </button>
+                          )}
+                          <button onClick={() => setForensicEvent(ig)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                            <Eye size={12} /> Inspect
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 3. EMAIL / GMAIL INBOX SANDBOX */}
+          {activeChannel === 'email' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                Simulated Email / Gmail inbox. Scans inbound email headers, credential harvesting links, and deceptive attachments.
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {events.filter(e => e.platform === 'email' || e.content_type === 'email').slice(0, 6).map((em) => {
+                  const isThreat = em.ai_result?.classification !== 'SAFE';
+                  return (
+                    <div key={em.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isThreat ? 'var(--color-danger)' : 'var(--text-primary)' }}>
+                            Subject: {em.content_preview?.split('\n')?.[0] || 'Enterprise Communication'}
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                            From: {em.sender_id} ➔ To: {em.receiver_id || 'RCV-EMAIL-001'}
+                          </div>
+                        </div>
+                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.62rem' }}>
+                          {isThreat ? 'PHISHING THREAT' : 'VERIFIED EMAIL'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '8px', padding: '8px 10px', background: isThreat ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-card)', borderRadius: '4px' }}>
+                        {em.content_preview?.split('\n')?.slice(1)?.join(' ') || em.content_preview || 'Email body content.'}
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
+                        <span style={{ color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 600 }}>
+                          Security Decision: {em.final_action} ({em.ai_result?.risk_score}/100)
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {isThreat && (
+                            <button onClick={() => setSecurityWarningEvent(em)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
+                              <ShieldAlert size={12} /> Warning Card
+                            </button>
+                          )}
+                          <button onClick={() => setForensicEvent(em)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                            <Eye size={12} /> Inspect
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. WEB & URLS BROWSER SANDBOX */}
           {activeChannel === 'web' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
@@ -769,7 +875,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.content_type === 'url').slice(0, 6).map((u) => {
+                {events.filter(e => e.platform === 'web' || e.content_type === 'url').slice(0, 6).map((u) => {
                   const isThreat = u.ai_result?.classification !== 'SAFE';
                   return (
                     <div key={u.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-subtle)' }}>
@@ -816,7 +922,65 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </div>
           )}
 
-          {/* 3. NEWS & ARTICLES SANDBOX */}
+          {/* 5. PHOTOS & MEDIA GALLERY SANDBOX */}
+          {activeChannel === 'photos' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                Photo gallery preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                {events.filter(e => e.platform === 'photos' || e.content_type === 'image').slice(0, 6).map((p) => {
+                  const isThreat = p.ai_result?.classification !== 'SAFE';
+                  return (
+                    <div key={p.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
+                        <ImageIcon size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                      </div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{p.content_preview || 'image_payload.png'}</div>
+                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
+                        {isThreat ? `Manipulated (${p.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
+                      </div>
+                      <button onClick={() => isThreat ? setSecurityWarningEvent(p) : setForensicEvent(p)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
+                        <Eye size={12} /> {isThreat ? 'Inspect Warning' : 'Photo Info'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 6. VIDEOS & STREAMS SANDBOX */}
+          {activeChannel === 'videos' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                Video stream analyzer. Evaluates temporal frame consistency, facial boundary warping, and synthetic audio-visual artifacts.
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+                {events.filter(e => e.platform === 'videos' || e.content_type === 'video').slice(0, 6).map((v) => {
+                  const isThreat = v.ai_result?.classification !== 'SAFE';
+                  return (
+                    <div key={v.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
+                        <Video size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                      </div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{v.content_preview || 'video_stream.mp4'}</div>
+                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
+                        {isThreat ? `Deepfake Detected (${v.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
+                      </div>
+                      <button onClick={() => isThreat ? setSecurityWarningEvent(v) : setForensicEvent(v)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
+                        <Eye size={12} /> {isThreat ? 'Inspect Deepfake Warning' : 'Stream Details'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 7. NEWS & ARTICLES SANDBOX */}
           {activeChannel === 'news' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
@@ -824,7 +988,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.content_type === 'news').slice(0, 5).map((n) => {
+                {events.filter(e => e.platform === 'news' || e.content_type === 'news').slice(0, 6).map((n) => {
                   const isThreat = n.ai_result?.classification !== 'SAFE';
                   return (
                     <div key={n.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)' }}>
@@ -849,39 +1013,44 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </div>
           )}
 
-          {/* 4. PHOTOS & MEDIA SANDBOX */}
-          {activeChannel === 'photos' && (
+          {/* 8. FILES & STORAGE SANDBOX */}
+          {activeChannel === 'files' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Photo gallery preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
+                Files & Storage Vault. Analyzes dangerous macro attachments (.docm, .xlsm), double extensions, and PE headers before download.
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
-                {events.filter(e => e.content_type === 'image').slice(0, 4).map((p) => {
-                  const isThreat = p.ai_result?.classification !== 'SAFE';
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {events.filter(e => e.platform === 'files' || e.content_type === 'file').slice(0, 6).map((fl) => {
+                  const isThreat = fl.ai_result?.classification !== 'SAFE';
                   return (
-                    <div key={p.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
-                        <ImageIcon size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                    <div key={fl.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileText size={16} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                          <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>{fl.content_preview || 'file_attachment'}</strong>
+                        </div>
+                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                          {isThreat ? 'MALICIOUS SCRIPT / MACRO' : 'SAFE FILE'}
+                        </span>
                       </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{p.content_preview || 'image_payload.png'}</div>
-                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
-                        {isThreat ? `Manipulated (${p.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
+                      <div style={{ fontSize: '0.72rem', color: isThreat ? 'var(--color-danger)' : 'var(--text-muted)', marginTop: '4px' }}>
+                        Decision: <strong>{fl.final_action}</strong> ({fl.ai_result?.risk_score}/100) — {fl.ai_result?.reasons?.[0] || 'Inspection complete'}
                       </div>
-                      <button onClick={() => isThreat ? setSecurityWarningEvent(p) : setForensicEvent(p)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
-                        <Eye size={12} /> {isThreat ? 'Inspect Warning' : 'Photo Info'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                        {isThreat && (
+                          <button onClick={() => setSecurityWarningEvent(fl)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
+                            <ShieldAlert size={12} /> Vault Quarantine Card
+                          </button>
+                        )}
+                        <button onClick={() => setForensicEvent(fl)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
+                          <Eye size={12} /> Inspect File
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* 5. OTHER CHANNELS (VIDEOS, FILES, EMAIL) */}
-          {activeChannel !== 'whatsapp' && activeChannel !== 'instagram' && activeChannel !== 'messages' && activeChannel !== 'web' && activeChannel !== 'news' && activeChannel !== 'photos' && (
-            <div style={{ padding: '16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Active simulated receiver surface for <strong>{channels.find(c => c.id === activeChannel)?.name}</strong>. All incoming digital items are screened by specialized AI detectors before execution or preview.
             </div>
           )}
         </div>

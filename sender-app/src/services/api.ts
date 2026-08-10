@@ -13,8 +13,11 @@ export async function checkGatewayHealth(): Promise<GatewayHealthResponse> {
 
 export async function transmitEventToCore(
   payload: {
+    platform?: string;
     sender_id: string;
+    sender_name?: string;
     recipient_id: string;
+    recipient_name?: string;
     content_type: string;
     payload: Record<string, any>;
     source_app?: string;
@@ -28,7 +31,13 @@ export async function transmitEventToCore(
       'X-CyberShield-API-Key': apiKey
     },
     body: JSON.stringify({
-      ...payload,
+      platform: payload.platform || 'whatsapp',
+      sender_id: payload.sender_id,
+      sender_name: payload.sender_name || 'Marcus Reynolds',
+      recipient_id: payload.recipient_id,
+      recipient_name: payload.recipient_name || 'Receiver Mobile User',
+      content_type: payload.content_type,
+      payload: payload.payload,
       source_app: payload.source_app || 'CyberShield External Sender Application (Port 5174)'
     })
   });

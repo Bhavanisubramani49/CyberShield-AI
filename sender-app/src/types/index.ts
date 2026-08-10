@@ -8,6 +8,9 @@ export interface SenderUser {
 
 export interface GatewaySendResponse {
   event_id: string;
+  platform: string;
+  sender_id: string;
+  recipient_id: string;
   status: string;
   decision: 'ALLOW' | 'REVIEW' | 'BLOCK' | 'QUARANTINE';
   delivered_to_receiver: boolean;

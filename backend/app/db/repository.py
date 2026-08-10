@@ -45,13 +45,59 @@ class EventRepository:
             for t in sorted(model.timelines, key=lambda x: x.id)
         ]
 
+        # Resolve platform dynamically
+        platform = "whatsapp"
+        recipient_id = "RCV-WA-001 (Receiver Mobile User)"
+        ref = str(model.content_reference or "")
+        surface = str(model.receiver_surface or "").lower()
+        modality = str(model.modality or "").lower()
+        sender_lower = str(model.sender_name or "").lower()
+        eid_lower = str(model.event_id or "").lower()
+
+        if "platform:" in ref:
+            for part in ref.split("|"):
+                if part.startswith("platform:"):
+                    platform = part.replace("platform:", "").strip().lower()
+                if part.startswith("recipient:"):
+                    recipient_id = part.replace("recipient:", "").strip()
+        elif "instagram" in surface or "instagram" in sender_lower or "ig" in eid_lower:
+            platform = "instagram"
+            recipient_id = "RCV-IG-001 (Receiver Social User)"
+        elif "whatsapp" in surface or "whatsapp" in sender_lower or "wa" in eid_lower:
+            platform = "whatsapp"
+            recipient_id = "RCV-WA-001 (Receiver Mobile User)"
+        elif "sms" in surface or "messages" in surface or "sms" in eid_lower:
+            platform = "messages"
+            recipient_id = "RCV-SMS-001 (Receiver Mobile User)"
+        elif modality == "email" or "email" in surface:
+            platform = "email"
+            recipient_id = "RCV-EMAIL-001 (Receiver Mail User)"
+        elif modality == "url" or "web" in surface:
+            platform = "web"
+            recipient_id = "RCV-WEB-001 (Receiver Browser User)"
+        elif modality == "image" or "photo" in surface or "photos" in surface:
+            platform = "photos"
+            recipient_id = "RCV-PHOTO-001 (Receiver Gallery User)"
+        elif modality == "video" or "stream" in surface or "videos" in surface:
+            platform = "videos"
+            recipient_id = "RCV-VIDEO-001 (Receiver Video User)"
+        elif modality == "news" or "article" in surface:
+            platform = "news"
+            recipient_id = "RCV-NEWS-001 (Receiver News User)"
+        elif modality == "file" or "storage" in surface or "files" in surface:
+            platform = "files"
+            recipient_id = "RCV-FILE-001 (Receiver Storage User)"
+        elif modality in ["message", "sms"]:
+            platform = "whatsapp"
+            recipient_id = "RCV-WA-001 (Receiver Mobile User)"
+
         return SecurityEventSchema(
             event_id=model.event_id,
             sender_id=model.sender_name,
             sender_type=model.sender_type,
-            receiver_id="Receiver Platform",
+            receiver_id=recipient_id,
             receiver_surface=model.receiver_surface,
-            platform="CyberShield-Simulation-Hub",
+            platform=platform,
             content_type=model.modality,
             content_preview=model.content,
             content_reference=model.content_reference,

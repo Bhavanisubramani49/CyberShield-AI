@@ -57,8 +57,10 @@ class EventProcessorService:
         self,
         event_id: Optional[str] = None,
         content_type: str = "message",
+        platform: str = "whatsapp",
         sender_type: str = "simulated_attacker",
         sender_name: str = "Simulated Sender",
+        recipient_id: str = "Receiver Mobile User",
         payload: Dict[str, Any] = None,
         ai_result: Optional[AISecurityResultSchema] = None,
         user_action_override: Optional[str] = None
@@ -84,7 +86,7 @@ class EventProcessorService:
         final_action = user_action_override or ai_result.recommendation
         
         timeline_steps = [
-            {"step": "Event Created", "status": "DONE", "timestamp": now_time, "detail": "Dispatched in Sender Platform"},
+            {"step": "Event Created", "status": "DONE", "timestamp": now_time, "detail": f"Dispatched in Sender Platform ({platform.upper()})"},
             {"step": "Event Received", "status": "DONE", "timestamp": now_time, "detail": "Ingested into SQLite Database"},
             {"step": "AI Analysis Started", "status": "DONE", "timestamp": now_time, "detail": f"Routed to {ai_result.model}"},
             {"step": "AI Analysis Completed", "status": "DONE", "timestamp": now_time, "detail": f"Classification: {ai_result.classification} ({ai_result.risk_score}/100)"},
@@ -102,6 +104,12 @@ class EventProcessorService:
             "Simulated Content"
         )
 
+        content_ref = f"platform:{platform}|recipient:{recipient_id}"
+        if payload.get("link"):
+            content_ref += f"|link:{payload.get('link')}"
+        elif payload.get("url"):
+            content_ref += f"|url:{payload.get('url')}"
+
         event_dict = {
             "event_id": event_id,
             "sender_id": sender_name,
@@ -109,7 +117,7 @@ class EventProcessorService:
             "receiver_surface": receiver_surface,
             "content_type": content_type,
             "content_preview": content_preview,
-            "content_reference": payload.get("link") or payload.get("url"),
+            "content_reference": content_ref,
             "status": "analyzed",
             "classification": ai_result.classification,
             "risk_score": ai_result.risk_score,
