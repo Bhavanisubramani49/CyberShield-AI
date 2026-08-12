@@ -27,11 +27,20 @@ class EventAnalyzeRequest(BaseModel):
 
 class EventSendRequest(BaseModel):
     event_id: str
-    content_type: str
-    sender_type: str
-    sender_name: str
-    payload: Dict[str, Any]
-    ai_result: AISecurityResultSchema
+    content_type: str = "message"
+    sender_type: str = "normal_user"
+    sender_name: Optional[str] = "Simulated Sender"
+    sender_id: Optional[str] = None
+    receiver_id: Optional[str] = None
+    platform: Optional[str] = None
+    content_preview: Optional[str] = None
+    raw_content: Optional[str] = None
+    payload: Dict[str, Any] = {}
+    ai_result: Optional[AISecurityResultSchema] = None
+    status: Optional[str] = "DELIVERED"
+    timestamp: Optional[str] = None
+    user_action: Optional[str] = None
+    final_action: Optional[str] = None
 
 class SecurityEventSchema(BaseModel):
     event_id: str

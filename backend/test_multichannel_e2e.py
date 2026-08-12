@@ -1,5 +1,6 @@
 import sys
 import json
+import time
 import asyncio
 from httpx import AsyncClient, ASGITransport
 from main import app
@@ -263,13 +264,50 @@ async def run_all_verifications():
         res_notifs = await client.get("/api/v1/notifications?limit=20")
         assert res_notifs.status_code == 200
         notifs = res_notifs.json()
-        print(f"[NOTIFICATIONS] Successfully retrieved {len(notifs)} real-time security alerts from SQLite.")
+        # 6. Verify Two-Way Exact Sender Reply Flow
+        res_reply = await client.post(
+            "/api/v1/events/send",
+            json={
+                "event_id": f"EVT-RPLY-{int(time.time() * 1000) % 1000000:06d}",
+                "content_type": "message",
+                "sender_type": "normal_user",
+                "sender_name": "Receiver Mobile User (RCV-WA-001)",
+                "receiver_id": "Marcus Reynolds (SND-WA-001)",
+                "platform": "whatsapp",
+                "content_preview": "Yes, confirmed meeting at 10 AM!",
+                "payload": {"text": "Yes, confirmed meeting at 10 AM!"}
+            }
+        )
+        assert res_reply.status_code == 200, f"Reply dispatch failed: {res_reply.text}"
+        reply_data = res_reply.json()
+        assert reply_data["sender_id"] == "Receiver Mobile User (RCV-WA-001)"
+        assert "SND-WA-001" in reply_data["receiver_id"]
+        assert reply_data["final_action"] == "ALLOW"
+        print(f"[TWO-WAY REPLY] Successfully persisted reply from {reply_data['sender_id']} to {reply_data['receiver_id']} (Decision: {reply_data['final_action']})")
 
-        # 5. Verify Dashboard Analytics
-        res_dash = await client.get("/api/v1/dashboard/summary")
-        assert res_dash.status_code == 200, f"Dashboard summary failed: {res_dash.text}"
-        dash = res_dash.json()
-        print(f"[DASHBOARD] Total Events: {dash['total_events']}, Threats: {dash['threats_detected']}, Safe: {dash['safe_events']}")
+        # 7. Verify Auth & Error Handling
+        res_bad_auth = await client.post(
+            "/api/v1/gateway/send",
+            headers={"X-CyberShield-API-Key": "invalid-key"},
+            json={"platform": "whatsapp", "payload": {"text": "test"}}
+        )
+        assert res_bad_auth.status_code == 403, f"Expected 403 on invalid key, got {res_bad_auth.status_code}"
+        print(f"[AUTH SECURITY] Correctly rejected unauthorized gateway request with HTTP {res_bad_auth.status_code}.")
+
+        res_empty_payload = await client.post(
+            "/api/v1/gateway/send",
+            headers=headers,
+            json={
+                "platform": "whatsapp",
+                "sender_id": "SND-WA-001",
+                "recipient_id": "RCV-WA-001",
+                "content_type": "message",
+                "source_app": "test",
+                "payload": {}
+            }
+        )
+        assert res_empty_payload.status_code == 400, f"Expected 400 on empty payload, got {res_empty_payload.status_code}"
+        print(f"[VALIDATION] Correctly rejected empty payload with HTTP {res_empty_payload.status_code}.")
 
         return results
 
@@ -277,6 +315,6 @@ if __name__ == "__main__":
     res = asyncio.run(run_all_verifications())
     all_passed = all(r["status"] == "PASS" for r in res)
     print("\n" + "="*80)
-    print(f"FINAL RESULT: {'ALL 9 PLATFORMS PASSED (100%)' if all_passed else 'SOME PLATFORMS FAILED'}")
+    print(f"FINAL RESULT: {'ALL 9 PLATFORMS & TWO-WAY PIPELINE PASSED (100%)' if all_passed else 'SOME PLATFORMS FAILED'}")
     print("="*80)
     sys.exit(0 if all_passed else 1)

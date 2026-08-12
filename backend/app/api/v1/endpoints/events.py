@@ -32,13 +32,25 @@ async def send_security_event(req: EventSendRequest):
     Transfers the simulated event permanently into the SQLite database repository and Receiver queue.
     """
     try:
+        platform = req.platform or "whatsapp"
+        sender = req.sender_name or req.sender_id or "Dr. Alex Vance (Receiver User)"
+        recipient = req.receiver_id or "External Sender (Marcus Reynolds)"
+        
+        # Ensure payload has content
+        payload = req.payload or {}
+        if not payload and req.content_preview:
+            payload = {"text": req.content_preview}
+
         return event_processor_service.process_and_store_event(
             event_id=req.event_id,
             content_type=req.content_type,
+            platform=platform,
             sender_type=req.sender_type,
-            sender_name=req.sender_name,
-            payload=req.payload,
-            ai_result=req.ai_result
+            sender_name=sender,
+            recipient_id=recipient,
+            payload=payload,
+            ai_result=req.ai_result,
+            user_action_override=req.final_action or req.user_action
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Event dispatch error: {str(e)}")

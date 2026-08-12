@@ -23,6 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os
+from fastapi.staticfiles import StaticFiles
+
+# Ensure demo media folder exists and mount static directory
+os.makedirs("data/demo", exist_ok=True)
+app.mount("/media", StaticFiles(directory="data/demo"), name="media")
+
 # Automatically initialize SQLite tables and baseline seed
 @app.on_event("startup")
 def on_startup():
