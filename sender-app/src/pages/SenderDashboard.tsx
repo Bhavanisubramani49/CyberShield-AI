@@ -9,7 +9,11 @@ import {
   LogOut,
   ShieldAlert,
   Layers,
-  CheckCircle
+  CheckCircle,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Globe as GlobeIcon,
+  FileText as FileIcon
 } from 'lucide-react';
 import { SenderUser, GatewaySendResponse, GatewayHealthResponse } from '../types';
 import { transmitEventToCore, checkGatewayHealth } from '../services/api';
@@ -529,6 +533,38 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
             </div>
           )}
 
+          {/* Live Media / Content Preview Before Dispatch */}
+          <div style={{ padding: '12px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {selectedPlatformId === 'photos' || selectedPlatformId === 'instagram' ? <ImageIcon size={13} color="var(--color-green)" /> :
+               selectedPlatformId === 'videos' ? <VideoIcon size={13} color="var(--color-green)" /> :
+               selectedPlatformId === 'web' ? <GlobeIcon size={13} color="var(--color-blue)" /> :
+               selectedPlatformId === 'files' ? <FileIcon size={13} color="var(--color-green)" /> :
+               <span>👁️</span>}
+              Live Payload Preview ({activePlatform.name}):
+            </div>
+            
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>
+              {selectedPlatformId === 'web' ? (
+                <code>Target URL: {urlInput || 'http://example.com'}</code>
+              ) : selectedPlatformId === 'news' ? (
+                <div>
+                  <strong>{headlineText || 'Article Headline'}</strong>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>{messageText || 'Article body preview...'}</div>
+                </div>
+              ) : selectedPlatformId === 'photos' || selectedPlatformId === 'videos' || selectedPlatformId === 'files' ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>File: <code>{fileName || 'payload.bin'}</code></span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Ready for Gateway transmission</span>
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  "{messageText || 'Message content preview...'}"
+                </div>
+              )}
+            </div>
+          </div>
+
           {dispatchError && (
             <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.35)', color: 'var(--color-danger)', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem' }}>
               ⚠️ {dispatchError}
@@ -539,7 +575,7 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
             onClick={handleSend}
             disabled={transmitting}
             className="btn btn-primary-green"
-            style={{ marginTop: '6px', padding: '10px', fontSize: '0.85rem', justifyContent: 'center' }}
+            style={{ marginTop: '4px', padding: '11px', fontSize: '0.85rem', justifyContent: 'center' }}
           >
             <Send size={15} /> {transmitting ? 'Transmitting Event to Core...' : `Send ${activePlatform.name} Event to CyberShield Core`}
           </button>

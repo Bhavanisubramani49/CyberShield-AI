@@ -10,9 +10,6 @@ import {
   Clock, 
   Zap, 
   RefreshCw, 
-  Globe, 
-  Image as ImageIcon, 
-  Video,
   FileText,
   Send, 
   Search, 
@@ -34,6 +31,8 @@ import {
   sendEventAPI
 } from '../services/api';
 import { getPlatformLogo } from '../components/common/PlatformLogos';
+import { InstagramSimulator } from '../components/simulators/InstagramSimulator';
+import { DEMO_MEDIA_CATALOG } from '../data/demoMedia';
 
 interface HomePageProps {
   health: SystemHealth | null;
@@ -157,26 +156,42 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
     }
   };
 
-  const handleSendReply = async () => {
-    if (!chatReply.trim()) return;
+  const handleSendReply = async (customText?: string, targetSenderId?: string, targetReceiverId?: string, targetPlatform?: string) => {
+    const textToSend = customText || chatReply;
+    if (!textToSend.trim()) return;
     setReplySending(true);
+
+    const platform = targetPlatform || activeChannel || 'whatsapp';
+    const recipient = targetSenderId || (
+      platform === 'whatsapp' ? 'Marcus Reynolds (SND-WA-001)' :
+      platform === 'instagram' ? 'Marcus Reynolds (SND-IG-001)' :
+      platform === 'messages' ? 'Marcus Reynolds (SND-SMS-001)' :
+      'Marcus Reynolds (SND-EMAIL-001)'
+    );
+    const sender = targetReceiverId || (
+      platform === 'whatsapp' ? 'Receiver Mobile User (RCV-WA-001)' :
+      platform === 'instagram' ? 'Receiver Social User (RCV-IG-001)' :
+      platform === 'messages' ? 'Receiver Mobile User (RCV-SMS-001)' :
+      'Receiver Mail User (RCV-EMAIL-001)'
+    );
+
     try {
       await sendEventAPI({
-        event_id: `EVT-RPLY-${Date.now().toString().slice(-4)}`,
-        sender_id: 'Dr. Alex Vance (Receiver User)',
+        event_id: `EVT-RPLY-${Date.now().toString().slice(-6)}`,
+        sender_id: sender,
         sender_type: 'normal_user',
-        receiver_id: 'External Sender (Marcus Reynolds)',
-        platform: 'whatsapp',
+        receiver_id: recipient,
+        platform: platform,
         content_type: 'message',
-        content_preview: chatReply,
-        raw_content: chatReply,
-        payload: { text: chatReply },
+        content_preview: textToSend,
+        raw_content: textToSend,
+        payload: { text: textToSend },
         status: 'DELIVERED',
         timestamp: new Date().toISOString(),
         user_action: 'ALLOW',
         final_action: 'ALLOW'
       });
-      setChatReply('');
+      if (!customText) setChatReply('');
       await loadData();
     } catch (e) {
       console.error('Failed to send reply:', e);
@@ -752,7 +767,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                   }}
                 />
                 <button
-                  onClick={handleSendReply}
+                  onClick={() => handleSendReply()}
                   disabled={replySending || !chatReply.trim()}
                   className="btn btn-primary-green"
                   style={{ padding: '9px 16px', fontSize: '0.82rem' }}
@@ -763,55 +778,35 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </div>
           )}
 
-          {/* 2. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX */}
+          {/* 2. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX (FULL SIMULATED APP) */}
           {activeChannel === 'instagram' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated Instagram direct messages & social profile scanner. Inspects bot follower ratios, giveaway spam, and phishing links.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Simulated Interactive Instagram Application with 5-Tab Navigation, Stories, Create Post (+), Explore, Reels, DMs & CyberShield AI Protection.
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.platform === 'instagram' || e.content_type === 'profile').slice(0, 6).map((ig) => {
-                  const isThreat = ig.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={ig.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <div>
-                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                            From: {ig.sender_id}
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            Target: {ig.receiver_id || 'RCV-IG-001'}
-                          </div>
-                        </div>
-                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.62rem' }}>
-                          {isThreat ? ig.ai_result?.classification : 'SAFE SOCIAL MESSAGE'}
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: '0.82rem', color: isThreat ? 'var(--color-danger)' : 'var(--text-primary)', marginBottom: '8px', padding: '8px 10px', background: isThreat ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-card)', borderRadius: '4px' }}>
-                        {ig.content_preview || 'Instagram direct message content'}
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
-                        <span style={{ color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 600 }}>
-                          Risk: {ig.ai_result?.risk_score}/100 ({ig.ai_result?.risk_level})
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {isThreat && (
-                            <button onClick={() => setSecurityWarningEvent(ig)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
-                              <ShieldAlert size={12} /> Warning Card
-                            </button>
-                          )}
-                          <button onClick={() => setForensicEvent(ig)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                            <Eye size={12} /> Inspect
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <InstagramSimulator
+                events={events}
+                onSendEvent={async (p) => {
+                  const res = await sendEventAPI({
+                    event_id: `EVT-IG-${Date.now().toString().slice(-4)}`,
+                    sender_id: p.sender_id,
+                    sender_type: 'normal_user',
+                    receiver_id: p.recipient_id,
+                    platform: 'instagram',
+                    content_type: p.content_type || 'message',
+                    content_preview: p.payload?.text || p.payload?.filename || 'Instagram Event',
+                    raw_content: JSON.stringify(p.payload),
+                    payload: p.payload,
+                    status: 'DELIVERED',
+                    timestamp: new Date().toISOString()
+                  });
+                  await loadData();
+                  return res;
+                }}
+                onInspectEvent={setForensicEvent}
+                onOpenWarning={setSecurityWarningEvent}
+              />
             </div>
           )}
 
@@ -871,53 +866,43 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           {activeChannel === 'web' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated web browser sandbox. Testing URLs are vetted by the URL Threat Classifier before opening.
+                Simulated Protected Web Browser. Testing URLs are scanned before rendering web viewports.
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.platform === 'web' || e.content_type === 'url').slice(0, 6).map((u) => {
-                  const isThreat = u.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={u.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Globe size={14} color={isThreat ? 'var(--color-danger)' : 'var(--color-blue-light)'} />
-                            <code style={{ fontSize: '0.8rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-blue-light)', fontWeight: 600 }}>
-                              {u.content_preview || u.raw_content || 'http://example.com'}
-                            </code>
-                          </div>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            Score: <strong>{u.ai_result?.risk_score}/100</strong> — Classification: <strong>{u.ai_result?.classification}</strong>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {isThreat ? (
-                            <button
-                              onClick={() => setSecurityWarningEvent(u)}
-                              className="btn btn-outline"
-                              style={{ fontSize: '0.72rem', padding: '4px 10px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}
-                            >
-                              <ShieldAlert size={12} /> Warning Card
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--color-green)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                              <CheckCircle size={13} /> ✓ Protected by CyberShield
-                            </span>
-                          )}
-                          <button
-                            onClick={() => setForensicEvent(u)}
-                            className="btn btn-outline"
-                            style={{ fontSize: '0.72rem', padding: '4px 10px' }}
-                          >
-                            <Eye size={12} /> Inspect
-                          </button>
-                        </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'web').map((webItem) => (
+                  <div key={webItem.id} style={{ border: webItem.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--bg-subtle)' }}>
+                    {/* Browser Address Bar */}
+                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
+                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }} />
+                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
                       </div>
+                      <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {webItem.isThreat ? <Lock size={12} color="#ef4444" /> : <Lock size={12} color="#10b981" />}
+                        <span style={{ color: webItem.isThreat ? 'var(--color-danger)' : 'var(--color-green)' }}>{webItem.caption}</span>
+                      </div>
+                      <span className={`badge ${webItem.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                        {webItem.isThreat ? 'BLOCKED MALICIOUS URL' : '✓ PROTECTED BROWSER'}
+                      </span>
                     </div>
-                  );
-                })}
+
+                    {/* Web Content / Screenshot Preview */}
+                    <div style={{ position: 'relative', height: '180px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <img src={webItem.mediaUrl} alt={webItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: webItem.isThreat ? 'blur(6px)' : 'none' }} />
+                      {webItem.isThreat && (
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.45)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', textAlign: 'center' }}>
+                          <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
+                          <strong style={{ fontSize: '0.9rem', color: '#fff' }}>🔴 NAVIGATION BLOCKED BY CYBERSHIELD</strong>
+                          <div style={{ fontSize: '0.72rem', color: '#fee2e2', marginTop: '4px' }}>
+                            Direct IP host with unverified SSL certificate and credential harvesting signature.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -926,56 +911,76 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           {activeChannel === 'photos' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Photo gallery preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
+                Photo & Media Gallery Preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
-                {events.filter(e => e.platform === 'photos' || e.content_type === 'image').slice(0, 6).map((p) => {
-                  const isThreat = p.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={p.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
-                        <ImageIcon size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
-                      </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{p.content_preview || 'image_payload.png'}</div>
-                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
-                        {isThreat ? `Manipulated (${p.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
-                      </div>
-                      <button onClick={() => isThreat ? setSecurityWarningEvent(p) : setForensicEvent(p)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
-                        <Eye size={12} /> {isThreat ? 'Inspect Warning' : 'Photo Info'}
-                      </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'photos').map((photo) => (
+                  <div key={photo.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: photo.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
+                    <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
+                      <img src={photo.mediaUrl} alt={photo.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: photo.isThreat ? 'blur(3px)' : 'none' }} />
+                      <span className={`badge ${photo.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.6rem' }}>
+                        {photo.isThreat ? `MANIPULATED (${photo.riskScore}/100)` : '✓ SAFE EXIF'}
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <div style={{ padding: '12px' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {photo.title}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        Size: {photo.fileSize} • Type: {photo.fileType}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: photo.isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '4px', fontWeight: 600 }}>
+                        {photo.reasons[0]}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* 6. VIDEOS & STREAMS SANDBOX */}
+          {/* 6. VIDEOS & STREAMS / YOUTUBE SANDBOX */}
           {activeChannel === 'videos' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Video stream analyzer. Evaluates temporal frame consistency, facial boundary warping, and synthetic audio-visual artifacts.
+                Simulated YouTube-style video stream player with deepfake boundary analysis and frame rate forensics.
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
-                {events.filter(e => e.platform === 'videos' || e.content_type === 'video').slice(0, 6).map((v) => {
-                  const isThreat = v.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={v.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ height: '90px', background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px', border: '1px solid var(--border-subtle)' }}>
-                        <Video size={32} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
-                      </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>{v.content_preview || 'video_stream.mp4'}</div>
-                      <div style={{ fontSize: '0.7rem', color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '2px', fontWeight: 600 }}>
-                        {isThreat ? `Deepfake Detected (${v.ai_result?.risk_score}/100)` : '✓ Protected by CyberShield'}
-                      </div>
-                      <button onClick={() => isThreat ? setSecurityWarningEvent(v) : setForensicEvent(v)} className="btn btn-outline" style={{ width: '100%', marginTop: '8px', fontSize: '0.72rem', justifyContent: 'center' }}>
-                        <Eye size={12} /> {isThreat ? 'Inspect Deepfake Warning' : 'Stream Details'}
-                      </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'videos').map((vid) => (
+                  <div key={vid.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: vid.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
+                    <div style={{ position: 'relative', height: '190px', background: '#000' }}>
+                      {vid.isThreat ? (
+                        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                          <img src={vid.thumbnailUrl} alt={vid.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(5px)' }} />
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.4)', backdropFilter: 'blur(6px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px', textAlign: 'center' }}>
+                            <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
+                            <strong style={{ fontSize: '0.85rem', color: '#fff' }}>🔴 DEEPFAKE DETECTED — PLAYBACK QUARANTINED</strong>
+                            <div style={{ fontSize: '0.7rem', color: '#fee2e2', marginTop: '4px' }}>
+                              Temporal frame warping detected across 48 sampled video frames.
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <video src={vid.mediaUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
                     </div>
-                  );
-                })}
+
+                    <div style={{ padding: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{vid.title}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{vid.author} • Duration: {vid.duration}</div>
+                        </div>
+                        <span className={`badge ${vid.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                          {vid.isThreat ? 'DEEPFAKE' : '✓ SAFE STREAM'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -987,28 +992,36 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 Simulated news & article reader with linguistic distortion and fact-check verification tags.
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.platform === 'news' || e.content_type === 'news').slice(0, 6).map((n) => {
-                  const isThreat = n.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={n.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                        <span className={`badge ${isThreat ? 'badge-warning' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                          {isThreat ? 'FAKE NEWS / MISINFORMATION' : 'VERIFIED NEWS'}
-                        </span>
-                        <button onClick={() => isThreat ? setSecurityWarningEvent(n) : setForensicEvent(n)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                          <Eye size={12} /> {isThreat ? 'View Warning' : 'Article Details'}
-                        </button>
-                      </div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {n.content_preview || n.raw_content || 'Breaking news headline'}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        Sensationalist linguistic score: {n.ai_result?.risk_score}/100
-                      </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'news').map((newsItem) => (
+                  <div key={newsItem.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: newsItem.isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-green)', background: 'var(--bg-subtle)', display: 'flex', flexWrap: 'wrap' }}>
+                    <div style={{ width: '220px', minHeight: '140px', position: 'relative' }}>
+                      <img src={newsItem.mediaUrl} alt={newsItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      {newsItem.isThreat && (
+                        <div style={{ position: 'absolute', top: 6, left: 6, background: '#f59e0b', color: '#000', fontSize: '0.55rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
+                          MISINFORMATION
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
+
+                    <div style={{ flex: 1, padding: '14px', minWidth: '260px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>By {newsItem.author} ({newsItem.handle})</span>
+                        <span className={`badge ${newsItem.isThreat ? 'badge-warning' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                          {newsItem.isThreat ? `FAKE NEWS (${newsItem.riskScore}/100)` : '✓ VERIFIED ARTICLE'}
+                        </span>
+                      </div>
+
+                      <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                        {newsItem.title}
+                      </h4>
+
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
+                        {newsItem.caption}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -1020,36 +1033,27 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
                 Files & Storage Vault. Analyzes dangerous macro attachments (.docm, .xlsm), double extensions, and PE headers before download.
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.platform === 'files' || e.content_type === 'file').slice(0, 6).map((fl) => {
-                  const isThreat = fl.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={fl.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} color={isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
-                          <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>{fl.content_preview || 'file_attachment'}</strong>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'files').map((fl) => (
+                  <div key={fl.id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: fl.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <FileText size={20} color={fl.isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                        <div>
+                          <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{fl.title}</strong>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fl.fileSize} • {fl.fileType}</div>
                         </div>
-                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                          {isThreat ? 'MALICIOUS SCRIPT / MACRO' : 'SAFE FILE'}
-                        </span>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: isThreat ? 'var(--color-danger)' : 'var(--text-muted)', marginTop: '4px' }}>
-                        Decision: <strong>{fl.final_action}</strong> ({fl.ai_result?.risk_score}/100) — {fl.ai_result?.reasons?.[0] || 'Inspection complete'}
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                        {isThreat && (
-                          <button onClick={() => setSecurityWarningEvent(fl)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
-                            <ShieldAlert size={12} /> Vault Quarantine Card
-                          </button>
-                        )}
-                        <button onClick={() => setForensicEvent(fl)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                          <Eye size={12} /> Inspect File
-                        </button>
-                      </div>
+                      <span className={`badge ${fl.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                        {fl.isThreat ? 'QUARANTINED MACRO' : '✓ SAFE FILE'}
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <div style={{ fontSize: '0.72rem', color: fl.isThreat ? 'var(--color-danger)' : 'var(--text-muted)', marginTop: '6px' }}>
+                      {fl.reasons[0]}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
