@@ -453,72 +453,78 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
         </div>
 
         {/* Dynamic Content Form Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
           {selectedPlatformId === 'email' && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <label className="cyber-label">Subject Header:</label>
               <input
                 type="text"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
                 className="cyber-input"
-                style={{ fontSize: '0.82rem' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
           )}
 
           {selectedPlatformId === 'news' && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <label className="cyber-label">Article Headline:</label>
               <input
                 type="text"
                 value={headlineText}
                 onChange={(e) => setHeadlineText(e.target.value)}
                 className="cyber-input"
-                style={{ fontSize: '0.82rem' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
           )}
 
           {selectedPlatformId === 'web' ? (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <label className="cyber-label">Target URL:</label>
               <input
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 className="cyber-input"
-                style={{ fontSize: '0.82rem' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
           ) : selectedPlatformId === 'photos' || selectedPlatformId === 'videos' || selectedPlatformId === 'files' ? (
-            <div>
-              <label className="cyber-label">File / Payload Name:</label>
-              <input
-                type="text"
-                value={fileName}
-                onChange={(e) => setFileName(e.target.value)}
-                className="cyber-input"
-                style={{ fontSize: '0.82rem', marginBottom: '8px' }}
-              />
-              <label className="cyber-label">Simulated Description / Meta:</label>
-              <textarea
-                rows={2}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                className="cyber-input"
-                style={{ fontSize: '0.82rem' }}
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <label className="cyber-label">File / Payload Name:</label>
+                <input
+                  type="text"
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
+                  className="cyber-input"
+                  style={{ width: '100%', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                <label className="cyber-label">Simulated Description / Meta:</label>
+                <textarea
+                  rows={4}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  className="cyber-input"
+                  style={{ width: '100%', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }}
+                />
+              </div>
             </div>
           ) : (
-            <div>
-              <label className="cyber-label">{selectedPlatformId === 'email' ? 'Email Body Text:' : 'Message Content Text:'}</label>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <label className="cyber-label">
+                {selectedPlatformId === 'email' ? 'Email Body Text:' : selectedPlatformId === 'news' ? 'Article Content Text:' : 'Message Content Text:'}
+              </label>
               <textarea
-                rows={3}
+                rows={4}
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 className="cyber-input"
-                style={{ fontSize: '0.82rem' }}
+                style={{ width: '100%', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }}
               />
             </div>
           )}
