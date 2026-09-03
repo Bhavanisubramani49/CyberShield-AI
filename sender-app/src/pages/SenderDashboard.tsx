@@ -253,9 +253,12 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
 
     const timer = setInterval(() => {
       loadEcoConversations();
-    }, 3000);
+      if (selectedConvId) {
+        loadEcoMessages(selectedConvId);
+      }
+    }, 1500);
     return () => clearInterval(timer);
-  }, [activeSenderId]);
+  }, [activeSenderId, selectedConvId]);
 
   useEffect(() => {
     if (selectedConvId) {
@@ -264,15 +267,17 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
   }, [selectedConvId]);
 
   const loadEcoData = async () => {
-    const users = await fetchDemoUsersSenderAPI();
+    const users = await fetchDemoUsersSenderAPI('user-kavin');
     setDemoUsers(users);
-    loadEcoConversations();
+    if (users.length > 0 && !users.some((u: any) => u.user_id === activeSenderId)) {
+      setActiveSenderId(users[0].user_id);
+    }
   };
 
   const loadEcoConversations = async () => {
     const list = await fetchConversationsSenderAPI(activeSenderId);
     setConversations(list);
-    if (!selectedConvId && list.length > 0) {
+    if (list.length > 0 && !list.some((c: any) => c.conversation_id === selectedConvId)) {
       setSelectedConvId(list[0].conversation_id);
     }
   };
@@ -449,11 +454,14 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
           {/* Sender Identity & Target Conversation Selector */}
           <div className="cyber-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             
-            {/* Sender Identity */}
+            {/* External Sender Identity Selector */}
             <div>
-              <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', marginBottom: '4px', display: 'block', textTransform: 'uppercase' }}>
-                Sender User Identity:
+              <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', marginBottom: '2px', display: 'block', textTransform: 'uppercase' }}>
+                Simulated External Sender:
               </label>
+              <div style={{ fontSize: '0.68rem', color: '#64748b', marginBottom: '6px' }}>
+                Demo simulation — external user communication
+              </div>
               <select
                 value={activeSenderId}
                 onChange={(e) => setActiveSenderId(e.target.value)}
@@ -461,7 +469,7 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
                   width: '100%',
                   padding: '9px 12px',
                   background: 'rgba(0,0,0,0.5)',
-                  border: '1px solid rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.35)',
                   borderRadius: '8px',
                   color: '#fff',
                   fontSize: '0.82rem',

@@ -85,5 +85,27 @@ class TestConversationsEcosystem(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(sent_msg["risk_level"], "CRITICAL")
             self.assertGreaterEqual(sent_msg["risk_score"], 90)
 
+    async def test_exclude_user_and_non_member_rejection(self):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # 1. Test exclude_user_id=user-kavin (14 external users returned)
+            res_ext = await client.get("/api/v1/conversations/users?exclude_user_id=user-kavin")
+            self.assertEqual(res_ext.status_code, 200)
+            ext_users = res_ext.json()
+            self.assertEqual(len(ext_users), 14)
+            has_kavin = any(u["user_id"] == "user-kavin" for u in ext_users)
+            self.assertFalse(has_kavin)
+
+            # 2. Test non-member rejection (user-sneha is NOT a member of CONV-001 Kavin & Riya)
+            res_reject = await client.post(
+                "/api/v1/conversations/CONV-001/messages",
+                json={
+                    "sender_id": "user-sneha",
+                    "content": "Trying to post to unjoined chat",
+                    "content_type": "text"
+                }
+            )
+            self.assertEqual(res_reject.status_code, 403)
+
 if __name__ == "__main__":
     unittest.main()

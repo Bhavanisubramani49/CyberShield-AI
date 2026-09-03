@@ -39,7 +39,7 @@ class ConversationRepository:
             {"user_id": "user-riya", "name": "Riya", "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", "role": "Project Collaborator"},
             {"user_id": "user-arun", "name": "Arun", "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", "role": "Tech Lead"},
             {"user_id": "user-priya", "name": "Priya", "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", "role": "Design Lead"},
-            {"user_id": "user-rahul", "name": "Rahul", "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", "role": "Classmate / Demo Attacker"},
+            {"user_id": "user-rahul", "name": "Rahul", "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", "role": "Classmate"},
             {"user_id": "user-sneha", "name": "Sneha", "avatar": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150", "role": "Peer Researcher"},
             {"user_id": "user-vishal", "name": "Vishal", "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", "role": "AI Researcher"},
             {"user_id": "user-ananya", "name": "Ananya", "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150", "role": "Student Associate"},
@@ -299,10 +299,13 @@ class ConversationRepository:
 
         session.commit()
 
-    def get_all_demo_users(self) -> List[Dict[str, Any]]:
+    def get_all_demo_users(self, exclude_user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         session = self.get_session()
         try:
-            models = session.query(DemoUserModel).all()
+            query = session.query(DemoUserModel)
+            if exclude_user_id:
+                query = query.filter(DemoUserModel.user_id != exclude_user_id)
+            models = query.all()
             return [
                 {
                     "user_id": u.user_id,
@@ -427,6 +430,14 @@ class ConversationRepository:
             conv = session.query(ConversationModel).filter(ConversationModel.conversation_id == conversation_id).first()
             if not conv:
                 raise ValueError(f"Conversation '{conversation_id}' not found.")
+
+            # Validate sender membership
+            is_member = session.query(ConversationMemberModel).filter(
+                ConversationMemberModel.conversation_id == conversation_id,
+                ConversationMemberModel.user_id == sender_id
+            ).first()
+            if not is_member:
+                raise PermissionError(f"User '{sender_id}' is not a member of conversation '{conversation_id}'.")
 
             now = datetime.now(timezone.utc).isoformat()
             now_time = datetime.now().strftime("%I:%M %p")

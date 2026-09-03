@@ -19,23 +19,21 @@ import {
   ShieldAlert,
   Search
 } from 'lucide-react';
-import { SecurityEvent, SecurityAction, ConversationSummary, MessageItem, DemoUser } from '../types';
+import { SecurityEvent, SecurityAction, ConversationSummary, MessageItem } from '../types';
 import { 
   fetchEventsAPI, 
   updateEventActionAPI,
   fetchConversationsAPI,
   fetchConversationMessagesAPI,
-  sendConversationMessageAPI,
-  fetchDemoUsersAPI
+  sendConversationMessageAPI
 } from '../services/api';
 
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
   const [activeView, setActiveView] = useState<'conversations' | 'telemetry'>('conversations');
 
-  // Multi-User Conversations State
-  const [demoUsers, setDemoUsers] = useState<DemoUser[]>([]);
-  const [currentUser, setCurrentUser] = useState<string>('user-kavin');
+  // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
+  const currentUser = 'user-kavin';
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedConvId, setSelectedConvId] = useState<string>('CONV-003');
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -49,28 +47,25 @@ export const ReceiverPage: React.FC = () => {
   const [filterTag, setFilterTag] = useState<string>('ALL');
   const [selectedEventDetails, setSelectedEventDetails] = useState<SecurityEvent | null>(null);
 
-  // Load conversations & events on mount and poll every 3 seconds for live synchronization
+  // Load conversations & events on mount and poll every 1.5 seconds for live synchronization
   useEffect(() => {
-    loadDemoUsers();
     loadConversations();
     loadEvents();
 
     const interval = setInterval(() => {
       loadConversations();
-    }, 3000);
+      if (selectedConvId) {
+        loadMessages(selectedConvId);
+      }
+    }, 1500);
     return () => clearInterval(interval);
-  }, [currentUser]);
+  }, [selectedConvId]);
 
   useEffect(() => {
     if (selectedConvId) {
       loadMessages(selectedConvId);
     }
   }, [selectedConvId]);
-
-  const loadDemoUsers = async () => {
-    const users = await fetchDemoUsersAPI();
-    setDemoUsers(users);
-  };
 
   const loadConversations = async () => {
     const list = await fetchConversationsAPI(currentUser);
@@ -183,31 +178,17 @@ export const ReceiverPage: React.FC = () => {
           {/* LEFT SIDEBAR: CONVERSATION LIST */}
           <div className="cyber-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             
-            {/* Active Identity Switcher */}
-            <div>
-              <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px', display: 'block', textTransform: 'uppercase' }}>
-                Active Receiver Identity:
-              </label>
-              <select
-                value={currentUser}
-                onChange={(e) => setCurrentUser(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: '#fff',
-                  fontSize: '0.82rem',
-                  fontWeight: 600
-                }}
-              >
-                {demoUsers.map(u => (
-                  <option key={u.user_id} value={u.user_id}>
-                    👤 {u.name} ({u.role})
-                  </option>
-                ))}
-              </select>
+            {/* Fixed Protected Receiver Badge */}
+            <div style={{ padding: '10px 12px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-green)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Primary Protected Receiver
+              </div>
+              <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#f8fafc', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <User size={16} color="#4ade80" /> Kavin (Primary Student)
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                🟢 Receiver Defense Engine Active
+              </div>
             </div>
 
             {/* Conversation Search Bar */}
@@ -495,7 +476,7 @@ export const ReceiverPage: React.FC = () => {
               <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '10px' }}>
                 <input
                   type="text"
-                  placeholder={`Send message as ${demoUsers.find(u => u.user_id === currentUser)?.name || 'Kavin'}...`}
+                  placeholder="Send message as Kavin..."
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
                   style={{

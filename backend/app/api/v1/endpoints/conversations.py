@@ -11,9 +11,9 @@ from app.db.conversation_repository import conversation_repository
 router = APIRouter(prefix="/conversations", tags=["Multi-User Protected Conversations"])
 
 @router.get("/users", response_model=List[DemoUserSchema], summary="Get List of All Synthetic Demo Users")
-def get_demo_users():
-    """Returns list of 15 synthetic demo users participating in multi-user ecosystem."""
-    return conversation_repository.get_all_demo_users()
+def get_demo_users(exclude_user_id: Optional[str] = Query(None, description="Optional user_id to exclude from demo list")):
+    """Returns list of synthetic demo users, optionally excluding specific user (e.g. Kavin)."""
+    return conversation_repository.get_all_demo_users(exclude_user_id=exclude_user_id)
 
 @router.get("", response_model=List[ConversationSummarySchema], summary="Get User Conversations")
 def get_user_conversations(
@@ -64,6 +64,8 @@ def send_conversation_message(
             content=req.content,
             content_type=req.content_type
         )
+    except PermissionError as perm_err:
+        raise HTTPException(status_code=403, detail=str(perm_err))
     except ValueError as val_err:
         raise HTTPException(status_code=404, detail=str(val_err))
     except Exception as e:

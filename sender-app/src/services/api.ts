@@ -53,9 +53,12 @@ export async function transmitEventToCore(
 // Multi-User Conversation Ecosystem Functions for Sender App
 const API_V1_URL = 'http://127.0.0.1:8000/api/v1';
 
-export async function fetchDemoUsersSenderAPI() {
+export async function fetchDemoUsersSenderAPI(excludeUserId: string = 'user-kavin') {
   try {
-    const res = await fetch(`${API_V1_URL}/conversations/users`);
+    const url = excludeUserId 
+      ? `${API_V1_URL}/conversations/users?exclude_user_id=${encodeURIComponent(excludeUserId)}`
+      : `${API_V1_URL}/conversations/users`;
+    const res = await fetch(url);
     if (res.ok) return await res.json();
   } catch (e) {
     console.warn('Sender conversations users API offline:', e);
