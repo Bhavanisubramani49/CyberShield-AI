@@ -16,7 +16,10 @@ import {
   GatewaySendRequest,
   GatewaySendResponse,
   GatewayHealthResponse,
-  GatewayReceiverInboxItem
+  GatewayReceiverInboxItem,
+  DemoUser,
+  ConversationSummary,
+  MessageItem
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -921,3 +924,62 @@ export async function submitReceiverReviewActionAPI(
   }
   return await res.json();
 }
+
+// ----------------------------------------------------
+// Multi-User Conversation Ecosystem API Functions
+// ----------------------------------------------------
+
+export async function fetchDemoUsersAPI(): Promise<DemoUser[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/conversations/users`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Conversations API offline:', e);
+  }
+  return [];
+}
+
+export async function fetchConversationsAPI(userId: string = 'user-kavin'): Promise<ConversationSummary[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/conversations?user_id=${encodeURIComponent(userId)}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Conversations API offline:', e);
+  }
+  return [];
+}
+
+export async function fetchConversationMessagesAPI(conversationId: string): Promise<MessageItem[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/conversations/${encodeURIComponent(conversationId)}/messages`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Conversation messages API offline:', e);
+  }
+  return [];
+}
+
+export async function sendConversationMessageAPI(
+  conversationId: string,
+  senderId: string,
+  content: string,
+  contentType: string = 'text'
+): Promise<MessageItem> {
+  const res = await fetch(`${API_BASE_URL}/conversations/${encodeURIComponent(conversationId)}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender_id: senderId,
+      content,
+      content_type: contentType
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to send message.' }));
+    throw new Error(err.detail || 'Message dispatch failed.');
+  }
+
+  return await res.json();
+}
+

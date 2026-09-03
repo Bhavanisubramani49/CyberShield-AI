@@ -49,3 +49,53 @@ export async function transmitEventToCore(
 
   return await res.json();
 }
+
+// Multi-User Conversation Ecosystem Functions for Sender App
+const API_V1_URL = 'http://127.0.0.1:8000/api/v1';
+
+export async function fetchDemoUsersSenderAPI() {
+  try {
+    const res = await fetch(`${API_V1_URL}/conversations/users`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Sender conversations users API offline:', e);
+  }
+  return [];
+}
+
+export async function fetchConversationsSenderAPI(userId: string = 'user-riya') {
+  try {
+    const res = await fetch(`${API_V1_URL}/conversations?user_id=${encodeURIComponent(userId)}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Sender conversations API offline:', e);
+  }
+  return [];
+}
+
+export async function fetchConversationMessagesSenderAPI(conversationId: string) {
+  try {
+    const res = await fetch(`${API_V1_URL}/conversations/${encodeURIComponent(conversationId)}/messages`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Sender conversation messages API offline:', e);
+  }
+  return [];
+}
+
+export async function sendConversationMessageSenderAPI(conversationId: string, senderId: string, content: string) {
+  const res = await fetch(`${API_V1_URL}/conversations/${encodeURIComponent(conversationId)}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sender_id: senderId,
+      content,
+      content_type: 'text'
+    })
+  });
+  if (!res.ok) {
+    throw new Error('Sender dispatch failed.');
+  }
+  return await res.json();
+}
+

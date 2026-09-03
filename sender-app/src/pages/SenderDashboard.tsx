@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Send, 
-  Key, 
-  Activity, 
-  RotateCcw, 
   Server, 
   Zap, 
   LogOut,
-  ShieldAlert,
   Layers,
-  CheckCircle,
-  Image as ImageIcon,
-  Video as VideoIcon,
-  Globe as GlobeIcon,
-  FileText as FileIcon
+  Users,
+  User,
+  Sparkles
 } from 'lucide-react';
 import { SenderUser, GatewaySendResponse, GatewayHealthResponse } from '../types';
-import { transmitEventToCore, checkGatewayHealth } from '../services/api';
+import { 
+  transmitEventToCore, 
+  checkGatewayHealth,
+  fetchDemoUsersSenderAPI,
+  fetchConversationsSenderAPI,
+  fetchConversationMessagesSenderAPI,
+  sendConversationMessageSenderAPI
+} from '../services/api';
 
 interface SenderDashboardProps {
   user: SenderUser;
@@ -210,16 +211,28 @@ const PLATFORMS: PlatformConfig[] = [
   }
 ];
 
-export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout }) => {
-  const [apiKey, setApiKey] = useState<string>('cs-sim-key-prod-2026');
+export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) => {
+  const [apiKey] = useState<string>('cs-sim-key-prod-2026');
   const [gatewayHealth, setGatewayHealth] = useState<GatewayHealthResponse | null>(null);
-  const [checkingHealth, setCheckingHealth] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'ecosystem' | 'single_platform'>('ecosystem');
 
-  // Active Selected Platform (WhatsApp, Instagram, Messages, Email, Web, Photos, Videos, News, Files)
+  // -----------------------------------------------------------------------
+  // MULTI-USER ECOSYSTEM STATE
+  // -----------------------------------------------------------------------
+  const [demoUsers, setDemoUsers] = useState<any[]>([]);
+  const [activeSenderId, setActiveSenderId] = useState<string>('user-riya');
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConvId, setSelectedConvId] = useState<string>('CONV-003');
+  const [convMessages, setConvMessages] = useState<any[]>([]);
+  const [ecoText, setEcoText] = useState<string>('');
+  const [sendingEcoMsg, setSendingEcoMsg] = useState<boolean>(false);
+
+  // -----------------------------------------------------------------------
+  // SINGLE PLATFORM SIMULATOR STATE
+  // -----------------------------------------------------------------------
   const [selectedPlatformId, setSelectedPlatformId] = useState<string>('whatsapp');
   const activePlatform = PLATFORMS.find(p => p.id === selectedPlatformId) || PLATFORMS[0];
 
-  // Dynamic Form State
   const [senderId, setSenderId] = useState<string>(activePlatform.senderId);
   const [senderName, setSenderName] = useState<string>(activePlatform.senderName);
   const [recipientId, setRecipientId] = useState<string>(activePlatform.recipientId);
@@ -230,13 +243,71 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
   const [fileName, setFileName] = useState<string>(activePlatform.safePreset.payload.filename || 'report.pdf');
   const [headlineText, setHeadlineText] = useState<string>(activePlatform.safePreset.payload.headline || 'Breaking Tech Announcement');
 
-  // Transmission State & Session History
   const [transmitting, setTransmitting] = useState<boolean>(false);
   const [lastResponse, setLastResponse] = useState<GatewaySendResponse | null>(null);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
-  const [history, setHistory] = useState<GatewaySendResponse[]>([]);
 
-  // Update dynamic defaults when platform changes
+  useEffect(() => {
+    pingGateway();
+    loadEcoData();
+
+    const timer = setInterval(() => {
+      loadEcoConversations();
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [activeSenderId]);
+
+  useEffect(() => {
+    if (selectedConvId) {
+      loadEcoMessages(selectedConvId);
+    }
+  }, [selectedConvId]);
+
+  const loadEcoData = async () => {
+    const users = await fetchDemoUsersSenderAPI();
+    setDemoUsers(users);
+    loadEcoConversations();
+  };
+
+  const loadEcoConversations = async () => {
+    const list = await fetchConversationsSenderAPI(activeSenderId);
+    setConversations(list);
+    if (!selectedConvId && list.length > 0) {
+      setSelectedConvId(list[0].conversation_id);
+    }
+  };
+
+  const loadEcoMessages = async (convId: string) => {
+    const msgs = await fetchConversationMessagesSenderAPI(convId);
+    setConvMessages(msgs);
+  };
+
+  const handleSendEcoMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!ecoText.trim() || !selectedConvId || sendingEcoMsg) return;
+
+    setSendingEcoMsg(true);
+    try {
+      await sendConversationMessageSenderAPI(selectedConvId, activeSenderId, ecoText);
+      setEcoText('');
+      await loadEcoMessages(selectedConvId);
+      await loadEcoConversations();
+    } catch (err: any) {
+      alert(`Dispatch error: ${err.message}`);
+    } finally {
+      setSendingEcoMsg(false);
+    }
+  };
+
+  const pingGateway = async () => {
+    try {
+      const h = await checkGatewayHealth();
+      setGatewayHealth(h);
+    } catch (e) {
+      setGatewayHealth(null);
+    }
+  };
+
   const handlePlatformChange = (pId: string) => {
     setSelectedPlatformId(pId);
     const p = PLATFORMS.find(item => item.id === pId) || PLATFORMS[0];
@@ -250,22 +321,6 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
     if (p.safePreset.payload.filename) setFileName(p.safePreset.payload.filename);
     if (p.safePreset.payload.headline) setHeadlineText(p.safePreset.payload.headline);
   };
-
-  const pingGateway = async () => {
-    setCheckingHealth(true);
-    try {
-      const h = await checkGatewayHealth();
-      setGatewayHealth(h);
-    } catch (e) {
-      setGatewayHealth(null);
-    } finally {
-      setCheckingHealth(false);
-    }
-  };
-
-  useEffect(() => {
-    pingGateway();
-  }, []);
 
   const loadPreset = (isAttack: boolean) => {
     const preset = isAttack ? activePlatform.attackPreset : activePlatform.safePreset;
@@ -315,7 +370,6 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
       }, apiKey);
 
       setLastResponse(res);
-      setHistory(prev => [res, ...prev.slice(0, 19)]);
     } catch (e: any) {
       setDispatchError(e.message || 'Event transmission failed. Check gateway connectivity.');
     } finally {
@@ -323,324 +377,390 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ user, onLogout
     }
   };
 
-  return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      {/* 1. Top Header Banner */}
-      <div className="cyber-card-green" style={{ padding: '20px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="badge badge-blue">APPLICATION 1: SENDER PLATFORM</span>
-              <span className="badge badge-green">PORT 5174</span>
-            </div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-              CyberShield Multi-Platform Sender Console
-            </h1>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Simulated multi-channel event generator • Logged in as: <strong>{user?.fullName || 'Marcus Reynolds'}</strong> ({user?.personaType || 'researcher'})
-            </div>
-          </div>
+  const currentEcoConv = conversations.find(c => c.conversation_id === selectedConvId);
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button onClick={pingGateway} disabled={checkingHealth} className="btn btn-outline" style={{ fontSize: '0.75rem' }}>
-              <RotateCcw size={13} className={checkingHealth ? 'spin' : ''} /> Ping Core
-            </button>
-            <button onClick={onLogout} className="btn btn-outline" style={{ fontSize: '0.75rem', borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--color-danger)' }}>
-              <LogOut size={13} /> Sign Out
-            </button>
+  return (
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      {/* Sender Header */}
+      <header className="cyber-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ padding: '8px', background: 'rgba(59, 130, 246, 0.15)', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <Zap color="#60a5fa" size={22} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+                CyberShield External Sender Application
+              </h1>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
+                Port 5174 • Multi-User Ecosystem & External Platform Generator Interface
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 2. Core Gateway Connection & Credential Bar */}
-      <div className="cyber-card" style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Gateway Status Pill */}
           <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: gatewayHealth ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            border: gatewayHealth ? '1px solid var(--border-green)' : '1px solid rgba(239, 68, 68, 0.4)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            gap: '8px',
+            padding: '6px 12px',
+            background: gatewayHealth ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+            border: `1px solid ${gatewayHealth ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+            borderRadius: '20px',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            color: gatewayHealth ? '#4ade80' : '#f87171'
           }}>
-            <Server size={18} color={gatewayHealth ? 'var(--color-green)' : 'var(--color-danger)'} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              CyberShield Core Gateway: <span className={`badge ${gatewayHealth ? 'badge-green' : 'badge-danger'}`}>{gatewayHealth ? 'ONLINE' : 'OFFLINE'}</span>
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              Destination: <code>http://127.0.0.1:8000/api/v1/gateway/send</code>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '280px' }}>
-          <Key size={14} color="var(--color-green)" />
-          <div style={{ flex: 1 }}>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="X-CyberShield-API-Key"
-              className="cyber-input"
-              style={{ padding: '6px 10px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 3. SENDER ENVIRONMENT / PLATFORM SELECTOR (9 PLATFORMS) */}
-      <div className="cyber-card" style={{ padding: '20px' }}>
-        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Layers size={16} color="var(--color-blue-light)" />
-          Sender Environment (Select 1 of 9 Platforms):
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))', gap: '8px', marginBottom: '16px' }}>
-          {PLATFORMS.map((p) => {
-            const isSel = selectedPlatformId === p.id;
-            return (
-              <button
-                key={p.id}
-                onClick={() => handlePlatformChange(p.id)}
-                className={`btn ${isSel ? 'btn-primary-green' : 'btn-outline'}`}
-                style={{ fontSize: '0.74rem', padding: '8px 6px', justifyContent: 'center', textAlign: 'center' }}
-              >
-                {p.name}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Sender & Recipient Account Badges */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-          <div>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sender Identity:</span>
-            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {senderName} <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-green)', fontSize: '0.76rem' }}>({senderId})</span>
-            </div>
-          </div>
-          <div>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Target Receiver:</span>
-            <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {recipientName} <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-blue-light)', fontSize: '0.76rem' }}>({recipientId})</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 1-Click Platform Scenario Presets */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Zap size={14} color="var(--color-green)" />
-            {activePlatform.name} Scenario Presets:
-          </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => loadPreset(false)}
-              className="btn btn-outline"
-              style={{ fontSize: '0.75rem', borderColor: 'var(--border-green)', color: 'var(--color-green)' }}
-            >
-              {activePlatform.safePreset.label}
-            </button>
-            <button
-              onClick={() => loadPreset(true)}
-              className="btn btn-outline"
-              style={{ fontSize: '0.75rem', borderColor: 'rgba(239, 68, 68, 0.4)', color: 'var(--color-danger)' }}
-            >
-              {activePlatform.attackPreset.label}
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Content Form Controls */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
-          {selectedPlatformId === 'email' && (
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <label className="cyber-label">Subject Header:</label>
-              <input
-                type="text"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                className="cyber-input"
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              />
-            </div>
-          )}
-
-          {selectedPlatformId === 'news' && (
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <label className="cyber-label">Article Headline:</label>
-              <input
-                type="text"
-                value={headlineText}
-                onChange={(e) => setHeadlineText(e.target.value)}
-                className="cyber-input"
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              />
-            </div>
-          )}
-
-          {selectedPlatformId === 'web' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <label className="cyber-label">Target URL:</label>
-              <input
-                type="text"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                className="cyber-input"
-                style={{ width: '100%', boxSizing: 'border-box' }}
-              />
-            </div>
-          ) : selectedPlatformId === 'photos' || selectedPlatformId === 'videos' || selectedPlatformId === 'files' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                <label className="cyber-label">File / Payload Name:</label>
-                <input
-                  type="text"
-                  value={fileName}
-                  onChange={(e) => setFileName(e.target.value)}
-                  className="cyber-input"
-                  style={{ width: '100%', boxSizing: 'border-box' }}
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                <label className="cyber-label">Simulated Description / Meta:</label>
-                <textarea
-                  rows={4}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  className="cyber-input"
-                  style={{ width: '100%', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <label className="cyber-label">
-                {selectedPlatformId === 'email' ? 'Email Body Text:' : selectedPlatformId === 'news' ? 'Article Content Text:' : 'Message Content Text:'}
-              </label>
-              <textarea
-                rows={4}
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                className="cyber-input"
-                style={{ width: '100%', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }}
-              />
-            </div>
-          )}
-
-          {/* Live Media / Content Preview Before Dispatch */}
-          <div style={{ padding: '12px 14px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)' }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {selectedPlatformId === 'photos' || selectedPlatformId === 'instagram' ? <ImageIcon size={13} color="var(--color-green)" /> :
-               selectedPlatformId === 'videos' ? <VideoIcon size={13} color="var(--color-green)" /> :
-               selectedPlatformId === 'web' ? <GlobeIcon size={13} color="var(--color-blue)" /> :
-               selectedPlatformId === 'files' ? <FileIcon size={13} color="var(--color-green)" /> :
-               <span>👁️</span>}
-              Live Payload Preview ({activePlatform.name}):
-            </div>
-            
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>
-              {selectedPlatformId === 'web' ? (
-                <code>Target URL: {urlInput || 'http://example.com'}</code>
-              ) : selectedPlatformId === 'news' ? (
-                <div>
-                  <strong>{headlineText || 'Article Headline'}</strong>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>{messageText || 'Article body preview...'}</div>
-                </div>
-              ) : selectedPlatformId === 'photos' || selectedPlatformId === 'videos' || selectedPlatformId === 'files' ? (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>File: <code>{fileName || 'payload.bin'}</code></span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Ready for Gateway transmission</span>
-                </div>
-              ) : (
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                  "{messageText || 'Message content preview...'}"
-                </div>
-              )}
-            </div>
+            <Server size={14} />
+            <span>CyberShield Core Gateway: {gatewayHealth ? 'ONLINE' : 'OFFLINE'}</span>
           </div>
 
-          {dispatchError && (
-            <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.35)', color: 'var(--color-danger)', borderRadius: 'var(--radius-sm)', fontSize: '0.78rem' }}>
-              ⚠️ {dispatchError}
-            </div>
-          )}
-
-          <button
-            onClick={handleSend}
-            disabled={transmitting}
-            className="btn btn-primary-green"
-            style={{ marginTop: '4px', padding: '11px', fontSize: '0.85rem', justifyContent: 'center' }}
-          >
-            <Send size={15} /> {transmitting ? 'Transmitting Event to Core...' : `Send ${activePlatform.name} Event to CyberShield Core`}
+          <button onClick={onLogout} className="btn btn-outline" style={{ fontSize: '0.78rem' }}>
+            <LogOut size={14} /> Exit
           </button>
         </div>
+      </header>
+
+      {/* Mode Switcher Tabs */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => setActiveTab('ecosystem')}
+          className={`btn ${activeTab === 'ecosystem' ? 'btn-primary-green' : 'btn-outline'}`}
+          style={{ fontSize: '0.85rem', padding: '10px 18px' }}
+        >
+          <Users size={16} /> Multi-User Ecosystem Simulator (Bidirectional Chat)
+        </button>
+        <button
+          onClick={() => setActiveTab('single_platform')}
+          className={`btn ${activeTab === 'single_platform' ? 'btn-accent-blue' : 'btn-outline'}`}
+          style={{ fontSize: '0.85rem', padding: '10px 18px' }}
+        >
+          <Layers size={16} /> Single Platform Attack Payload Generator
+        </button>
       </div>
 
-      {/* 4. Real-Time Transmission Result Inspection */}
-      {lastResponse && (
-        <div className="cyber-card" style={{ padding: '20px', border: lastResponse.decision === 'ALLOW' ? '1px solid var(--border-green)' : '1px solid rgba(239, 68, 68, 0.4)', animation: 'fadeIn 0.2s ease' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {lastResponse.decision === 'ALLOW' ? <CheckCircle size={20} color="var(--color-green)" /> : <ShieldAlert size={20} color="var(--color-danger)" />}
-              <strong style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                Gateway Dispatch Result ({lastResponse.platform.toUpperCase()})
-              </strong>
+      {/* TAB 1: MULTI-USER ECOSYSTEM SIMULATOR */}
+      {activeTab === 'ecosystem' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '16px', minHeight: '580px' }}>
+          
+          {/* Sender Identity & Target Conversation Selector */}
+          <div className="cyber-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            
+            {/* Sender Identity */}
+            <div>
+              <label style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', marginBottom: '4px', display: 'block', textTransform: 'uppercase' }}>
+                Sender User Identity:
+              </label>
+              <select
+                value={activeSenderId}
+                onChange={(e) => setActiveSenderId(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '9px 12px',
+                  background: 'rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '0.82rem',
+                  fontWeight: 600
+                }}
+              >
+                {demoUsers.map(u => (
+                  <option key={u.user_id} value={u.user_id}>
+                    👤 {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
             </div>
-            <span className={`badge ${lastResponse.decision === 'ALLOW' ? 'badge-green' : 'badge-danger'}`}>
-              {lastResponse.decision}
-            </span>
+
+            {/* Conversation Selector */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '440px' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+                {demoUsers.find(u => u.user_id === activeSenderId)?.name || 'Sender'}'s Conversations ({conversations.length})
+              </div>
+
+              {conversations.map(conv => {
+                const isSelected = conv.conversation_id === selectedConvId;
+                return (
+                  <div
+                    key={conv.conversation_id}
+                    onClick={() => setSelectedConvId(conv.conversation_id)}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      background: isSelected ? 'rgba(34, 197, 94, 0.15)' : 'rgba(0,0,0,0.3)',
+                      border: isSelected ? '1px solid #4ade80' : '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {conv.conversation_type === 'GROUP' ? <Users size={14} color="#60a5fa" /> : <User size={14} color="#4ade80" />}
+                      <span>{conv.title}</span>
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {conv.latest_message ? `${conv.latest_message.sender_id.replace('user-', '')}: ${conv.latest_message.content}` : 'No messages'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', fontSize: '0.78rem', marginBottom: '12px' }}>
-            <div><span style={{ color: 'var(--text-muted)' }}>Event ID:</span> <strong style={{ color: 'var(--color-blue-light)', fontFamily: 'var(--font-mono)' }}>{lastResponse.event_id}</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Classification:</span> <strong style={{ color: lastResponse.classification === 'SAFE' ? 'var(--color-green)' : 'var(--color-danger)' }}>{lastResponse.classification}</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Risk Score:</span> <strong>{lastResponse.risk_score}/100 ({lastResponse.risk_level})</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Receiver Status:</span> <strong>{lastResponse.receiver_status}</strong></div>
-          </div>
+          {/* Conversation Chat Stream & Sender Composer */}
+          <div className="cyber-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            
+            <div style={{ padding: '14px 18px', background: 'rgba(15, 23, 42, 0.95)', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+                  {currentEcoConv ? currentEcoConv.title : 'Select Conversation'}
+                </h3>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+                  Sending as <strong>{demoUsers.find(u => u.user_id === activeSenderId)?.name}</strong> • Synchronized live with CyberShield Core (Port 5173)
+                </div>
+              </div>
 
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-            <strong>AI Detection Reasons:</strong> {lastResponse.reasons.join(' • ')}
+              <span className="badge badge-green" style={{ fontSize: '0.62rem' }}>
+                ✓ Bidirectional Sync Active
+              </span>
+            </div>
+
+            {/* Message Thread */}
+            <div style={{ flex: 1, padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '420px', background: 'rgba(5, 10, 20, 0.6)' }}>
+              {convMessages.map((m) => {
+                const isMe = m.sender_id === activeSenderId;
+                const isThreat = m.security_status !== 'SAFE';
+
+                return (
+                  <div
+                    key={m.message_id}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: isMe ? 'flex-end' : 'flex-start',
+                      maxWidth: '85%',
+                      alignSelf: isMe ? 'flex-end' : 'flex-start'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginBottom: '2px' }}>
+                      <strong>{m.sender_name}</strong> • {m.timestamp}
+                    </div>
+
+                    <div style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      background: isThreat ? 'rgba(239, 68, 68, 0.15)' : isMe ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255,255,255,0.06)',
+                      border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : isMe ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid rgba(255,255,255,0.1)',
+                      color: '#f8fafc',
+                      fontSize: '0.82rem'
+                    }}>
+                      {m.content}
+                      {isThreat && (
+                        <div style={{ fontSize: '0.62rem', color: '#f87171', marginTop: '4px', fontWeight: 700 }}>
+                          ⚠️ Intercepted by CyberShield ({m.classification} - Risk: {m.risk_score}/100)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Quick Presets & Composer */}
+            <div style={{ padding: '14px 18px', background: 'rgba(15, 23, 42, 0.95)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              
+              {/* Presets */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', overflowX: 'auto' }}>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Sparkles size={12} color="#4ade80" /> Attack Presets:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEcoText("Hi everyone, please find the team updates here.")}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.66rem', padding: '2px 8px' }}
+                >
+                  ✓ Safe Message
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEcoText("Congratulations! Claim ₹50,000 scholarship prize now: http://192.168.1.1/claim-cash")}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.66rem', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                >
+                  🚨 Phishing Scam
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEcoText("Urgent: Account locked verify PIN at http://192.168.1.10/verify-bank")}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.66rem', padding: '2px 8px', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                >
+                  🚨 Malicious URL
+                </button>
+              </div>
+
+              <form onSubmit={handleSendEcoMessage} style={{ display: 'flex', gap: '10px' }}>
+                <input
+                  type="text"
+                  placeholder={`Send message as ${demoUsers.find(u => u.user_id === activeSenderId)?.name}...`}
+                  value={ecoText}
+                  onChange={(e) => setEcoText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    background: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '0.84rem'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={sendingEcoMsg || !ecoText.trim()}
+                  className="btn btn-primary-green"
+                  style={{ padding: '10px 18px', fontSize: '0.82rem' }}
+                >
+                  <Send size={14} /> {sendingEcoMsg ? 'Dispatching...' : 'Dispatch Message'}
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
       )}
 
-      {/* 5. Sender Session Transmission History */}
-      <div className="cyber-card" style={{ padding: '20px' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Activity size={16} color="var(--color-blue-light)" />
-          Session Event Transmission Log ({history.length})
-        </h3>
+      {/* TAB 2: SINGLE PLATFORM ATTACK PAYLOAD GENERATOR */}
+      {activeTab === 'single_platform' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
+          
+          {/* Main Controls & Form */}
+          <div className="cyber-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* Platform Selector Grid */}
+            <div>
+              <label style={{ fontSize: '0.72rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '8px', display: 'block' }}>
+                Select Simulated Target Platform (9 Channels):
+              </label>
 
-        {history.length === 0 ? (
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px 0' }}>
-            No events transmitted in this session yet. Select a platform and scenario above to transmit an event.
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {PLATFORMS.map(p => {
+                  const isSelected = p.id === selectedPlatformId;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => handlePlatformChange(p.id)}
+                      className={`btn ${isSelected ? 'btn-primary-green' : 'btn-outline'}`}
+                      style={{ fontSize: '0.78rem', padding: '8px 10px', justifyContent: 'flex-start' }}
+                    >
+                      <span>{p.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Presets */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => loadPreset(false)}
+                className="btn btn-outline"
+                style={{ flex: 1, fontSize: '0.72rem', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.4)' }}
+              >
+                {activePlatform.safePreset.label}
+              </button>
+              <button
+                type="button"
+                onClick={() => loadPreset(true)}
+                className="btn btn-outline"
+                style={{ flex: 1, fontSize: '0.72rem', color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+              >
+                {activePlatform.attackPreset.label}
+              </button>
+            </div>
+
+            {/* Dynamic Input Form */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: '#cbd5e1', fontWeight: 600 }}>Message / Payload Content:</label>
+                <textarea
+                  rows={4}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    fontSize: '0.84rem',
+                    boxSizing: 'border-box',
+                    marginTop: '4px'
+                  }}
+                />
+              </div>
+
+              <button
+                onClick={handleSend}
+                disabled={transmitting}
+                className="btn btn-primary-green"
+                style={{ padding: '12px', fontSize: '0.88rem', justifyContent: 'center' }}
+              >
+                <Send size={16} /> {transmitting ? 'Transmitting to Core Gateway...' : `Transmit to CyberShield Core (${activePlatform.name})`}
+              </button>
+            </div>
+
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {history.map((h, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', fontSize: '0.76rem', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span className="badge badge-neutral" style={{ fontSize: '0.58rem', textTransform: 'uppercase' }}>{h.platform}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-blue-light)', fontWeight: 600 }}>{h.event_id}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{h.classification}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ color: h.decision === 'ALLOW' ? 'var(--color-green)' : 'var(--color-danger)', fontWeight: 700 }}>
-                    {h.decision} ({h.risk_score}/100)
+
+          {/* Response Telemetry Box */}
+          <div className="cyber-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
+              Gateway Dispatch Telemetry
+            </h3>
+
+            {dispatchError && (
+              <div style={{ padding: '10px 12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', color: '#f87171', fontSize: '0.78rem' }}>
+                {dispatchError}
+              </div>
+            )}
+
+            {lastResponse ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.78rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#94a3b8' }}>Decision:</span>
+                  <span className={`badge ${lastResponse.decision === 'ALLOW' ? 'badge-green' : 'badge-danger'}`}>
+                    {lastResponse.decision}
                   </span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>{h.timestamp.split('T')[1]?.slice(0, 8)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#94a3b8' }}>Classification:</span>
+                  <strong style={{ color: '#fff' }}>{lastResponse.classification}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#94a3b8' }}>Risk Score:</span>
+                  <strong style={{ color: lastResponse.risk_score > 60 ? '#f87171' : '#4ade80' }}>
+                    {lastResponse.risk_score}/100 ({lastResponse.risk_level})
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#94a3b8' }}>Model:</span>
+                  <code style={{ color: '#60a5fa' }}>{lastResponse.model}</code>
                 </div>
               </div>
-            ))}
+            ) : (
+              <div style={{ color: '#94a3b8', fontSize: '0.78rem' }}>
+                No transmission dispatched in this session yet.
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
     </div>
   );
 };

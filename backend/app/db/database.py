@@ -43,3 +43,6 @@ def init_db():
     # Check if seed is needed
     from app.db.repository import event_repository
     event_repository.seed_if_empty()
+
+    from app.db.conversation_repository import conversation_repository
+    conversation_repository.seed_if_empty()

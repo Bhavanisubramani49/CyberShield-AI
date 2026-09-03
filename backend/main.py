@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import health, events, ai, dashboard, notifications, integrations, gateway
+from app.api.v1.endpoints import health, events, ai, dashboard, notifications, integrations, gateway, conversations
 from app.db.database import init_db
 
 app = FastAPI(
@@ -43,6 +43,7 @@ app.include_router(dashboard.router, prefix=settings.API_V1_STR, tags=["Security
 app.include_router(notifications.router, prefix=settings.API_V1_STR, tags=["Real-Time Security Notifications"])
 app.include_router(integrations.router, prefix=settings.API_V1_STR, tags=["Platform Integration & Permissions"])
 app.include_router(gateway.router, prefix=settings.API_V1_STR, tags=["External Gateway & Inter-App Bridge"])
+app.include_router(conversations.router, prefix=settings.API_V1_STR, tags=["Multi-User Protected Conversations"])
 
 @app.get("/", tags=["Root"])
 async def root():

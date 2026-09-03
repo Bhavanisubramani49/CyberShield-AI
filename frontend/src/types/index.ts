@@ -300,3 +300,63 @@ export interface GatewayReceiverInboxItem {
   is_quarantined: boolean;
   timestamp: string;
 }
+
+// ----------------------------------------------------
+// Multi-User Conversation Ecosystem Types
+// ----------------------------------------------------
+
+export interface DemoUser {
+  user_id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  status: string;
+}
+
+export interface ConversationMember {
+  user_id: string;
+  name: string;
+  avatar: string;
+  role: string;
+}
+
+export interface ConversationSummary {
+  conversation_id: string;
+  conversation_type: 'DIRECT' | 'GROUP' | string;
+  title: string;
+  created_by: string;
+  status: string;
+  members: ConversationMember[];
+  member_count: number;
+  latest_message?: {
+    message_id: string;
+    sender_id: string;
+    content: string;
+    security_status: string;
+    classification: string;
+    risk_score: number;
+    timestamp: string;
+  };
+  threat_count: number;
+  updated_at: string;
+}
+
+export interface MessageItem {
+  message_id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_name: string;
+  sender_avatar: string;
+  content: string;
+  content_type: string;
+  timestamp: string;
+  security_status: 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS' | string;
+  classification: string;
+  risk_score: number;
+  risk_level: string;
+  confidence: number;
+  forensic_reasons: string[];
+  event_id?: string;
+  created_at: string;
+}
+

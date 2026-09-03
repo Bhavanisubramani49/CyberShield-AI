@@ -126,3 +126,82 @@ class IntegrationAuditModel(Base):
     timestamp = Column(String(64), nullable=False)
 
     integration = relationship("PlatformIntegrationModel", back_populates="audits")
+
+# =========================================================================
+# MULTI-USER CONVERSATION ECOSYSTEM ORM MODELS
+# =========================================================================
+
+class DemoUserModel(Base):
+    __tablename__ = "demo_users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(String(64), unique=True, index=True, nullable=False)
+    name = Column(String(128), nullable=False)
+    avatar = Column(String(255), nullable=False)
+    role = Column(String(128), nullable=False, default="Student / Researcher")
+    status = Column(String(64), nullable=False, default="online")
+    created_at = Column(String(64), nullable=False)
+
+class ConversationModel(Base):
+    __tablename__ = "conversations"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    conversation_id = Column(String(64), unique=True, index=True, nullable=False)
+    conversation_type = Column(String(32), index=True, nullable=False, default="DIRECT") # DIRECT or GROUP
+    title = Column(String(255), nullable=False)
+    created_by = Column(String(64), nullable=False, default="user-kavin")
+    status = Column(String(32), nullable=False, default="ACTIVE")
+    created_at = Column(String(64), nullable=False)
+    updated_at = Column(String(64), nullable=False)
+
+    members = relationship("ConversationMemberModel", back_populates="conversation", cascade="all, delete-orphan")
+    messages = relationship("MessageModel", back_populates="conversation", cascade="all, delete-orphan")
+
+class ConversationMemberModel(Base):
+    __tablename__ = "conversation_members"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    conversation_id = Column(String(64), ForeignKey("conversations.conversation_id", ondelete="CASCADE"), index=True, nullable=False)
+    user_id = Column(String(64), index=True, nullable=False)
+    role = Column(String(32), nullable=False, default="MEMBER") # OWNER, ADMIN, MEMBER
+    joined_at = Column(String(64), nullable=False)
+
+    conversation = relationship("ConversationModel", back_populates="members")
+
+class MessageModel(Base):
+    __tablename__ = "conversation_messages"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    message_id = Column(String(64), unique=True, index=True, nullable=False)
+    conversation_id = Column(String(64), ForeignKey("conversations.conversation_id", ondelete="CASCADE"), index=True, nullable=False)
+    sender_id = Column(String(64), index=True, nullable=False)
+    content = Column(Text, nullable=False)
+    content_type = Column(String(32), nullable=False, default="text") # text, url, image, video, news, file
+    timestamp = Column(String(64), index=True, nullable=False)
+    
+    # CyberShield Security Engine Fields
+    security_status = Column(String(32), index=True, nullable=False, default="SAFE") # SAFE, SUSPICIOUS, DANGEROUS
+    classification = Column(String(64), nullable=False, default="SAFE")
+    risk_score = Column(Integer, nullable=False, default=0)
+    risk_level = Column(String(32), nullable=False, default="LOW")
+    confidence = Column(Float, nullable=False, default=0.95)
+    forensic_reasons = Column(Text, nullable=False, default="[]") # JSON list
+    event_id = Column(String(64), nullable=True) # Linked SecurityEvent ID
+    created_at = Column(String(64), nullable=False)
+
+    conversation = relationship("ConversationModel", back_populates="messages")
+    recipients = relationship("MessageRecipientModel", back_populates="message", cascade="all, delete-orphan")
+
+class MessageRecipientModel(Base):
+    __tablename__ = "message_recipients"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    message_id = Column(String(64), ForeignKey("conversation_messages.message_id", ondelete="CASCADE"), index=True, nullable=False)
+    recipient_id = Column(String(64), index=True, nullable=False)
+    delivery_status = Column(String(32), nullable=False, default="DELIVERED") # DELIVERED, QUARANTINED, BLOCKED
+    security_action = Column(String(32), nullable=False, default="ALLOW") # ALLOW, QUARANTINE, BLOCK, REVIEW
+    delivered_at = Column(String(64), nullable=False)
+    read_at = Column(String(64), nullable=True)
+
+    message = relationship("MessageModel", back_populates="recipients")
+
