@@ -65,6 +65,36 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Handle browser Back button (popstate) integration
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveScreen('home');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleOpenConversation = (convId: string) => {
+    setSelectedConvId(convId);
+    setActiveScreen('chat');
+    try {
+      window.history.pushState({ screen: 'chat', convId }, '');
+    } catch (e) {
+      // Fallback if pushState fails
+    }
+  };
+
+  const handleBackNavigation = () => {
+    setActiveScreen('home');
+    if (window.history.state?.screen === 'chat') {
+      try {
+        window.history.back();
+      } catch (e) {
+        // Fallback
+      }
+    }
+  };
+
   useEffect(() => {
     loadContacts();
     loadConversations();
@@ -86,7 +116,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
           const data = JSON.parse(e.data);
           if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'SMS')) {
             setMessages((prev: MessageItem[]) => {
-              if (prev.some((m: MessageItem) => m.message_id === data.message_id)) return prev;
+              if (prev.some((m: MessageItem) => m.message_id === data.message_id || (data.event_id && m.event_id === data.event_id))) return prev;
               return [...prev, data];
             });
             loadConversations();
@@ -244,7 +274,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
-                onClick={() => setActiveScreen('home')}
+                onClick={handleBackNavigation}
                 aria-label="Back to SMS conversation list"
                 style={{
                   width: '40px',
@@ -321,10 +351,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
               return (
                 <div
                   key={conv.conversation_id}
-                  onClick={() => {
-                    setSelectedConvId(conv.conversation_id);
-                    setActiveScreen('chat');
-                  }}
+                  onClick={() => handleOpenConversation(conv.conversation_id)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

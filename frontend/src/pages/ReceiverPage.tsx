@@ -17,7 +17,8 @@ import {
   Send,
   Sparkles,
   ShieldAlert,
-  Search
+  Search,
+  ArrowLeft
 } from 'lucide-react';
 import { SecurityEvent, SecurityAction, ConversationSummary, MessageItem } from '../types';
 import { 
@@ -306,6 +307,32 @@ export const ReceiverPage: React.FC = () => {
               <div style={{ padding: '14px 18px', background: 'rgba(15, 23, 42, 0.95)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedConvId('')}
+                      aria-label="Back to conversations list"
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        minWidth: '36px',
+                        minHeight: '36px',
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'all 0.2s ease',
+                        flexShrink: 0
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
+                    >
+                      <ArrowLeft size={20} color="#ffffff" />
+                    </button>
                     <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                       {currentConv.title}
                     </h3>
