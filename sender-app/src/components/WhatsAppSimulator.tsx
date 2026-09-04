@@ -63,11 +63,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}`);
+      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}&channel=WHATSAPP`);
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.type !== 'connected' && data.conversation_id === selectedConvId) {
+          if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'WHATSAPP')) {
             setMessages((prev: MessageItem[]) => {
               if (prev.some((m: MessageItem) => m.message_id === data.message_id)) return prev;
               return [...prev, data];
@@ -108,7 +108,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   const loadConversations = async () => {
-    const list = await fetchConversationsSenderAPI(activeUserId);
+    const list = await fetchConversationsSenderAPI(activeUserId, 'WHATSAPP');
     setConversations(list);
     if (list.length > 0 && !list.some((c: ConversationSummary) => c.conversation_id === selectedConvId)) {
       setSelectedConvId(list[0].conversation_id);

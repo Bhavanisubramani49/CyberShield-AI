@@ -77,11 +77,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     // SSE EventSource for instant real-time message stream
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}`);
+      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}&channel=WHATSAPP`);
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.type !== 'connected' && data.conversation_id === selectedConvId) {
+          if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'WHATSAPP')) {
             setMessages(prev => {
               if (prev.some(m => m.message_id === data.message_id)) return prev;
               return [...prev, data];
@@ -122,7 +122,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   const loadConversations = async () => {
-    const list = await fetchConversationsAPI(activeUserId);
+    const list = await fetchConversationsAPI(activeUserId, 'WHATSAPP');
     setConversations(list);
     if (!selectedConvId && list.length > 0) {
       setSelectedConvId(list[0].conversation_id);

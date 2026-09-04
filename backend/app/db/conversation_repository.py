@@ -801,7 +801,7 @@ class ConversationRepository:
                 event_model = event_processor_service.process_and_store_event(
                     event_id=evt_dict["event_id"],
                     content_type=content_type,
-                    platform="whatsapp" if "direct" in conv.conversation_type.lower() else "messages",
+                    platform=(getattr(conv, "channel", None) or "WHATSAPP").lower(),
                     sender_type=evt_dict["sender_type"],
                     sender_name=evt_dict["sender_id"],
                     recipient_id=conv.title,
@@ -818,6 +818,7 @@ class ConversationRepository:
             res_dict = {
                 "message_id": msg_id,
                 "conversation_id": conversation_id,
+                "channel": getattr(conv, "channel", "WHATSAPP"),
                 "sender_id": sender_id,
                 "sender_name": sender_user.name if sender_user else sender_id,
                 "sender_avatar": sender_user.avatar if sender_user else "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",

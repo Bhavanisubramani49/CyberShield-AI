@@ -58,11 +58,11 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}`);
+      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}&channel=SMS`);
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          if (data.type !== 'connected' && data.conversation_id === selectedConvId) {
+          if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'SMS')) {
             setMessages((prev: MessageItem[]) => {
               if (prev.some((m: MessageItem) => m.message_id === data.message_id)) return prev;
               return [...prev, data];

@@ -38,16 +38,26 @@ def get_messages_dataset_info():
     return get_messages_dataset_metadata()
 
 @router.get("/stream", summary="Real-Time Server-Sent Events Stream")
-async def stream_conversation_events(conversation_id: Optional[str] = Query(None)):
+async def stream_conversation_events(
+    conversation_id: Optional[str] = Query(None),
+    channel: Optional[str] = Query(None)
+):
     """
-    Real-time Server-Sent Events (SSE) stream yielding new conversation messages instantly.
+    Real-time Server-Sent Events (SSE) stream yielding new conversation messages instantly,
+    filtered by conversation_id and/or platform channel.
     """
     async def event_generator():
         queue = asyncio.Queue()
 
         def listener(msg_data):
-            if not conversation_id or msg_data.get("conversation_id") == conversation_id:
-                queue.put_nowait(msg_data)
+            # Check conversation_id filter
+            if conversation_id and msg_data.get("conversation_id") != conversation_id:
+                return
+            # Check channel filter
+            if channel and msg_data.get("channel", "").upper() != channel.upper():
+                return
+            
+            queue.put_nowait(msg_data)
 
         conversation_repository.subscribers.append(listener)
         try:
