@@ -19,7 +19,8 @@ import {
   User, 
   Plus,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Ban
 } from 'lucide-react';
 import { ConversationSummary, MessageItem, UserContact } from '../types';
 import { 
@@ -43,7 +44,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 }) => {
   if (!isReceiverView || onSelectEventDetails) console.log('receiverMode');
   // Navigation & Screen View
-  const [activeScreen, setActiveScreen] = useState<'home' | 'chat' | 'compose'>('home');
+  const [activeScreen, setActiveScreen] = useState<'home' | 'chat'>('home');
 
   // Contacts & Conversations State
   const [contacts, setContacts] = useState<UserContact[]>([]);
@@ -55,8 +56,10 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAttachmentMenu, setShowAttachmentMenu] = useState<boolean>(false);
 
-  // Security Threat Explanations Modal State
+  // Security Threat Explanations & Notification State
+  const [dismissedNotifications, setDismissedNotifications] = useState<Record<string, boolean>>({});
   const [selectedThreatMessage, setSelectedThreatMessage] = useState<MessageItem | null>(null);
+  const [blockToast, setBlockToast] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -154,6 +157,10 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
     try {
       await updateMessageActionAPI(messageId, action);
       setSelectedThreatMessage(null);
+      if (action === 'BLOCK') {
+        setBlockToast('✓ Sender blocked by CyberShield (Security Policy Updated)');
+        setTimeout(() => setBlockToast(null), 3500);
+      }
       await loadMessages(selectedConvId);
       await loadConversations();
     } catch (err: any) {
@@ -177,6 +184,12 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
       (c.latest_message && c.latest_message.content.toLowerCase().includes(searchLower))
     );
   });
+
+  // Single active dangerous message notification per conversation thread (idempotent, non-duplicated)
+  const activeDangerousMessage = messages.find(
+    m => m.security_status === 'DANGEROUS' && 
+         !dismissedNotifications[`sms-threat-${m.message_id}`]
+  );
 
   return (
     <div style={{
@@ -381,10 +394,32 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
         </div>
       )}
 
-      {/* MESSAGES CHAT SCREEN */}
+      {/* SCREEN B: INDIVIDUAL SMS CONVERSATION */}
       {activeScreen === 'chat' && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#090d16' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#090d16', position: 'relative' }}>
           
+          {/* Action Success Toast Banner */}
+          {blockToast && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#166534',
+              border: '1px solid #22c55e',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+              zIndex: 50,
+              whiteSpace: 'nowrap'
+            }}>
+              {blockToast}
+            </div>
+          )}
+
           {/* Thread Scroll View */}
           <div style={{ flex: 1, padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ alignSelf: 'center', background: '#1e293b', color: '#94a3b8', fontSize: '0.68rem', padding: '3px 12px', borderRadius: '12px', margin: '4px 0', fontWeight: 600 }}>
@@ -393,7 +428,6 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 
             {messages.map((m: MessageItem) => {
               const isOutgoing = m.sender_id === activeUserId;
-              const isDangerous = m.security_status === 'DANGEROUS';
               const isBlocked = m.security_status === 'BLOCKED';
 
               return (
@@ -413,7 +447,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                     </span>
                   )}
 
-                  {/* Message Bubble */}
+                  {/* Message Bubble — Clean Alignment Without Duplicate Cards */}
                   <div
                     style={{
                       padding: '10px 14px',
@@ -428,7 +462,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                     {isBlocked ? (
                       <div>
                         <div style={{ fontWeight: 700, color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <ShieldAlert size={16} /> 🛡 SMS Message Blocked by CyberShield
+                          <Ban size={15} /> 🚫 Message Blocked by CyberShield Policy
                         </div>
                         <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '4px' }}>
                           Quarantined threat: {m.classification} (Risk Score: {m.risk_score}/100)
@@ -444,71 +478,81 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                     </div>
                   </div>
 
-                  {/* DANGEROUS SMS SECURITY WARNING CARD */}
-                  {isDangerous && !isBlocked && (
-                    <div style={{
-                      marginTop: '6px',
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      background: 'rgba(239, 68, 68, 0.14)',
-                      border: '1px solid rgba(239, 68, 68, 0.4)',
-                      width: '100%',
-                      boxSizing: 'border-box'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <AlertTriangle size={14} /> 🛡 CyberShield Warning: {m.classification}
-                        </span>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#ef4444', color: '#fff', padding: '1px 6px', borderRadius: '4px' }}>
-                          Risk {m.risk_score}/100
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '8px', lineHeight: 1.3 }}>
-                        Suspicious SMS link or urgent financial request detected.
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button
-                          onClick={() => setSelectedThreatMessage(m)}
-                          style={{
-                            flex: 1,
-                            padding: '6px',
-                            background: 'rgba(59, 130, 246, 0.2)',
-                            border: '1px solid rgba(59, 130, 246, 0.4)',
-                            borderRadius: '6px',
-                            color: '#60a5fa',
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Why is this dangerous?
-                        </button>
-                        <button
-                          onClick={() => handleSecurityAction(m.message_id, 'BLOCK')}
-                          style={{
-                            padding: '6px 10px',
-                            background: '#ef4444',
-                            border: 'none',
-                            borderRadius: '6px',
-                            color: '#ffffff',
-                            fontSize: '0.7rem',
-                            fontWeight: 800,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Block
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
                 </div>
               );
             })}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* SINGLE DEDICATED CYBERSHIELD SECURITY NOTIFICATION OVERLAY */}
+          {activeDangerousMessage && (
+            <div style={{
+              margin: '0 12px 10px 12px',
+              background: '#0f172a',
+              border: '1px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: '14px',
+              padding: '12px 14px',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.6)',
+              color: '#f8fafc',
+              zIndex: 30
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={16} /> 🚨 CyberShield Warning: {activeDangerousMessage.classification}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '6px' }}>
+                    Risk {activeDangerousMessage.risk_score}/100
+                  </span>
+                  <button
+                    onClick={() => setDismissedNotifications(prev => ({ ...prev, [`sms-threat-${activeDangerousMessage.message_id}`]: true }))}
+                    style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                    aria-label="Dismiss warning notification"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ fontSize: '0.74rem', color: '#cbd5e1', marginBottom: '10px', lineHeight: 1.35 }}>
+                Suspicious financial request or scam URL detected in this incoming SMS message.
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setSelectedThreatMessage(activeDangerousMessage)}
+                  style={{
+                    flex: 1,
+                    padding: '7px 10px',
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    borderRadius: '8px',
+                    color: '#60a5fa',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Why is this dangerous?
+                </button>
+                <button
+                  onClick={() => handleSecurityAction(activeDangerousMessage.message_id, 'BLOCK')}
+                  style={{
+                    padding: '7px 14px',
+                    background: '#ef4444',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    fontSize: '0.74rem',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Block Sender
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ATTACHMENT MENU POPUP */}
           {showAttachmentMenu && (
