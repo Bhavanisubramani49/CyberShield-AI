@@ -102,3 +102,14 @@ export async function sendConversationMessageSenderAPI(conversationId: string, s
   return await res.json();
 }
 
+export async function fetchUserContactsSenderAPI(userId: string = 'user-riya') {
+  try {
+    const res = await fetch(`${API_V1_URL}/conversations/contacts?user_id=${encodeURIComponent(userId)}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Sender contacts API offline:', e);
+  }
+  return [];
+}
+
+

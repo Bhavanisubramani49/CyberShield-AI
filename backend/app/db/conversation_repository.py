@@ -10,13 +10,17 @@ from app.db.models import (
     ConversationMemberModel,
     MessageModel,
     MessageRecipientModel,
-    SecurityEventModel
+    SecurityEventModel,
+    UserContactModel
 )
 from app.db.repository import event_repository
 from app.services.event_processor import event_processor_service
 from app.services.notification_service import notification_service
 
 class ConversationRepository:
+    def __init__(self):
+        self.subscribers = []
+
     def get_session(self) -> Session:
         return SessionLocal()
 
@@ -30,6 +34,10 @@ class ConversationRepository:
             conv_count = session.query(ConversationModel).count()
             if conv_count == 0:
                 self._seed_demo_conversations(session)
+
+            contact_count = session.query(UserContactModel).count()
+            if contact_count == 0:
+                self._seed_user_contacts(session)
         finally:
             session.close()
 
@@ -63,6 +71,49 @@ class ConversationRepository:
                 created_at=now
             )
             session.add(model)
+        session.commit()
+
+    def _seed_user_contacts(self, session: Session):
+        now = datetime.now(timezone.utc).isoformat()
+        contacts_map = {
+            "user-kavin": [
+                {"contact_user_id": "user-riya", "display_name": "Riya", "phone_number": "+91 98765 43210", "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", "status": "Working on CyberShield project!", "last_seen": "Online", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-arun", "display_name": "Arun (Tech Lead)", "phone_number": "+91 98765 43211", "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", "status": "Available for code review", "last_seen": "Today at 09:18 AM", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-priya", "display_name": "Priya (Design Lead)", "phone_number": "+91 98765 43212", "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", "status": "Designing Android mobile UI", "last_seen": "Yesterday at 4:30 PM", "is_online": 0, "is_favorite": 0},
+                {"contact_user_id": "user-rahul", "display_name": "Rahul (Classmate)", "phone_number": "+91 98765 43213", "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", "status": "Studying for semester exams", "last_seen": "Today at 08:45 AM", "is_online": 1, "is_favorite": 0},
+                {"contact_user_id": "user-sneha", "display_name": "Sneha", "phone_number": "+91 98765 43214", "avatar": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150", "status": "At university library", "last_seen": "Online", "is_online": 1, "is_favorite": 0},
+                {"contact_user_id": "user-vishal", "display_name": "Vishal", "phone_number": "+91 98765 43215", "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150", "status": "Building AI model benchmark", "last_seen": "Today at 07:20 AM", "is_online": 0, "is_favorite": 0}
+            ],
+            "user-riya": [
+                {"contact_user_id": "user-kavin", "display_name": "Kavin", "phone_number": "+91 98765 43200", "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", "status": "CyberShield Defense Active", "last_seen": "Online", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-arun", "display_name": "Arun", "phone_number": "+91 98765 43211", "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150", "status": "Available for code review", "last_seen": "Today at 09:18 AM", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-priya", "display_name": "Priya", "phone_number": "+91 98765 43212", "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150", "status": "Designing Android mobile UI", "last_seen": "Yesterday at 4:30 PM", "is_online": 0, "is_favorite": 0},
+                {"contact_user_id": "user-ananya", "display_name": "Ananya", "phone_number": "+91 98765 43216", "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150", "status": "Preparing research presentation", "last_seen": "Online", "is_online": 1, "is_favorite": 0},
+                {"contact_user_id": "user-rahul", "display_name": "Rahul", "phone_number": "+91 98765 43213", "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150", "status": "Studying for semester exams", "last_seen": "Today at 08:45 AM", "is_online": 1, "is_favorite": 0}
+            ],
+            "user-arun": [
+                {"contact_user_id": "user-kavin", "display_name": "Kavin", "phone_number": "+91 98765 43200", "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", "status": "CyberShield Defense Active", "last_seen": "Online", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-riya", "display_name": "Riya", "phone_number": "+91 98765 43210", "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150", "status": "Working on CyberShield project!", "last_seen": "Online", "is_online": 1, "is_favorite": 1},
+                {"contact_user_id": "user-rohit", "display_name": "Rohit", "phone_number": "+91 98765 43217", "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150", "status": "Analyzing security datasets", "last_seen": "Today at 10:10 AM", "is_online": 0, "is_favorite": 0},
+                {"contact_user_id": "user-divya", "display_name": "Divya", "phone_number": "+91 98765 43218", "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150", "status": "Reviewing Figma mockups", "last_seen": "Online", "is_online": 1, "is_favorite": 0}
+            ]
+        }
+
+        for uid, contacts in contacts_map.items():
+            for c in contacts:
+                contact_model = UserContactModel(
+                    user_id=uid,
+                    contact_user_id=c["contact_user_id"],
+                    display_name=c["display_name"],
+                    phone_number=c["phone_number"],
+                    avatar=c["avatar"],
+                    status=c["status"],
+                    last_seen=c["last_seen"],
+                    is_online=c["is_online"],
+                    is_favorite=c["is_favorite"],
+                    created_at=now
+                )
+                session.add(contact_model)
         session.commit()
 
     def _seed_demo_conversations(self, session: Session):
@@ -564,7 +615,7 @@ class ConversationRepository:
             session.commit()
 
             sender_user = session.query(DemoUserModel).filter(DemoUserModel.user_id == sender_id).first()
-            return {
+            res_dict = {
                 "message_id": msg_id,
                 "conversation_id": conversation_id,
                 "sender_id": sender_id,
@@ -581,6 +632,115 @@ class ConversationRepository:
                 "forensic_reasons": reasons,
                 "event_id": f"EVT-{msg_id}",
                 "created_at": now
+            }
+
+            # Broadcast SSE notification to subscribers
+            self._notify_subscribers(res_dict)
+
+            return res_dict
+        finally:
+            session.close()
+
+    def _notify_subscribers(self, message_data: Dict[str, Any]):
+        for sub in self.subscribers[:]:
+            try:
+                sub(message_data)
+            except Exception:
+                pass
+
+    def get_user_contacts(self, user_id: str) -> List[Dict[str, Any]]:
+        session = self.get_session()
+        try:
+            models = session.query(UserContactModel).filter(UserContactModel.user_id == user_id).all()
+            if not models and user_id == "user-kavin":
+                self._seed_user_contacts(session)
+                models = session.query(UserContactModel).filter(UserContactModel.user_id == user_id).all()
+
+            if not models:
+                demo_users = session.query(DemoUserModel).filter(DemoUserModel.user_id != user_id).all()
+                return [
+                    {
+                        "id": idx + 1,
+                        "user_id": user_id,
+                        "contact_user_id": u.user_id,
+                        "display_name": u.name,
+                        "phone_number": f"+91 98765 432{idx:02d}",
+                        "avatar": u.avatar,
+                        "status": "Available on WhatsApp",
+                        "last_seen": "Online" if u.status == "online" else "Yesterday",
+                        "is_online": 1 if u.status == "online" else 0,
+                        "is_favorite": 0
+                    }
+                    for idx, u in enumerate(demo_users)
+                ]
+
+            return [
+                {
+                    "id": c.id,
+                    "user_id": c.user_id,
+                    "contact_user_id": c.contact_user_id,
+                    "display_name": c.display_name,
+                    "phone_number": c.phone_number,
+                    "avatar": c.avatar,
+                    "status": c.status,
+                    "last_seen": c.last_seen,
+                    "is_online": bool(c.is_online),
+                    "is_favorite": bool(c.is_favorite)
+                }
+                for c in models
+            ]
+        finally:
+            session.close()
+
+    def update_message_security_action(self, message_id: str, action: str) -> Dict[str, Any]:
+        session = self.get_session()
+        try:
+            msg = session.query(MessageModel).filter(MessageModel.message_id == message_id).first()
+            if not msg:
+                raise ValueError(f"Message '{message_id}' not found.")
+
+            if action.upper() == "BLOCK":
+                msg.security_status = "BLOCKED"
+                msg.content = f"🛡 Message blocked by CyberShield (Risk Score: {msg.risk_score}/100)"
+            elif action.upper() == "ALLOW":
+                msg.security_status = "ALLOWED"
+
+            recipients = session.query(MessageRecipientModel).filter(MessageRecipientModel.message_id == message_id).all()
+            for r in recipients:
+                r.security_action = action.upper()
+                if action.upper() == "BLOCK":
+                    r.delivery_status = "BLOCKED"
+                elif action.upper() == "ALLOW":
+                    r.delivery_status = "DELIVERED"
+
+            if msg.event_id:
+                event_repository.update_event_action(
+                    event_id=msg.event_id,
+                    new_action=action.upper(),
+                    actor="User Decision"
+                )
+
+            session.commit()
+
+            reasons = json.loads(msg.forensic_reasons) if msg.forensic_reasons else []
+            sender_user = session.query(DemoUserModel).filter(DemoUserModel.user_id == msg.sender_id).first()
+            return {
+                "message_id": msg.message_id,
+                "conversation_id": msg.conversation_id,
+                "sender_id": msg.sender_id,
+                "sender_name": sender_user.name if sender_user else msg.sender_id,
+                "sender_avatar": sender_user.avatar if sender_user else "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+                "content": msg.content,
+                "content_type": msg.content_type,
+                "timestamp": msg.timestamp,
+                "security_status": msg.security_status,
+                "classification": msg.classification,
+                "risk_score": msg.risk_score,
+                "risk_level": msg.risk_level,
+                "confidence": msg.confidence,
+                "forensic_reasons": reasons,
+                "event_id": msg.event_id,
+                "created_at": msg.created_at
             }
         finally:
             session.close()

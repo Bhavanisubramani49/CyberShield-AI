@@ -28,9 +28,11 @@ import {
   sendConversationMessageAPI
 } from '../services/api';
 
+import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
+
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
-  const [activeView, setActiveView] = useState<'conversations' | 'telemetry'>('conversations');
+  const [activeView, setActiveView] = useState<'whatsapp' | 'conversations' | 'telemetry'>('whatsapp');
 
   // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
   const currentUser = 'user-kavin';
@@ -154,6 +156,13 @@ export const ReceiverPage: React.FC = () => {
           {/* View Mode Toggle */}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
+              onClick={() => setActiveView('whatsapp')}
+              className={`btn ${activeView === 'whatsapp' ? 'btn-primary-green' : 'btn-outline'}`}
+              style={{ fontSize: '0.8rem', padding: '8px 14px' }}
+            >
+              <MessageSquare size={15} /> WhatsApp Conversation Center
+            </button>
+            <button
               onClick={() => setActiveView('conversations')}
               className={`btn ${activeView === 'conversations' ? 'btn-primary-green' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px' }}
@@ -171,7 +180,14 @@ export const ReceiverPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. MAIN CONVERSATIONS HUB */}
+      {/* 2. WHATSAPP CONVERSATION CENTER VIEW */}
+      {activeView === 'whatsapp' && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
+          <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+        </div>
+      )}
+
+      {/* 3. MAIN CONVERSATIONS HUB */}
       {activeView === 'conversations' && (
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '16px', minHeight: '620px' }}>
           

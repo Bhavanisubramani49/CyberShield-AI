@@ -107,5 +107,41 @@ class TestConversationsEcosystem(unittest.IsolatedAsyncioTestCase):
             )
             self.assertEqual(res_reject.status_code, 403)
 
+    async def test_user_contacts_and_message_actions(self):
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # 1. Fetch contacts for Kavin
+            res_contacts = await client.get("/api/v1/conversations/contacts?user_id=user-kavin")
+            self.assertEqual(res_contacts.status_code, 200)
+            contacts = res_contacts.json()
+            self.assertGreaterEqual(len(contacts), 4)
+
+            # 2. Fetch dataset info
+            res_ds = await client.get("/api/v1/conversations/dataset/info")
+            self.assertEqual(res_ds.status_code, 200)
+            ds_data = res_ds.json()
+            self.assertIn("total_samples", ds_data)
+
+            # 3. Test Block Action on threat message
+            res_send = await client.post(
+                "/api/v1/conversations/CONV-003/messages",
+                json={
+                    "sender_id": "user-rahul",
+                    "content": "URGENT: Verify your bank PIN immediately at http://192.168.1.10/verify-bank",
+                    "content_type": "text"
+                }
+            )
+            msg = res_send.json()
+            msg_id = msg["message_id"]
+
+            res_block = await client.post(
+                f"/api/v1/conversations/messages/{msg_id}/action",
+                json={"action": "BLOCK"}
+            )
+            self.assertEqual(res_block.status_code, 200)
+            blocked_msg = res_block.json()
+            self.assertEqual(blocked_msg["security_status"], "BLOCKED")
+            self.assertIn("Message blocked by CyberShield", blocked_msg["content"])
+
 if __name__ == "__main__":
     unittest.main()

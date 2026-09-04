@@ -350,7 +350,7 @@ export interface MessageItem {
   content: string;
   content_type: string;
   timestamp: string;
-  security_status: 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS' | string;
+  security_status: 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS' | 'BLOCKED' | 'ALLOWED' | string;
   classification: string;
   risk_score: number;
   risk_level: string;
@@ -359,4 +359,18 @@ export interface MessageItem {
   event_id?: string;
   created_at: string;
 }
+
+export interface UserContact {
+  id: number;
+  user_id: string;
+  contact_user_id: string;
+  display_name: string;
+  phone_number: string;
+  avatar: string;
+  status: string;
+  last_seen: string;
+  is_online: boolean;
+  is_favorite: boolean;
+}
+
 

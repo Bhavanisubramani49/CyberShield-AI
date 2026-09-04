@@ -10,6 +10,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { SenderUser, GatewaySendResponse, GatewayHealthResponse } from '../types';
+import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
 import { 
   transmitEventToCore, 
   checkGatewayHealth,
@@ -214,7 +215,7 @@ const PLATFORMS: PlatformConfig[] = [
 export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) => {
   const [apiKey] = useState<string>('cs-sim-key-prod-2026');
   const [gatewayHealth, setGatewayHealth] = useState<GatewayHealthResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<'ecosystem' | 'single_platform'>('ecosystem');
+  const [activeTab, setActiveTab] = useState<'ecosystem' | 'whatsapp' | 'single_platform'>('ecosystem');
 
   // -----------------------------------------------------------------------
   // MULTI-USER ECOSYSTEM STATE
@@ -430,13 +431,20 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
       </header>
 
       {/* Mode Switcher Tabs */}
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button
           onClick={() => setActiveTab('ecosystem')}
           className={`btn ${activeTab === 'ecosystem' ? 'btn-primary-green' : 'btn-outline'}`}
           style={{ fontSize: '0.85rem', padding: '10px 18px' }}
         >
-          <Users size={16} /> Multi-User Ecosystem Simulator (Bidirectional Chat)
+          <Users size={16} /> Multi-User Ecosystem Simulator
+        </button>
+        <button
+          onClick={() => setActiveTab('whatsapp')}
+          className={`btn ${activeTab === 'whatsapp' ? 'btn-primary-green' : 'btn-outline'}`}
+          style={{ fontSize: '0.85rem', padding: '10px 18px', borderColor: activeTab === 'whatsapp' ? '#00a884' : undefined, background: activeTab === 'whatsapp' ? 'rgba(0,168,132,0.2)' : undefined }}
+        >
+          <Send size={16} color="#00a884" /> WhatsApp Mobile Interface (Android)
         </button>
         <button
           onClick={() => setActiveTab('single_platform')}
@@ -446,6 +454,39 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
           <Layers size={16} /> Single Platform Attack Payload Generator
         </button>
       </div>
+
+      {/* TAB: WHATSAPP MOBILE INTERFACE */}
+      {activeTab === 'whatsapp' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(15,23,42,0.8)', padding: '10px 18px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8' }}>Select Active Sender User:</label>
+            <select
+              value={activeSenderId}
+              onChange={(e) => setActiveSenderId(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                background: 'rgba(0,0,0,0.6)',
+                border: '1px solid rgba(0,168,132,0.4)',
+                borderRadius: '6px',
+                color: '#fff',
+                fontSize: '0.82rem',
+                fontWeight: 700
+              }}
+            >
+              {demoUsers.map(u => (
+                <option key={u.user_id} value={u.user_id}>
+                  👤 {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              Messages sent here stream in real time to Kavin's WhatsApp Center on CyberShield Core (Port 5173).
+            </span>
+          </div>
+
+          <WhatsAppSimulator activeUserId={activeSenderId} />
+        </div>
+      )}
 
       {/* TAB 1: MULTI-USER ECOSYSTEM SIMULATOR */}
       {activeTab === 'ecosystem' && (

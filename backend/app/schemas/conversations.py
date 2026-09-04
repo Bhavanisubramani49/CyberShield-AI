@@ -57,3 +57,19 @@ class SendConversationMessageRequest(BaseModel):
     sender_id: str
     content: str
     content_type: str = "text"
+
+class UserContactSchema(BaseModel):
+    id: int
+    user_id: str
+    contact_user_id: str
+    display_name: str
+    phone_number: str
+    avatar: str
+    status: str
+    last_seen: str
+    is_online: bool
+    is_favorite: bool
+
+class MessageActionRequest(BaseModel):
+    action: str = Field(..., description="BLOCK or ALLOW")
+

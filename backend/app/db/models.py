@@ -205,3 +205,19 @@ class MessageRecipientModel(Base):
 
     message = relationship("MessageModel", back_populates="recipients")
 
+class UserContactModel(Base):
+    __tablename__ = "user_contacts"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(String(64), index=True, nullable=False) # Owner of contact entry (e.g. user-kavin)
+    contact_user_id = Column(String(64), index=True, nullable=False) # Target contact user ID (e.g. user-riya)
+    display_name = Column(String(128), nullable=False)
+    phone_number = Column(String(64), nullable=False)
+    avatar = Column(String(255), nullable=False)
+    status = Column(String(255), nullable=False, default="Hey there! I am using WhatsApp.")
+    last_seen = Column(String(64), nullable=False, default="Today at 10:42 AM")
+    is_online = Column(Integer, nullable=False, default=1)
+    is_favorite = Column(Integer, nullable=False, default=0)
+    created_at = Column(String(64), nullable=False)
+
+

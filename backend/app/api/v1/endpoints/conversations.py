@@ -1,12 +1,18 @@
+import json
+import asyncio
 from fastapi import APIRouter, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from app.schemas.conversations import (
     DemoUserSchema,
     ConversationSummarySchema,
     MessageItemSchema,
-    SendConversationMessageRequest
+    SendConversationMessageRequest,
+    UserContactSchema,
+    MessageActionRequest
 )
 from app.db.conversation_repository import conversation_repository
+from app.datasets.whatsapp_security_dataset import get_dataset_metadata
 
 router = APIRouter(prefix="/conversations", tags=["Multi-User Protected Conversations"])
 
@@ -14,6 +20,42 @@ router = APIRouter(prefix="/conversations", tags=["Multi-User Protected Conversa
 def get_demo_users(exclude_user_id: Optional[str] = Query(None, description="Optional user_id to exclude from demo list")):
     """Returns list of synthetic demo users, optionally excluding specific user (e.g. Kavin)."""
     return conversation_repository.get_all_demo_users(exclude_user_id=exclude_user_id)
+
+@router.get("/contacts", response_model=List[UserContactSchema], summary="Get User-Specific WhatsApp Contacts")
+def get_user_contacts(user_id: str = Query("user-kavin", description="User ID to fetch contacts for")):
+    """Returns contacts specific to the requested user account."""
+    return conversation_repository.get_user_contacts(user_id=user_id)
+
+@router.get("/dataset/info", summary="Get Synthetic WhatsApp Security Dataset Info")
+def get_whatsapp_dataset_info():
+    """Returns metadata and benchmark samples for WhatsApp security dataset."""
+    return get_dataset_metadata()
+
+@router.get("/stream", summary="Real-Time Server-Sent Events Stream")
+async def stream_conversation_events(conversation_id: Optional[str] = Query(None)):
+    """
+    Real-time Server-Sent Events (SSE) stream yielding new conversation messages instantly.
+    """
+    async def event_generator():
+        queue = asyncio.Queue()
+
+        def listener(msg_data):
+            if not conversation_id or msg_data.get("conversation_id") == conversation_id:
+                queue.put_nowait(msg_data)
+
+        conversation_repository.subscribers.append(listener)
+        try:
+            yield "data: {\"type\": \"connected\"}\n\n"
+            while True:
+                msg_data = await queue.get()
+                yield f"data: {json.dumps(msg_data)}\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            if listener in conversation_repository.subscribers:
+                conversation_repository.subscribers.remove(listener)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @router.get("", response_model=List[ConversationSummarySchema], summary="Get User Conversations")
 def get_user_conversations(
@@ -70,3 +112,24 @@ def send_conversation_message(
         raise HTTPException(status_code=404, detail=str(val_err))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to dispatch conversation message: {str(e)}")
+
+@router.post("/messages/{message_id}/action", response_model=MessageItemSchema, summary="Process Block or Allow Action on Message")
+def update_message_action(
+    message_id: str,
+    req: MessageActionRequest
+):
+    """
+    Processes human-in-the-loop security decision (BLOCK or ALLOW) on a flagged message:
+    - Updates SQLite message security status and content
+    - Updates recipient delivery and security action states
+    - Updates associated SecurityEvent and Notification history
+    """
+    try:
+        return conversation_repository.update_message_security_action(
+            message_id=message_id,
+            action=req.action
+        )
+    except ValueError as val_err:
+        raise HTTPException(status_code=404, detail=str(val_err))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update message security action: {str(e)}")

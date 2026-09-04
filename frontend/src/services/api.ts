@@ -19,7 +19,8 @@ import {
   GatewayReceiverInboxItem,
   DemoUser,
   ConversationSummary,
-  MessageItem
+  MessageItem,
+  UserContact
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -982,4 +983,40 @@ export async function sendConversationMessageAPI(
 
   return await res.json();
 }
+
+export async function fetchUserContactsAPI(userId: string = 'user-kavin'): Promise<UserContact[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/conversations/contacts?user_id=${encodeURIComponent(userId)}`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('User contacts API offline:', e);
+  }
+  return [];
+}
+
+export async function updateMessageActionAPI(messageId: string, action: 'BLOCK' | 'ALLOW'): Promise<MessageItem> {
+  const res = await fetch(`${API_BASE_URL}/conversations/messages/${encodeURIComponent(messageId)}/action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to update message action.' }));
+    throw new Error(err.detail || 'Action update failed.');
+  }
+
+  return await res.json();
+}
+
+export async function fetchWhatsAppDatasetInfoAPI(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/conversations/dataset/info`);
+    if (res.ok) return await res.json();
+  } catch (e) {
+    console.warn('Dataset info API offline:', e);
+  }
+  return null;
+}
+
 
