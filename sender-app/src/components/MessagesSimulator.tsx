@@ -196,12 +196,33 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <ArrowLeft
-                size={20}
-                style={{ cursor: 'pointer', color: '#ffffff' }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
                 onClick={() => setActiveScreen('home')}
-              />
+                aria-label="Back to SMS conversation list"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  minWidth: '40px',
+                  minHeight: '40px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)')}
+              >
+                <ArrowLeft size={22} color="#ffffff" />
+              </button>
               <img
                 src={otherMember?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
                 alt="Avatar"
