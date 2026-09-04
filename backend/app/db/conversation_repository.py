@@ -34,6 +34,11 @@ class ConversationRepository:
             conv_count = session.query(ConversationModel).count()
             if conv_count == 0:
                 self._seed_demo_conversations(session)
+            else:
+                # Check if SMS conversations exist, seed if missing
+                sms_exists = session.query(ConversationModel).filter(ConversationModel.conversation_id == "CONV-SMS-001").first()
+                if not sms_exists:
+                    self._seed_sms_conversations_only(session)
 
             contact_count = session.query(UserContactModel).count()
             if contact_count == 0:
@@ -123,6 +128,7 @@ class ConversationRepository:
             {
                 "id": "CONV-001",
                 "type": "DIRECT",
+                "channel": "WHATSAPP",
                 "title": "Kavin & Riya",
                 "created_by": "user-kavin",
                 "members": ["user-kavin", "user-riya"],
@@ -136,6 +142,7 @@ class ConversationRepository:
             {
                 "id": "CONV-002",
                 "type": "DIRECT",
+                "channel": "WHATSAPP",
                 "title": "Kavin & Arun",
                 "created_by": "user-kavin",
                 "members": ["user-kavin", "user-arun"],
@@ -148,6 +155,7 @@ class ConversationRepository:
             {
                 "id": "CONV-003",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "Project Team",
                 "created_by": "user-kavin",
                 "members": ["user-kavin", "user-riya", "user-arun", "user-priya", "user-rahul"],
@@ -162,6 +170,7 @@ class ConversationRepository:
             {
                 "id": "CONV-004",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "Friends Group",
                 "created_by": "user-riya",
                 "members": ["user-riya", "user-sneha", "user-divya", "user-kavya", "user-ananya"],
@@ -174,6 +183,7 @@ class ConversationRepository:
             {
                 "id": "CONV-005",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "AI Project Discussion",
                 "created_by": "user-kavin",
                 "members": ["user-kavin", "user-vishal", "user-rohit", "user-meena", "user-nikhil", "user-harish"],
@@ -186,6 +196,7 @@ class ConversationRepository:
             {
                 "id": "CONV-006",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "Class Discussion",
                 "created_by": "user-priya",
                 "members": ["user-priya", "user-rahul", "user-sneha", "user-aditya", "user-nikhil"],
@@ -198,6 +209,7 @@ class ConversationRepository:
             {
                 "id": "CONV-007",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "Design Team",
                 "created_by": "user-kavin",
                 "members": ["user-kavin", "user-priya", "user-vishal", "user-divya"],
@@ -209,12 +221,72 @@ class ConversationRepository:
             {
                 "id": "CONV-008",
                 "type": "GROUP",
+                "channel": "WHATSAPP",
                 "title": "Research Team",
                 "created_by": "user-rohit",
                 "members": ["user-rohit", "user-meena", "user-harish", "user-kavya", "user-ananya"],
                 "messages": [
                     {"sender": "user-rohit", "text": "Paper draft submitted to IEEE Forensics journal."},
                     {"sender": "user-meena", "text": "Fingers crossed! Great job team."}
+                ]
+            },
+            # MESSAGES / SMS CONVERSATIONS SEED DATA
+            {
+                "id": "CONV-SMS-001",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Riya",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-riya"],
+                "messages": [
+                    {"sender": "user-riya", "text": "Hey Kavin, are you coming today?"},
+                    {"sender": "user-kavin", "text": "Yes Riya, heading over now."},
+                    {"sender": "user-riya", "text": "Can you send me the project notes?"}
+                ]
+            },
+            {
+                "id": "CONV-SMS-002",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Arun",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-arun"],
+                "messages": [
+                    {"sender": "user-arun", "text": "Can you send me the project notes?"},
+                    {"sender": "user-kavin", "text": "Sure Arun, sending them shortly."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-003",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Priya",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-priya"],
+                "messages": [
+                    {"sender": "user-priya", "text": "Meeting starts at 4 PM."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-004",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Rahul (Classmate)",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-rahul"],
+                "messages": [
+                    {"sender": "user-rahul", "text": "Please send the assignment when free."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-005",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Sneha",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-sneha"],
+                "messages": [
+                    {"sender": "user-sneha", "text": "Thanks for helping me!"}
                 ]
             }
         ]
@@ -223,6 +295,7 @@ class ConversationRepository:
             conv_model = ConversationModel(
                 conversation_id=c_def["id"],
                 conversation_type=c_def["type"],
+                channel=c_def.get("channel", "WHATSAPP"),
                 title=c_def["title"],
                 created_by=c_def["created_by"],
                 status="ACTIVE",
@@ -350,6 +423,128 @@ class ConversationRepository:
 
         session.commit()
 
+    def _seed_sms_conversations_only(self, session: Session):
+        now = datetime.now(timezone.utc).isoformat()
+        sms_defs = [
+            {
+                "id": "CONV-SMS-001",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Riya",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-riya"],
+                "messages": [
+                    {"sender": "user-riya", "text": "Hey Kavin, are you coming today?"},
+                    {"sender": "user-kavin", "text": "Yes Riya, heading over now."},
+                    {"sender": "user-riya", "text": "Can you send me the project notes?"}
+                ]
+            },
+            {
+                "id": "CONV-SMS-002",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Arun",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-arun"],
+                "messages": [
+                    {"sender": "user-arun", "text": "Can you send me the project notes?"},
+                    {"sender": "user-kavin", "text": "Sure Arun, sending them shortly."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-003",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Priya",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-priya"],
+                "messages": [
+                    {"sender": "user-priya", "text": "Meeting starts at 4 PM."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-004",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Rahul (Classmate)",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-rahul"],
+                "messages": [
+                    {"sender": "user-rahul", "text": "Please send the assignment when free."}
+                ]
+            },
+            {
+                "id": "CONV-SMS-005",
+                "type": "DIRECT",
+                "channel": "SMS",
+                "title": "Sneha",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-sneha"],
+                "messages": [
+                    {"sender": "user-sneha", "text": "Thanks for helping me!"}
+                ]
+            }
+        ]
+
+        for c_def in sms_defs:
+            existing = session.query(ConversationModel).filter(ConversationModel.conversation_id == c_def["id"]).first()
+            if existing:
+                continue
+
+            conv_model = ConversationModel(
+                conversation_id=c_def["id"],
+                conversation_type=c_def["type"],
+                channel="SMS",
+                title=c_def["title"],
+                created_by=c_def["created_by"],
+                status="ACTIVE",
+                created_at=now,
+                updated_at=now
+            )
+            session.add(conv_model)
+
+            for m_uid in c_def["members"]:
+                m_model = ConversationMemberModel(
+                    conversation_id=c_def["id"],
+                    user_id=m_uid,
+                    role="OWNER" if m_uid == c_def["created_by"] else "MEMBER",
+                    joined_at=now
+                )
+                session.add(m_model)
+
+            for idx, msg_def in enumerate(c_def["messages"]):
+                msg_id = f"MSG-{c_def['id']}-{idx+1:03d}"
+                msg_model = MessageModel(
+                    message_id=msg_id,
+                    conversation_id=c_def["id"],
+                    sender_id=msg_def["sender"],
+                    content=msg_def["text"],
+                    content_type="text",
+                    timestamp=datetime.now().strftime("%I:%M %p"),
+                    security_status="SAFE",
+                    classification="SAFE",
+                    risk_score=10,
+                    risk_level="LOW",
+                    confidence=0.98,
+                    forensic_reasons=json.dumps(["Authentic SMS pattern"]),
+                    created_at=now
+                )
+                session.add(msg_model)
+
+                for m_uid in c_def["members"]:
+                    if m_uid != msg_def["sender"]:
+                        rec_model = MessageRecipientModel(
+                            message_id=msg_id,
+                            recipient_id=m_uid,
+                            delivery_status="DELIVERED",
+                            security_action="ALLOW",
+                            delivered_at=now,
+                            read_at=now
+                        )
+                        session.add(rec_model)
+
+        session.commit()
+
     def get_all_demo_users(self, exclude_user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         session = self.get_session()
         try:
@@ -370,14 +565,18 @@ class ConversationRepository:
         finally:
             session.close()
 
-    def get_user_conversations(self, user_id: str) -> List[Dict[str, Any]]:
+    def get_user_conversations(self, user_id: str, channel: Optional[str] = None) -> List[Dict[str, Any]]:
         session = self.get_session()
         try:
             # Find all conversation IDs where user is member
             member_records = session.query(ConversationMemberModel).filter(ConversationMemberModel.user_id == user_id).all()
             conv_ids = [m.conversation_id for m in member_records]
 
-            conversations = session.query(ConversationModel).filter(ConversationModel.conversation_id.in_(conv_ids)).all()
+            query = session.query(ConversationModel).filter(ConversationModel.conversation_id.in_(conv_ids))
+            if channel:
+                query = query.filter(ConversationModel.channel == channel.upper())
+
+            conversations = query.all()
             result = []
 
             for conv in conversations:
@@ -416,6 +615,7 @@ class ConversationRepository:
                 result.append({
                     "conversation_id": conv.conversation_id,
                     "conversation_type": conv.conversation_type,
+                    "channel": getattr(conv, "channel", "WHATSAPP"),
                     "title": conv.title,
                     "created_by": conv.created_by,
                     "status": conv.status,

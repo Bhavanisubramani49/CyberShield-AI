@@ -39,6 +39,14 @@ def init_db():
     """Initializes tables and seeds initial demonstration events if database is empty"""
     import app.db.models  # Ensure models are imported so Base registers them
     Base.metadata.create_all(bind=engine)
+
+    # Auto-migration for channel column in conversations table if table existed prior
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE conversations ADD COLUMN channel VARCHAR(32) DEFAULT 'WHATSAPP'"))
+            conn.commit()
+        except Exception:
+            pass
     
     # Check if seed is needed
     from app.db.repository import event_repository

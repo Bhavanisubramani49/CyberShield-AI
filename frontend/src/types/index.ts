@@ -323,6 +323,7 @@ export interface ConversationMember {
 export interface ConversationSummary {
   conversation_id: string;
   conversation_type: 'DIRECT' | 'GROUP' | string;
+  channel?: string;
   title: string;
   created_by: string;
   status: string;

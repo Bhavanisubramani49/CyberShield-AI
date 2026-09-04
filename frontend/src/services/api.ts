@@ -940,9 +940,12 @@ export async function fetchDemoUsersAPI(): Promise<DemoUser[]> {
   return [];
 }
 
-export async function fetchConversationsAPI(userId: string = 'user-kavin'): Promise<ConversationSummary[]> {
+export async function fetchConversationsAPI(userId: string = 'user-kavin', channel?: string): Promise<ConversationSummary[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/conversations?user_id=${encodeURIComponent(userId)}`);
+    const url = channel 
+      ? `${API_BASE_URL}/conversations?user_id=${encodeURIComponent(userId)}&channel=${encodeURIComponent(channel)}`
+      : `${API_BASE_URL}/conversations?user_id=${encodeURIComponent(userId)}`;
+    const res = await fetch(url);
     if (res.ok) return await res.json();
   } catch (e) {
     console.warn('Conversations API offline:', e);

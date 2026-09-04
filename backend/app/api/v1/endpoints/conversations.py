@@ -12,7 +12,8 @@ from app.schemas.conversations import (
     MessageActionRequest
 )
 from app.db.conversation_repository import conversation_repository
-from app.datasets.whatsapp_security_dataset import get_dataset_metadata
+from app.datasets.whatsapp_security_dataset import get_dataset_metadata as get_whatsapp_dataset_metadata
+from app.datasets.messages_security_dataset import get_messages_dataset_metadata
 
 router = APIRouter(prefix="/conversations", tags=["Multi-User Protected Conversations"])
 
@@ -21,7 +22,7 @@ def get_demo_users(exclude_user_id: Optional[str] = Query(None, description="Opt
     """Returns list of synthetic demo users, optionally excluding specific user (e.g. Kavin)."""
     return conversation_repository.get_all_demo_users(exclude_user_id=exclude_user_id)
 
-@router.get("/contacts", response_model=List[UserContactSchema], summary="Get User-Specific WhatsApp Contacts")
+@router.get("/contacts", response_model=List[UserContactSchema], summary="Get User-Specific Contacts")
 def get_user_contacts(user_id: str = Query("user-kavin", description="User ID to fetch contacts for")):
     """Returns contacts specific to the requested user account."""
     return conversation_repository.get_user_contacts(user_id=user_id)
@@ -29,7 +30,12 @@ def get_user_contacts(user_id: str = Query("user-kavin", description="User ID to
 @router.get("/dataset/info", summary="Get Synthetic WhatsApp Security Dataset Info")
 def get_whatsapp_dataset_info():
     """Returns metadata and benchmark samples for WhatsApp security dataset."""
-    return get_dataset_metadata()
+    return get_whatsapp_dataset_metadata()
+
+@router.get("/messages/dataset/info", summary="Get Synthetic SMS Security Dataset Info")
+def get_messages_dataset_info():
+    """Returns metadata and benchmark samples for SMS security dataset."""
+    return get_messages_dataset_metadata()
 
 @router.get("/stream", summary="Real-Time Server-Sent Events Stream")
 async def stream_conversation_events(conversation_id: Optional[str] = Query(None)):
@@ -59,13 +65,14 @@ async def stream_conversation_events(conversation_id: Optional[str] = Query(None
 
 @router.get("", response_model=List[ConversationSummarySchema], summary="Get User Conversations")
 def get_user_conversations(
-    user_id: str = Query("user-kavin", description="User ID to fetch conversations for")
+    user_id: str = Query("user-kavin", description="User ID to fetch conversations for"),
+    channel: Optional[str] = Query(None, description="Optional channel filter (e.g. SMS, WHATSAPP)")
 ):
     """
     Returns list of direct and group conversations for the specified user,
     including member lists, latest messages, and threat badge counters.
     """
-    return conversation_repository.get_user_conversations(user_id=user_id)
+    return conversation_repository.get_user_conversations(user_id=user_id, channel=channel)
 
 @router.get("/{conversation_id}", response_model=ConversationSummarySchema, summary="Get Conversation Details")
 def get_conversation_details(conversation_id: str, user_id: str = Query("user-kavin")):

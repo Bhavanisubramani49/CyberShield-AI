@@ -66,9 +66,12 @@ export async function fetchDemoUsersSenderAPI(excludeUserId: string = 'user-kavi
   return [];
 }
 
-export async function fetchConversationsSenderAPI(userId: string = 'user-riya') {
+export async function fetchConversationsSenderAPI(userId: string = 'user-riya', channel?: string) {
   try {
-    const res = await fetch(`${API_V1_URL}/conversations?user_id=${encodeURIComponent(userId)}`);
+    const url = channel
+      ? `${API_V1_URL}/conversations?user_id=${encodeURIComponent(userId)}&channel=${encodeURIComponent(channel)}`
+      : `${API_V1_URL}/conversations?user_id=${encodeURIComponent(userId)}`;
+    const res = await fetch(url);
     if (res.ok) return await res.json();
   } catch (e) {
     console.warn('Sender conversations API offline:', e);

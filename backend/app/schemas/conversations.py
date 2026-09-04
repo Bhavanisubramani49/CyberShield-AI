@@ -26,6 +26,7 @@ class LatestMessageSchema(BaseModel):
 class ConversationSummarySchema(BaseModel):
     conversation_id: str
     conversation_type: str
+    channel: str = "WHATSAPP"
     title: str
     created_by: str
     status: str

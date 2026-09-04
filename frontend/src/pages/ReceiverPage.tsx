@@ -29,10 +29,11 @@ import {
 } from '../services/api';
 
 import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
+import { MessagesSimulator } from '../components/MessagesSimulator';
 
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
-  const [activeView, setActiveView] = useState<'whatsapp' | 'conversations' | 'telemetry'>('whatsapp');
+  const [activeView, setActiveView] = useState<'whatsapp' | 'messages' | 'conversations' | 'telemetry'>('whatsapp');
 
   // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
   const currentUser = 'user-kavin';
@@ -154,27 +155,34 @@ export const ReceiverPage: React.FC = () => {
           </div>
 
           {/* View Mode Toggle */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveView('whatsapp')}
               className={`btn ${activeView === 'whatsapp' ? 'btn-primary-green' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px' }}
             >
-              <MessageSquare size={15} /> WhatsApp Conversation Center
+              <MessageSquare size={15} color="#4ade80" /> WhatsApp Center
+            </button>
+            <button
+              onClick={() => setActiveView('messages')}
+              className={`btn ${activeView === 'messages' ? 'btn-accent-blue' : 'btn-outline'}`}
+              style={{ fontSize: '0.8rem', padding: '8px 14px', borderColor: activeView === 'messages' ? '#0b6bcb' : undefined, background: activeView === 'messages' ? 'rgba(11,107,203,0.25)' : undefined }}
+            >
+              <MessageSquare size={15} color="#60a5fa" /> Messages / SMS Center
             </button>
             <button
               onClick={() => setActiveView('conversations')}
               className={`btn ${activeView === 'conversations' ? 'btn-primary-green' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px' }}
             >
-              <Users size={15} /> Protected Conversations Hub
+              <Users size={15} /> Conversations Hub
             </button>
             <button
               onClick={() => setActiveView('telemetry')}
               className={`btn ${activeView === 'telemetry' ? 'btn-accent-blue' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px' }}
             >
-              <Layers size={15} /> Security Event Stream ({events.length})
+              <Layers size={15} /> Event Stream ({events.length})
             </button>
           </div>
         </div>
@@ -184,6 +192,13 @@ export const ReceiverPage: React.FC = () => {
       {activeView === 'whatsapp' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
           <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+        </div>
+      )}
+
+      {/* 3. MESSAGES / SMS CONVERSATION CENTER VIEW */}
+      {activeView === 'messages' && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
+          <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
         </div>
       )}
 

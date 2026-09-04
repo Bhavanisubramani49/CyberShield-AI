@@ -148,6 +148,7 @@ class ConversationModel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     conversation_id = Column(String(64), unique=True, index=True, nullable=False)
     conversation_type = Column(String(32), index=True, nullable=False, default="DIRECT") # DIRECT or GROUP
+    channel = Column(String(32), index=True, nullable=False, default="WHATSAPP") # WHATSAPP or SMS
     title = Column(String(255), nullable=False)
     created_by = Column(String(64), nullable=False, default="user-kavin")
     status = Column(String(32), nullable=False, default="ACTIVE")
