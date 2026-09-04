@@ -29,6 +29,7 @@ import {
   fetchUserContactsAPI,
   updateMessageActionAPI
 } from '../services/api';
+import { useLiveClock, formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 interface WhatsAppSimulatorProps {
   activeUserId: string;
@@ -41,6 +42,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   isReceiverView = true,
   onSelectEventDetails
 }) => {
+  const liveClock = useLiveClock();
   // Navigation & Screen View
   const [activeTab, setActiveTab] = useState<'chats' | 'updates' | 'calls'>('chats');
   const [activeScreen, setActiveScreen] = useState<'home' | 'chat'>('home');
@@ -193,7 +195,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
         
         {/* Status Bar Indicator */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '0.72rem', color: '#8696a0' }}>
-          <span>9:41 AM</span>
+          <span>{liveClock}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '0.68rem', background: '#00a884', color: '#111b21', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>5G</span>
             <span>100%</span>
@@ -397,7 +399,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.title}</span>
                       </div>
                       <span style={{ fontSize: '0.7rem', color: '#8696a0' }}>
-                        {conv.latest_message?.timestamp || '10:42 AM'}
+                        {formatConversationDate(conv.latest_message?.created_at || conv.latest_message?.timestamp)}
                       </span>
                     </div>
 
@@ -516,7 +518,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
                     {/* Footer Row: Timestamp & Ticks */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.62rem', color: '#8696a0' }}>
-                      <span>{m.timestamp}</span>
+                      <span>{formatMessageTime(m.created_at || m.timestamp)}</span>
                       {isOutgoing && (
                         <CheckCheck size={14} color="#53bdeb" />
                       )}

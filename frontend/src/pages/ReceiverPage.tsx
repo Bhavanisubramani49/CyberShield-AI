@@ -30,6 +30,7 @@ import {
 
 import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
 import { MessagesSimulator } from '../components/MessagesSimulator';
+import { formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
@@ -289,7 +290,7 @@ export const ReceiverPage: React.FC = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
                       <span>{conv.member_count} Members</span>
-                      <span>{conv.latest_message?.timestamp || ''}</span>
+                      <span>{formatConversationDate(conv.latest_message?.created_at || conv.latest_message?.timestamp)}</span>
                     </div>
                   </div>
                 );
@@ -362,7 +363,7 @@ export const ReceiverPage: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
                         <img src={msg.sender_avatar} alt="" style={{ width: '16px', height: '16px', borderRadius: '50%' }} />
                         <strong>{msg.sender_name}</strong>
-                        <span>• {msg.timestamp}</span>
+                        <span>• {formatMessageTime(msg.created_at || msg.timestamp)}</span>
                       </div>
 
                       {/* SAFE Message Bubble */}

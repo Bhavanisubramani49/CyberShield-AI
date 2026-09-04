@@ -71,6 +71,7 @@ export interface ConversationSummary {
     classification: string;
     risk_score: number;
     timestamp: string;
+    created_at?: string;
   };
   threat_count: number;
   updated_at: string;
@@ -92,5 +93,5 @@ export interface MessageItem {
   confidence: number;
   forensic_reasons: string[];
   event_id?: string;
-  created_at: string;
+  created_at?: string;
 }

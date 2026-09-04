@@ -30,6 +30,7 @@ import {
   fetchUserContactsAPI,
   updateMessageActionAPI
 } from '../services/api';
+import { useLiveClock, formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 interface MessagesSimulatorProps {
   activeUserId: string;
@@ -42,6 +43,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
   isReceiverView = true,
   onSelectEventDetails
 }) => {
+  const liveClock = useLiveClock();
   if (!isReceiverView || onSelectEventDetails) console.log('receiverMode');
   // Navigation & Screen View
   const [activeScreen, setActiveScreen] = useState<'home' | 'chat'>('home');
@@ -211,7 +213,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
       <header style={{ background: '#0b6bcb', color: '#ffffff', padding: '12px 16px 10px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
         {/* Status Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '0.72rem', opacity: 0.9 }}>
-          <span>9:41 AM</span>
+          <span>{liveClock}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.2)', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>5G</span>
             <span>100%</span>
@@ -345,7 +347,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.title}</span>
                       </div>
                       <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                        {conv.latest_message?.timestamp || '10:42 AM'}
+                        {formatConversationDate(conv.latest_message?.created_at || conv.latest_message?.timestamp)}
                       </span>
                     </div>
 
@@ -473,7 +475,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.62rem', color: isOutgoing ? 'rgba(255,255,255,0.75)' : '#64748b' }}>
-                      <span>{m.timestamp}</span>
+                      <span>{formatMessageTime(m.created_at || m.timestamp)}</span>
                       {isOutgoing && <CheckCheck size={14} color="#38bdf8" />}
                     </div>
                   </div>
