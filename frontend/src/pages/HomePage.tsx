@@ -11,7 +11,6 @@ import {
   Zap, 
   RefreshCw, 
   FileText,
-  Send, 
   Search, 
   ChevronRight, 
   Eye, 
@@ -32,6 +31,9 @@ import {
 } from '../services/api';
 import { getPlatformLogo } from '../components/common/PlatformLogos';
 import { InstagramSimulator } from '../components/simulators/InstagramSimulator';
+import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
+import { MessagesSimulator } from '../components/MessagesSimulator';
+import { EmailSimulator } from '../components/EmailSimulator';
 import { DEMO_MEDIA_CATALOG } from '../data/demoMedia';
 
 interface HomePageProps {
@@ -55,10 +57,6 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
   const [forensicEvent, setForensicEvent] = useState<SecurityEvent | null>(null);
   const [securityWarningEvent, setSecurityWarningEvent] = useState<SecurityEvent | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
-
-  // Simulated Chat Reply State (for chat sandbox)
-  const [chatReply, setChatReply] = useState<string>('');
-  const [replySending, setReplySending] = useState<boolean>(false);
 
   // Filters & Search
   const [feedFilter, setFeedFilter] = useState<'ALL' | 'THREATS' | 'SAFE' | 'QUARANTINE'>('ALL');
@@ -153,50 +151,6 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
       console.error('Action failed:', e);
     } finally {
       setActionLoading(false);
-    }
-  };
-
-  const handleSendReply = async (customText?: string, targetSenderId?: string, targetReceiverId?: string, targetPlatform?: string) => {
-    const textToSend = customText || chatReply;
-    if (!textToSend.trim()) return;
-    setReplySending(true);
-
-    const platform = targetPlatform || activeChannel || 'whatsapp';
-    const recipient = targetSenderId || (
-      platform === 'whatsapp' ? 'Marcus Reynolds (SND-WA-001)' :
-      platform === 'instagram' ? 'Marcus Reynolds (SND-IG-001)' :
-      platform === 'messages' ? 'Marcus Reynolds (SND-SMS-001)' :
-      'Marcus Reynolds (SND-EMAIL-001)'
-    );
-    const sender = targetReceiverId || (
-      platform === 'whatsapp' ? 'Receiver Mobile User (RCV-WA-001)' :
-      platform === 'instagram' ? 'Receiver Social User (RCV-IG-001)' :
-      platform === 'messages' ? 'Receiver Mobile User (RCV-SMS-001)' :
-      'Receiver Mail User (RCV-EMAIL-001)'
-    );
-
-    try {
-      await sendEventAPI({
-        event_id: `EVT-RPLY-${Date.now().toString().slice(-6)}`,
-        sender_id: sender,
-        sender_type: 'normal_user',
-        receiver_id: recipient,
-        platform: platform,
-        content_type: 'message',
-        content_preview: textToSend,
-        raw_content: textToSend,
-        payload: { text: textToSend },
-        status: 'DELIVERED',
-        timestamp: new Date().toISOString(),
-        user_action: 'ALLOW',
-        final_action: 'ALLOW'
-      });
-      if (!customText) setChatReply('');
-      await loadData();
-    } catch (e) {
-      console.error('Failed to send reply:', e);
-    } finally {
-      setReplySending(false);
     }
   };
 
@@ -673,112 +627,27 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </button>
           </div>
 
-          {/* 1. WHATSAPP & MESSAGES / SMS CHAT EXPERIENCE */}
-          {(activeChannel === 'whatsapp' || activeChannel === 'messages') && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Incoming {channels.find(c => c.id === activeChannel)?.name} thread. <strong>Safe messages</strong> are delivered normally; <strong>Dangerous scam payloads</strong> are quarantined by CyberShield.
+          {/* 1. WHATSAPP CONVERSATION CENTER (FULL INTERACTIVE SIMULATOR) */}
+          {activeChannel === 'whatsapp' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Simulated Interactive WhatsApp Mobile Client with Contacts, Real-Time SSE Stream, Deduplication & CyberShield Threat Interception.
               </div>
-
-              {/* Chat Thread */}
-              <div style={{
-                maxHeight: '340px',
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                padding: '14px',
-                background: 'var(--bg-subtle)',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                {events.filter(e => e.platform === activeChannel || (activeChannel === 'whatsapp' && e.content_type === 'message' && !e.platform)).slice(0, 10).map((msg) => {
-                  const isThreat = msg.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div
-                      key={msg.event_id}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 'var(--radius-sm)',
-                        background: isThreat ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.08)',
-                        border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)',
-                        maxWidth: '85%'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                        <span><strong>{msg.sender_id}</strong> ({msg.event_id})</span>
-                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.58rem' }}>
-                          {isThreat ? msg.ai_result?.classification : 'SAFE'}
-                        </span>
-                      </div>
-
-                      {isThreat ? (
-                        <div>
-                          <div style={{ color: 'var(--color-danger)', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <ShieldAlert size={15} /> ⚠️ CYBERSHIELD BLOCKED DANGEROUS CONTENT
-                          </div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                            Payload moved to quarantine vault to protect this receiver. Reason: {msg.ai_result?.reasons?.[0] || 'Urgency / Financial scam marker detected.'}
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                            <button
-                              onClick={() => setSecurityWarningEvent(msg)}
-                              className="btn btn-outline"
-                              style={{ fontSize: '0.7rem', padding: '4px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}
-                            >
-                              <ShieldAlert size={12} /> Open Warning Card
-                            </button>
-                            <button
-                              onClick={() => setForensicEvent(msg)}
-                              className="btn btn-outline"
-                              style={{ fontSize: '0.7rem', padding: '4px 8px' }}
-                            >
-                              <Eye size={12} /> Forensic Details
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
-                            {msg.content_preview || msg.raw_content || 'Good morning, meeting confirmed.'}
-                          </div>
-                          <div style={{ fontSize: '0.68rem', color: 'var(--color-green)', marginTop: '4px', fontWeight: 600 }}>
-                            ✓ Protected by CyberShield
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Chat Reply Composer */}
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input
-                  type="text"
-                  placeholder="Type a safe simulated reply (e.g. 'Yes, meeting at 10 AM works!')..."
-                  value={chatReply}
-                  onChange={(e) => setChatReply(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendReply()}
-                  className="cyber-input"
-                  style={{
-                    flex: 1,
-                    fontSize: '0.82rem'
-                  }}
-                />
-                <button
-                  onClick={() => handleSendReply()}
-                  disabled={replySending || !chatReply.trim()}
-                  className="btn btn-primary-green"
-                  style={{ padding: '9px 16px', fontSize: '0.82rem' }}
-                >
-                  <Send size={13} /> {replySending ? 'Sending...' : 'Reply to Sender'}
-                </button>
-              </div>
+              <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
             </div>
           )}
 
-          {/* 2. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX (FULL SIMULATED APP) */}
+          {/* 2. MESSAGES / SMS CONVERSATION CENTER (FULL INTERACTIVE SIMULATOR) */}
+          {activeChannel === 'messages' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Simulated Interactive Android Messages / SMS Client with Contact List, Real-Time Sync & Threat Warnings.
+              </div>
+              <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
+            </div>
+          )}
+
+          {/* 3. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX (FULL SIMULATED APP) */}
           {activeChannel === 'instagram' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
               <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
@@ -810,54 +679,14 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             </div>
           )}
 
-          {/* 3. EMAIL / GMAIL INBOX SANDBOX */}
+          {/* 4. EMAIL / GMAIL INBOX SANDBOX (FULL INTERACTIVE SIMULATOR) */}
           {activeChannel === 'email' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated Email / Gmail inbox. Scans inbound email headers, credential harvesting links, and deceptive attachments.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                Simulated Interactive Email / Gmail Client with Folders, Category Tabs, Search, Phishing Detection & Threat Details Modal.
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {events.filter(e => e.platform === 'email' || e.content_type === 'email').slice(0, 6).map((em) => {
-                  const isThreat = em.ai_result?.classification !== 'SAFE';
-                  return (
-                    <div key={em.event_id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <div>
-                          <div style={{ fontSize: '0.84rem', fontWeight: 800, color: isThreat ? 'var(--color-danger)' : 'var(--text-primary)' }}>
-                            Subject: {em.content_preview?.split('\n')?.[0] || 'Enterprise Communication'}
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            From: {em.sender_id} ➔ To: {em.receiver_id || 'RCV-EMAIL-001'}
-                          </div>
-                        </div>
-                        <span className={`badge ${isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.62rem' }}>
-                          {isThreat ? 'PHISHING THREAT' : 'VERIFIED EMAIL'}
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '8px', padding: '8px 10px', background: isThreat ? 'rgba(239, 68, 68, 0.08)' : 'var(--bg-card)', borderRadius: '4px' }}>
-                        {em.content_preview?.split('\n')?.slice(1)?.join(' ') || em.content_preview || 'Email body content.'}
-                      </div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem' }}>
-                        <span style={{ color: isThreat ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 600 }}>
-                          Security Decision: {em.final_action} ({em.ai_result?.risk_score}/100)
-                        </span>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {isThreat && (
-                            <button onClick={() => setSecurityWarningEvent(em)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px', color: 'var(--color-danger)', borderColor: 'rgba(239, 68, 68, 0.4)' }}>
-                              <ShieldAlert size={12} /> Warning Card
-                            </button>
-                          )}
-                          <button onClick={() => setForensicEvent(em)} className="btn btn-outline" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
-                            <Eye size={12} /> Inspect
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div style={{ width: '100%', height: '650px' }}>
+                <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
               </div>
             </div>
           )}

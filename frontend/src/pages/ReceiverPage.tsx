@@ -31,11 +31,12 @@ import {
 
 import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
 import { MessagesSimulator } from '../components/MessagesSimulator';
+import { EmailSimulator } from '../components/EmailSimulator';
 import { formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
-  const [activeView, setActiveView] = useState<'whatsapp' | 'messages' | 'conversations' | 'telemetry'>('whatsapp');
+  const [activeView, setActiveView] = useState<'whatsapp' | 'messages' | 'email' | 'conversations' | 'telemetry'>('whatsapp');
 
   // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
   const currentUser = 'user-kavin';
@@ -173,6 +174,13 @@ export const ReceiverPage: React.FC = () => {
               <MessageSquare size={15} color="#60a5fa" /> Messages / SMS Center
             </button>
             <button
+              onClick={() => setActiveView('email')}
+              className={`btn ${activeView === 'email' ? 'btn-accent-blue' : 'btn-outline'}`}
+              style={{ fontSize: '0.8rem', padding: '8px 14px', borderColor: activeView === 'email' ? '#ea580c' : undefined, background: activeView === 'email' ? 'rgba(234,88,12,0.25)' : undefined }}
+            >
+              <Mail size={15} color="#f97316" /> Email / Gmail Sandbox
+            </button>
+            <button
               onClick={() => setActiveView('conversations')}
               className={`btn ${activeView === 'conversations' ? 'btn-primary-green' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px' }}
@@ -201,6 +209,13 @@ export const ReceiverPage: React.FC = () => {
       {activeView === 'messages' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
           <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
+        </div>
+      )}
+
+      {/* 4. EMAIL / GMAIL CONVERSATION CENTER VIEW */}
+      {activeView === 'email' && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0', width: '100%', height: '680px' }}>
+          <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
         </div>
       )}
 

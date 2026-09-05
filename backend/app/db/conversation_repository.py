@@ -35,10 +35,14 @@ class ConversationRepository:
             if conv_count == 0:
                 self._seed_demo_conversations(session)
             else:
-                # Check if SMS conversations exist, seed if missing
+                # Check if SMS & EMAIL conversations exist, seed if missing
                 sms_exists = session.query(ConversationModel).filter(ConversationModel.conversation_id == "CONV-SMS-001").first()
                 if not sms_exists:
                     self._seed_sms_conversations_only(session)
+
+                email_exists = session.query(ConversationModel).filter(ConversationModel.conversation_id == "CONV-EMAIL-001").first()
+                if not email_exists:
+                    self._seed_email_conversations_only(session)
 
             contact_count = session.query(UserContactModel).count()
             if contact_count == 0:
@@ -545,6 +549,171 @@ class ConversationRepository:
 
         session.commit()
 
+    def _seed_email_conversations_only(self, session: Session):
+        now = datetime.now(timezone.utc).isoformat()
+        email_defs = [
+            {
+                "id": "CONV-EMAIL-001",
+                "type": "DIRECT",
+                "channel": "EMAIL",
+                "title": "Security Alert: Immediate Account Verification Required",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-riya"],
+                "messages": [
+                    {
+                        "sender": "user-riya",
+                        "text": "Subject: URGENT: CyberShield Account Access Suspended\n\nDear Kavin,\n\nWe detected unauthorized login attempts on your CyberShield student portal. Your access will be suspended within 24 hours unless you re-verify your identity immediately.\n\nPlease click here to update your credentials: http://cybershield-auth-verify.com/login\n\nBest regards,\nIT Security Desk",
+                        "sec_status": "DANGEROUS",
+                        "classification": "PHISHING",
+                        "risk_score": 94,
+                        "risk_level": "CRITICAL",
+                        "reasons": ["Suspicious domain mismatch: cybershield-auth-verify.com", "Urgent pressure tactics detected", "Credential harvesting link pattern"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-EMAIL-002",
+                "type": "DIRECT",
+                "channel": "EMAIL",
+                "title": "CyberShield AI Project Review & Architecture Updates",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-arun"],
+                "messages": [
+                    {
+                        "sender": "user-arun",
+                        "text": "Subject: CyberShield AI Project Review & Architecture Updates\n\nHi Kavin,\n\nI reviewed the latest code for the multi-channel defense engine. The SSE streaming and platform isolation logic look great!\n\nLet's schedule a brief sync tomorrow at 10 AM to discuss the final evaluation dashboard.\n\nBest,\nArun",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 5,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic email header and domain"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-EMAIL-003",
+                "type": "DIRECT",
+                "channel": "EMAIL",
+                "title": "UI/UX Design Mockups - CyberShield Mobile Experience",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-priya"],
+                "messages": [
+                    {
+                        "sender": "user-priya",
+                        "text": "Subject: UI/UX Design Mockups - CyberShield Mobile Experience\n\nHi Kavin,\n\nAttached are the updated design specs for the WhatsApp, SMS, and Email sandbox environments. Please review the color themes and back navigation specs when you get a chance.\n\nRegards,\nPriya",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 8,
+                        "risk_level": "LOW",
+                        "reasons": ["Verified sender identity"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-EMAIL-004",
+                "type": "DIRECT",
+                "channel": "EMAIL",
+                "title": "Semester Project Submission Reminder",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-rahul"],
+                "messages": [
+                    {
+                        "sender": "user-rahul",
+                        "text": "Subject: Semester Project Submission Reminder\n\nHey Kavin,\n\nDon't forget to push the latest report to the repo before midnight. Let me know if you need help with the documentation formatting.\n\nCheers,\nRahul",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 12,
+                        "risk_level": "LOW",
+                        "reasons": ["Legitimate academic communication"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-EMAIL-005",
+                "type": "DIRECT",
+                "channel": "EMAIL",
+                "title": "Research Paper Draft: Multi-User Cyber Threat Defense",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-sneha"],
+                "messages": [
+                    {
+                        "sender": "user-sneha",
+                        "text": "Subject: Research Paper Draft: Multi-User Cyber Threat Defense\n\nHi Kavin,\n\nI've updated the abstract and methodology section of our research draft on real-time threat detection. Please take a look at the attached draft.\n\nBest,\nSneha",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 10,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic research paper correspondence"]
+                    }
+                ]
+            }
+        ]
+
+        for c_def in email_defs:
+            existing = session.query(ConversationModel).filter(ConversationModel.conversation_id == c_def["id"]).first()
+            if existing:
+                continue
+
+            conv_model = ConversationModel(
+                conversation_id=c_def["id"],
+                conversation_type=c_def["type"],
+                channel="EMAIL",
+                title=c_def["title"],
+                created_by=c_def["created_by"],
+                status="ACTIVE",
+                created_at=now,
+                updated_at=now
+            )
+            session.add(conv_model)
+
+            for m_uid in c_def["members"]:
+                m_model = ConversationMemberModel(
+                    conversation_id=c_def["id"],
+                    user_id=m_uid,
+                    role="OWNER" if m_uid == c_def["created_by"] else "MEMBER",
+                    joined_at=now
+                )
+                session.add(m_model)
+
+            for idx, msg_def in enumerate(c_def["messages"]):
+                msg_id = f"MSG-{c_def['id']}-{idx+1:03d}"
+                sec_st = msg_def.get("sec_status", "SAFE")
+                classif = msg_def.get("classification", "SAFE")
+                risk_sc = msg_def.get("risk_score", 10)
+                risk_lv = msg_def.get("risk_level", "LOW")
+                reasons = msg_def.get("reasons", ["Authentic email pattern"])
+
+                msg_model = MessageModel(
+                    message_id=msg_id,
+                    conversation_id=c_def["id"],
+                    sender_id=msg_def["sender"],
+                    content=msg_def["text"],
+                    content_type="text",
+                    timestamp=datetime.now().strftime("%I:%M %p"),
+                    security_status=sec_st,
+                    classification=classif,
+                    risk_score=risk_sc,
+                    risk_level=risk_lv,
+                    confidence=0.96 if sec_st != "SAFE" else 0.98,
+                    forensic_reasons=json.dumps(reasons),
+                    created_at=now
+                )
+                session.add(msg_model)
+
+                for m_uid in c_def["members"]:
+                    if m_uid != msg_def["sender"]:
+                        rec_model = MessageRecipientModel(
+                            message_id=msg_id,
+                            recipient_id=m_uid,
+                            delivery_status="QUARANTINED" if sec_st == "DANGEROUS" else "DELIVERED",
+                            security_action="QUARANTINE" if sec_st == "DANGEROUS" else "ALLOW",
+                            delivered_at=now,
+                            read_at=now
+                        )
+                        session.add(rec_model)
+
+        session.commit()
+
     def get_all_demo_users(self, exclude_user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         session = self.get_session()
         try:
@@ -701,8 +870,15 @@ class ConversationRepository:
             is_file = ".docm" in lower or ".exe" in lower or "malicious" in lower
             is_fake_news = "secret cure" in lower or "shocking" in lower
             is_manipulated = "doctored" in lower or "manipulated" in lower
+            is_phishing = (getattr(conv, "channel", "") == "EMAIL" or "phish" in lower or "cybershield-auth-verify.com" in lower) and ("verify" in lower or "suspend" in lower or "phish" in lower or "login" in lower or "credential" in lower or "http" in lower)
 
-            if is_scam:
+            if is_phishing:
+                sec_status = "DANGEROUS"
+                classification = "PHISHING"
+                risk_score = 94
+                risk_level = "CRITICAL"
+                reasons = ["Suspicious domain / credential link pattern", "Phishing threat signature", "Urgent security pressure tactic"]
+            elif is_scam:
                 sec_status = "DANGEROUS"
                 classification = "SCAM"
                 risk_score = 94
