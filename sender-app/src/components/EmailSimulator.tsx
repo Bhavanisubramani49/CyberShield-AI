@@ -9,7 +9,7 @@ import {
   Inbox, 
   Send as SentIcon, 
   Plus, 
-  X 
+  X
 } from 'lucide-react';
 import { ConversationSummary, MessageItem } from '../types';
 import { 
@@ -22,6 +22,30 @@ import { useLiveClock, formatConversationDate } from '../utils/timeUtils';
 interface EmailSimulatorProps {
   activeUserId: string;
 }
+
+const mergeAndDeduplicateMessages = (
+  existing: MessageItem[], 
+  incoming: MessageItem | MessageItem[]
+): MessageItem[] => {
+  const items = Array.isArray(incoming) ? incoming : [incoming];
+  const map = new Map<string, MessageItem>();
+
+  existing.forEach((msg) => {
+    const key = msg.message_id || msg.event_id || `temp-${msg.content}`;
+    map.set(key, msg);
+  });
+
+  items.forEach((msg) => {
+    const key = msg.message_id || msg.event_id || `temp-${msg.content}`;
+    if (map.has(key)) {
+      map.set(key, { ...map.get(key)!, ...msg });
+    } else {
+      map.set(key, msg);
+    }
+  });
+
+  return Array.from(map.values());
+};
 
 export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
   activeUserId = 'user-riya'
@@ -43,9 +67,9 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
   const [composeRecipient, setComposeRecipient] = useState<string>('user-kavin');
   const [composeSubject, setComposeSubject] = useState<string>('');
   const [composeBody, setComposeBody] = useState<string>('');
+  const [selectedAttachment, setSelectedAttachment] = useState<string | null>(null);
   const [sending, setSending] = useState<boolean>(false);
 
-  // Handle browser popstate Back button integration
   useEffect(() => {
     const handlePopState = () => {
       setActiveScreen('home');
@@ -85,7 +109,7 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
     }
   }, [selectedConvId]);
 
-  // Real-time SSE Stream & 1.5s Polling Fallback
+  // Real-Time SSE Stream & Polling Fallback
   useEffect(() => {
     let eventSource: EventSource | null = null;
     try {
@@ -96,10 +120,7 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
           if (data.channel === 'EMAIL' || !data.channel) {
             loadConversations();
             if (data.conversation_id === selectedConvId) {
-              setMessages((prev) => {
-                if (prev.some((m) => m.message_id === data.message_id)) return prev;
-                return [...prev, data];
-              });
+              setMessages((prev) => mergeAndDeduplicateMessages(prev, data));
             }
           }
         } catch (e) {
@@ -107,7 +128,7 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
         }
       };
     } catch (e) {
-      console.warn('SSE EventSource not supported or unavailable.');
+      console.warn('SSE EventSource unavailable.');
     }
 
     const pollInterval = setInterval(() => {
@@ -137,7 +158,7 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
       const data = await fetchConversationMessagesSenderAPI(convId);
       setMessages((prev) => {
         if (silent && JSON.stringify(prev) === JSON.stringify(data)) return prev;
-        return data;
+        return mergeAndDeduplicateMessages([], data);
       });
     } catch (e) {
       console.error('Error loading messages:', e);
@@ -148,17 +169,22 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
     if (!composeBody.trim() || !selectedConvId || sending) return;
     setSending(true);
 
-    const fullContent = composeSubject.trim()
+    let fullContent = composeSubject.trim()
       ? `Subject: ${composeSubject.trim()}\n\n${composeBody.trim()}`
       : composeBody.trim();
 
+    if (selectedAttachment) {
+      fullContent += `\n\n[Attachment: ${selectedAttachment}]`;
+    }
+
     try {
       const sentMsg = await sendConversationMessageSenderAPI(selectedConvId, activeUserId, fullContent);
-      setMessages((prev) => [...prev, sentMsg]);
+      setMessages((prev) => mergeAndDeduplicateMessages(prev, sentMsg));
       setComposeBody('');
       setComposeSubject('');
+      setSelectedAttachment(null);
       setShowComposeModal(false);
-      loadConversations();
+      await loadConversations();
     } catch (e: any) {
       alert(e.message || 'Failed to send email.');
     } finally {
@@ -172,11 +198,13 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
       setComposeBody(
         'Dear Kavin,\n\nWe detected unauthorized login attempts on your CyberShield student portal. Your access will be suspended within 24 hours unless you re-verify your identity immediately.\n\nPlease click here to update your credentials: http://cybershield-auth-verify.com/login\n\nBest regards,\nIT Security Desk'
       );
+      setSelectedAttachment('Urgent_Account_Verification.pdf');
     } else {
       setComposeSubject('CyberShield AI Project Review & Architecture Updates');
       setComposeBody(
         'Hi Kavin,\n\nI reviewed the latest code for the multi-channel defense engine. The SSE streaming and platform isolation logic look great!\n\nLet\'s schedule a brief sync tomorrow at 10 AM to discuss the final evaluation dashboard.\n\nBest,\nArun'
       );
+      setSelectedAttachment('CyberShield_Architecture_v2.pdf');
     }
   };
 
@@ -195,54 +223,83 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-900 text-slate-100 font-sans border border-slate-800 rounded-xl shadow-2xl overflow-hidden">
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar / Folder Drawer */}
-        <div className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col p-4 space-y-6 shrink-0 hidden md:flex">
-          <div className="flex items-center space-x-3 px-2">
+      {/* Top Application Header Bar */}
+      <div className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0">
+        <div className="flex items-center space-x-4 flex-1 max-w-2xl">
+          <div className="flex items-center space-x-3 shrink-0">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg">
               <ShieldAlert className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h2 className="font-bold text-slate-100 text-base leading-tight">Sender Email</h2>
-              <p className="text-xs text-blue-400 font-medium">External Dispatch Studio</p>
+            <div className="hidden sm:block">
+              <h2 className="font-extrabold text-slate-100 text-sm leading-tight">Sender Email Studio</h2>
+              <p className="text-[11px] text-blue-400 font-semibold">External Dispatcher</p>
             </div>
           </div>
 
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search mail by subject, recipient, or content..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3 pl-4">
+          <span className="text-xs font-semibold text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 hidden md:inline font-mono">
+            {liveClock}
+          </span>
+          <div className="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px]">
+              S
+            </div>
+            <span className="text-xs font-semibold text-slate-300 hidden sm:inline">Sender App Console</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar */}
+        <div className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col p-3 space-y-5 shrink-0 hidden md:flex">
           <button
             onClick={() => setShowComposeModal(true)}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-900/30 transition duration-150"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-950/40 transition duration-150 text-xs"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             <span>Compose Email</span>
           </button>
 
           <div className="space-y-1">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-1">Folders</div>
             <button
-              onClick={() => setActiveFolder('inbox')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                activeFolder === 'inbox'
+              onClick={() => { setActiveFolder('inbox'); setActiveScreen('home'); }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
+                activeFolder === 'inbox' && activeScreen === 'home'
                   ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                   : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
               }`}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2.5">
                 <Inbox className="w-4 h-4" />
                 <span>Inbox</span>
               </div>
-              <span className="bg-slate-800 text-xs font-semibold px-2 py-0.5 rounded-full text-slate-300">
+              <span className="bg-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-300">
                 {conversations.length}
               </span>
             </button>
 
             <button
-              onClick={() => setActiveFolder('sent')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              onClick={() => { setActiveFolder('sent'); setActiveScreen('home'); }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
                 activeFolder === 'sent'
                   ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
                   : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
               }`}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2.5">
                 <SentIcon className="w-4 h-4" />
                 <span>Sent Mail</span>
               </div>
@@ -252,46 +309,6 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
 
         {/* Right Email Work Area */}
         <div className="flex-1 flex flex-col min-w-0 bg-slate-900">
-          {/* Header Bar */}
-          <div className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6">
-            <div className="flex items-center space-x-3 flex-1 max-w-xl">
-              {activeScreen === 'thread' && (
-                <button
-                  onClick={handleBackNavigation}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center space-x-1 mr-1"
-                  title="Back to Email List"
-                >
-                  <ArrowLeft className="w-5 h-5 text-slate-200" />
-                  <span className="text-xs font-medium hidden sm:inline">Back</span>
-                </button>
-              )}
-
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search mail by subject, recipient, or content..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4 pl-4">
-              <span className="text-xs font-semibold text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 hidden sm:inline">
-                {liveClock}
-              </span>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs">
-                  S
-                </div>
-                <span className="text-xs font-medium text-slate-300 hidden md:inline">Sender Console</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
           <div className="flex-1 overflow-y-auto">
             {activeScreen === 'home' ? (
               <div className="divide-y divide-slate-800">
@@ -303,25 +320,25 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
                     <div
                       key={conv.conversation_id}
                       onClick={() => handleOpenThread(conv.conversation_id)}
-                      className="p-4 hover:bg-slate-800/60 cursor-pointer transition flex items-start space-x-4"
+                      className="p-3.5 hover:bg-slate-800/60 cursor-pointer transition flex items-start space-x-3.5"
                     >
                       <Star className="w-4 h-4 text-slate-600 hover:text-amber-400 mt-1 shrink-0 transition" />
-                      <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 font-bold text-slate-300 text-xs">
+                      <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 font-bold text-slate-300 text-xs">
                         {otherParticipant.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-slate-200 text-sm truncate">
+                          <span className="font-bold text-slate-200 text-xs truncate">
                             {otherParticipant}
                           </span>
-                          <span className="text-xs text-slate-500 whitespace-nowrap ml-2">
+                          <span className="text-[11px] text-slate-400 whitespace-nowrap ml-2 font-mono">
                             {conv.latest_message?.timestamp || formatConversationDate(conv.updated_at)}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-slate-100 truncate block mt-0.5">
+                        <span className="text-xs font-semibold text-slate-100 truncate block mt-0.5">
                           {conv.title}
                         </span>
-                        <p className="text-xs text-slate-400 truncate mt-1">
+                        <p className="text-[11px] text-slate-400 truncate mt-1">
                           {conv.latest_message?.content || 'No preview available.'}
                         </p>
                       </div>
@@ -331,32 +348,42 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
               </div>
             ) : (
               /* Reading View */
-              <div className="p-6 max-w-4xl mx-auto space-y-6">
-                <div className="flex items-start justify-between pb-4 border-b border-slate-800">
+              <div className="p-5 max-w-4xl mx-auto space-y-5">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <button
+                    onClick={handleBackNavigation}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center space-x-2 border border-slate-700"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-blue-400" />
+                    <span>Back to Email List</span>
+                  </button>
+                  <span className="text-xs text-slate-400 font-mono">Thread ID: {selectedConvId}</span>
+                </div>
+
+                <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="text-xl font-bold text-slate-100 leading-snug">{currentConv?.title}</h1>
-                    <span className="text-xs text-slate-400 mt-1 inline-block">Thread ID: {selectedConvId}</span>
+                    <h1 className="text-lg font-extrabold text-slate-100 leading-snug">{currentConv?.title}</h1>
                   </div>
                 </div>
 
                 {messages.map((msg) => (
-                  <div key={msg.message_id} className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-xl">
+                  <div key={msg.message_id} className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200">
+                        <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-xs">
                           {msg.sender_name?.charAt(0) || 'S'}
                         </div>
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-bold text-slate-100 text-sm">{msg.sender_name}</span>
-                            <span className="text-xs text-slate-400">&lt;{msg.sender_id}@cybershield.ai&gt;</span>
+                            <span className="font-bold text-slate-100 text-xs">{msg.sender_name}</span>
+                            <span className="text-[11px] text-slate-400 font-mono">&lt;{msg.sender_id}@cybershield.ai&gt;</span>
                           </div>
                         </div>
                       </div>
                       <span className="text-xs text-slate-400 font-mono">{msg.timestamp || 'Today'}</span>
                     </div>
 
-                    <div className="text-slate-200 text-sm whitespace-pre-wrap leading-relaxed border-t border-slate-900 pt-4 font-mono">
+                    <div className="text-slate-200 text-xs whitespace-pre-wrap leading-relaxed border-t border-slate-900 pt-3 font-mono">
                       {msg.content}
                     </div>
                   </div>
@@ -367,12 +394,12 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
         </div>
       </div>
 
-      {/* Compose Email Modal */}
+      {/* Compose Modal */}
       {showComposeModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-fade-in">
-            <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-slate-100 text-base flex items-center space-x-2">
+            <div className="bg-slate-950 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+              <h3 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
                 <Send className="w-4 h-4 text-blue-400" />
                 <span>Transmit External Email</span>
               </h3>
@@ -384,84 +411,99 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
               </button>
             </div>
 
-            <div className="bg-slate-950/60 px-6 py-2 border-b border-slate-800/60 flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-medium">Quick Test Payloads:</span>
+            <div className="bg-slate-950/60 px-5 py-2 border-b border-slate-800/60 flex items-center justify-between">
+              <span className="text-[11px] text-slate-400 font-medium">Quick Test Payloads:</span>
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => loadPresetPayload('PHISHING')}
-                  className="px-2.5 py-1 rounded bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-semibold transition"
+                  className="px-2.5 py-1 rounded bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-[10px] font-extrabold transition"
                 >
                   Phishing Payload
                 </button>
                 <button
                   onClick={() => loadPresetPayload('SAFE')}
-                  className="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-300 text-xs font-semibold transition"
+                  className="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-300 text-[10px] font-extrabold transition"
                 >
                   Safe Email Payload
                 </button>
               </div>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">To</label>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">To</label>
                 <input
                   type="text"
                   value={composeRecipient}
                   onChange={(e) => setComposeRecipient(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition font-mono"
                   placeholder="user-kavin@cybershield.ai"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Subject</label>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Subject</label>
                 <input
                   type="text"
                   value={composeSubject}
                   onChange={(e) => setComposeSubject(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition"
-                  placeholder="Email subject title..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition"
+                  placeholder="Email subject line..."
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Message Body</label>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Message Body</label>
                 <textarea
-                  rows={6}
+                  rows={5}
                   value={composeBody}
                   onChange={(e) => setComposeBody(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition font-mono"
-                  placeholder="Write your email content..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition font-mono"
+                  placeholder="Write email content..."
                 />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div className="flex items-center space-x-2">
+                  <Paperclip className="w-4 h-4 text-blue-400" />
+                  <span className="text-xs text-slate-300">
+                    {selectedAttachment ? selectedAttachment : 'No attachment selected'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAttachment('Project_Report_v2.pdf')}
+                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 rounded border border-slate-700"
+                  >
+                    + Add .pdf
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAttachment('Invoice_Urgent_March.docm')}
+                    className="px-2 py-1 bg-rose-950 hover:bg-rose-900 text-[10px] text-rose-300 rounded border border-rose-800 font-bold"
+                  >
+                    + Add .docm
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="bg-slate-950 px-6 py-4 border-t border-slate-800 flex items-center justify-between">
+            <div className="bg-slate-950 px-5 py-3 border-t border-slate-800 flex items-center justify-between">
               <button
-                type="button"
-                className="p-2 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-900 transition"
-                title="Attach file"
+                onClick={() => setShowComposeModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition"
               >
-                <Paperclip className="w-5 h-5" />
+                Cancel
               </button>
-
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setShowComposeModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSendMessage}
-                  disabled={sending || !composeBody.trim()}
-                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold px-5 py-2 rounded-xl text-sm flex items-center space-x-2 transition shadow-lg shadow-blue-900/40"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{sending ? 'Transmitting...' : 'Send Email'}</span>
-                </button>
-              </div>
+              <button
+                onClick={handleSendMessage}
+                disabled={sending || !composeBody.trim()}
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold px-5 py-2 rounded-xl text-xs flex items-center space-x-2 transition shadow-lg shadow-blue-950/40"
+              >
+                <Send className="w-4 h-4" />
+                <span>{sending ? 'Transmitting...' : 'Send Email'}</span>
+              </button>
             </div>
           </div>
         </div>

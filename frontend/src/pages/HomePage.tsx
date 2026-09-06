@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -16,7 +16,8 @@ import {
   Eye, 
   BarChart3, 
   PieChart, 
-  TrendingUp 
+  TrendingUp,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   SystemHealth, 
@@ -49,13 +50,9 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
   // Active Interactive Channel (WhatsApp, Instagram, Messages, Email, Web, Photos, Videos, News, Files)
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
-  const sandboxRef = useRef<HTMLDivElement>(null);
 
   const handleChannelSelect = (channelId: string) => {
     setActiveChannel(channelId);
-    setTimeout(() => {
-      sandboxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 50);
   };
 
   // Real-Time Security Alert (Smooth Animated Red Notification Toast for Threats)
@@ -388,10 +385,311 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
         </div>
       )}
 
-      {/* ========================================================
-          1. TOP: CYBERSHIELD AI SECURITY STATUS CARD
-          ======================================================== */}
-      <div className="cyber-card-green" style={{ padding: '26px 30px', position: 'relative', overflow: 'hidden' }}>
+      {activeChannel ? (
+        /* ========================================================
+           INTERACTIVE PLATFORM APPLICATION VIEW (IMMEDIATE LAUNCH)
+           ======================================================== */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.15s ease-out' }}>
+          {/* Top Navigation Bar with Back Button */}
+          <div className="cyber-card-green" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <button
+                  onClick={() => setActiveChannel(null)}
+                  className="btn btn-outline"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.82rem',
+                    padding: '7px 14px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    borderColor: 'var(--border-green)',
+                    color: 'var(--text-primary)',
+                    fontWeight: 700
+                  }}
+                >
+                  <ArrowLeft size={16} color="var(--color-green)" /> Back to Protected Channels
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {getPlatformLogo(activeChannel, 34)}
+                  <div>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                      {channels.find(c => c.id === activeChannel)?.headerTitle || `Interactive Receiver: ${channels.find(c => c.id === activeChannel)?.name}`}
+                    </h2>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--color-green-light)', marginTop: '1px' }}>
+                      {channels.find(c => c.id === activeChannel)?.headerSubtitle}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveChannel(null)}
+                className="btn btn-outline"
+                style={{ fontSize: '0.76rem', padding: '6px 12px' }}
+              >
+                Close Channel ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Active Platform Component Container */}
+          <div className="cyber-card" style={{ padding: '20px', border: '1.5px solid var(--color-green)' }}>
+            {/* 1. WHATSAPP CONVERSATION CENTER */}
+            {activeChannel === 'whatsapp' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+                <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+              </div>
+            )}
+
+            {/* 2. MESSAGES / SMS CONVERSATION CENTER */}
+            {activeChannel === 'messages' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+                <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
+              </div>
+            )}
+
+            {/* 3. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX */}
+            {activeChannel === 'instagram' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+                <InstagramSimulator
+                  events={events}
+                  onSendEvent={async (p) => {
+                    const res = await sendEventAPI({
+                      event_id: `EVT-IG-${Date.now().toString().slice(-4)}`,
+                      sender_id: p.sender_id,
+                      sender_type: 'normal_user',
+                      receiver_id: p.recipient_id,
+                      platform: 'instagram',
+                      content_type: p.content_type || 'message',
+                      content_preview: p.payload?.text || p.payload?.filename || 'Instagram Event',
+                      raw_content: JSON.stringify(p.payload),
+                      payload: p.payload,
+                      status: 'DELIVERED',
+                      timestamp: new Date().toISOString()
+                    });
+                    await loadData();
+                    return res;
+                  }}
+                  onInspectEvent={setForensicEvent}
+                  onOpenWarning={setSecurityWarningEvent}
+                />
+              </div>
+            )}
+
+            {/* 4. EMAIL / GMAIL INBOX SANDBOX */}
+            {activeChannel === 'email' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+                <div style={{ width: '100%', height: '650px' }}>
+                  <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
+                </div>
+              </div>
+            )}
+
+            {/* 5. WEB & URLS BROWSER SANDBOX */}
+            {activeChannel === 'web' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Simulated Protected Web Browser. Testing URLs are scanned before rendering web viewports.
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {DEMO_MEDIA_CATALOG.filter(m => m.category === 'web').map((webItem) => (
+                    <div key={webItem.id} style={{ border: webItem.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--bg-subtle)' }}>
+                      <div style={{ padding: '8px 12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }} />
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
+                        </div>
+                        <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {webItem.isThreat ? <Lock size={12} color="#ef4444" /> : <Lock size={12} color="#10b981" />}
+                          <span style={{ color: webItem.isThreat ? 'var(--color-danger)' : 'var(--color-green)' }}>{webItem.caption}</span>
+                        </div>
+                        <span className={`badge ${webItem.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                          {webItem.isThreat ? 'BLOCKED MALICIOUS URL' : '✓ PROTECTED BROWSER'}
+                        </span>
+                      </div>
+
+                      <div style={{ position: 'relative', height: '180px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={webItem.mediaUrl} alt={webItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: webItem.isThreat ? 'blur(6px)' : 'none' }} />
+                        {webItem.isThreat && (
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.45)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', textAlign: 'center' }}>
+                            <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
+                            <strong style={{ fontSize: '0.9rem', color: '#fff' }}>🔴 NAVIGATION BLOCKED BY CYBERSHIELD</strong>
+                            <div style={{ fontSize: '0.72rem', color: '#fee2e2', marginTop: '4px' }}>
+                              Direct IP host with unverified SSL certificate and credential harvesting signature.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 6. PHOTOS & MEDIA GALLERY SANDBOX */}
+            {activeChannel === 'photos' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Photo & Media Gallery Preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                  {DEMO_MEDIA_CATALOG.filter(m => m.category === 'photos').map((photo) => (
+                    <div key={photo.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: photo.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
+                      <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
+                        <img src={photo.mediaUrl} alt={photo.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: photo.isThreat ? 'blur(3px)' : 'none' }} />
+                        <span className={`badge ${photo.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.6rem' }}>
+                          {photo.isThreat ? `MANIPULATED (${photo.riskScore}/100)` : '✓ SAFE EXIF'}
+                        </span>
+                      </div>
+
+                      <div style={{ padding: '12px' }}>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          {photo.title}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          Size: {photo.fileSize} • Type: {photo.fileType}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: photo.isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '4px', fontWeight: 600 }}>
+                          {photo.reasons[0]}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 7. VIDEOS & STREAMS / YOUTUBE SANDBOX */}
+            {activeChannel === 'videos' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Simulated YouTube-style video stream player with deepfake boundary analysis and frame rate forensics.
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                  {DEMO_MEDIA_CATALOG.filter(m => m.category === 'videos').map((vid) => (
+                    <div key={vid.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: vid.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
+                      <div style={{ position: 'relative', height: '190px', background: '#000' }}>
+                        {vid.isThreat ? (
+                          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <img src={vid.thumbnailUrl} alt={vid.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(5px)' }} />
+                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.4)', backdropFilter: 'blur(6px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px', textAlign: 'center' }}>
+                              <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
+                              <strong style={{ fontSize: '0.85rem', color: '#fff' }}>🔴 DEEPFAKE DETECTED — PLAYBACK QUARANTINED</strong>
+                              <div style={{ fontSize: '0.7rem', color: '#fee2e2', marginTop: '4px' }}>
+                                Temporal frame warping detected across 48 sampled video frames.
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <video src={vid.mediaUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        )}
+                      </div>
+
+                      <div style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{vid.title}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{vid.author} • Duration: {vid.duration}</div>
+                          </div>
+                          <span className={`badge ${vid.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                            {vid.isThreat ? 'DEEPFAKE' : '✓ SAFE STREAM'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 8. NEWS & ARTICLES SANDBOX */}
+            {activeChannel === 'news' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Simulated news & article reader with linguistic distortion and fact-check verification tags.
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {DEMO_MEDIA_CATALOG.filter(m => m.category === 'news').map((newsItem) => (
+                    <div key={newsItem.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: newsItem.isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-green)', background: 'var(--bg-subtle)', display: 'flex', flexWrap: 'wrap' }}>
+                      <div style={{ width: '220px', minHeight: '140px', position: 'relative' }}>
+                        <img src={newsItem.mediaUrl} alt={newsItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {newsItem.isThreat && (
+                          <div style={{ position: 'absolute', top: 6, left: 6, background: '#f59e0b', color: '#000', fontSize: '0.55rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
+                            MISINFORMATION
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ flex: 1, padding: '14px', minWidth: '260px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>By {newsItem.author} ({newsItem.handle})</span>
+                          <span className={`badge ${newsItem.isThreat ? 'badge-warning' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                            {newsItem.isThreat ? `FAKE NEWS (${newsItem.riskScore}/100)` : '✓ VERIFIED ARTICLE'}
+                          </span>
+                        </div>
+
+                        <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                          {newsItem.title}
+                        </h4>
+
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
+                          {newsItem.caption}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 9. FILES & STORAGE SANDBOX */}
+            {activeChannel === 'files' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                  Files & Storage Vault. Analyzes dangerous macro attachments (.docm, .xlsm), double extensions, and PE headers before download.
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                  {DEMO_MEDIA_CATALOG.filter(m => m.category === 'files').map((fl) => (
+                    <div key={fl.id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: fl.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <FileText size={20} color={fl.isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
+                          <div>
+                            <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{fl.title}</strong>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fl.fileSize} • {fl.fileType}</div>
+                          </div>
+                        </div>
+                        <span className={`badge ${fl.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
+                          {fl.isThreat ? 'QUARANTINED MACRO' : '✓ SAFE FILE'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.72rem', color: fl.isThreat ? 'var(--color-danger)' : 'var(--text-muted)', marginTop: '6px' }}>
+                        {fl.reasons[0]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* ========================================================
+           MAIN DASHBOARD VIEW (WHEN NO CHANNEL IS OPENED)
+           ======================================================== */
+        <>
+          {/* 1. TOP: CYBERSHIELD AI SECURITY STATUS CARD */}
+          <div className="cyber-card-green" style={{ padding: '26px 30px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '22px' }}>
           {/* Left: Brand, Subtext & Radial Defense Score */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
@@ -632,290 +930,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
         </div>
       </div>
 
-      {/* ========================================================
-          INTERACTIVE CHANNEL CONTENT EXPERIENCE & SANDBOX VIEWER
-          ======================================================== */}
-      {activeChannel && (
-        <div ref={sandboxRef} className="cyber-card" style={{ padding: '22px', border: '1.5px solid var(--color-green)', animation: 'fadeIn 0.2s ease' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {getPlatformLogo(activeChannel, 36)}
-              <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  {channels.find(c => c.id === activeChannel)?.headerTitle || `Interactive Receiver: ${channels.find(c => c.id === activeChannel)?.name}`}
-                </h3>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {channels.find(c => c.id === activeChannel)?.headerSubtitle || 'Interactive simulated user client with real-time CyberShield zero-trust threat interception'}
-                </div>
-              </div>
-            </div>
 
-            <button onClick={() => setActiveChannel(null)} className="btn btn-outline" style={{ fontSize: '0.74rem', padding: '5px 12px' }}>
-              Close Channel ✕
-            </button>
-          </div>
-
-          {/* 1. WHATSAPP CONVERSATION CENTER (FULL INTERACTIVE SIMULATOR) */}
-          {activeChannel === 'whatsapp' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Simulated Interactive WhatsApp Mobile Client with Contacts, Real-Time SSE Stream, Deduplication & CyberShield Threat Interception.
-              </div>
-              <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
-            </div>
-          )}
-
-          {/* 2. MESSAGES / SMS CONVERSATION CENTER (FULL INTERACTIVE SIMULATOR) */}
-          {activeChannel === 'messages' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Simulated Interactive Android Messages / SMS Client with Contact List, Real-Time Sync & Threat Warnings.
-              </div>
-              <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
-            </div>
-          )}
-
-          {/* 3. INSTAGRAM DIRECT MESSAGE & SOCIAL SANDBOX (FULL SIMULATED APP) */}
-          {activeChannel === 'instagram' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Simulated Interactive Instagram Application with 5-Tab Navigation, Stories, Create Post (+), Explore, Reels, DMs & CyberShield AI Protection.
-              </div>
-
-              <InstagramSimulator
-                events={events}
-                onSendEvent={async (p) => {
-                  const res = await sendEventAPI({
-                    event_id: `EVT-IG-${Date.now().toString().slice(-4)}`,
-                    sender_id: p.sender_id,
-                    sender_type: 'normal_user',
-                    receiver_id: p.recipient_id,
-                    platform: 'instagram',
-                    content_type: p.content_type || 'message',
-                    content_preview: p.payload?.text || p.payload?.filename || 'Instagram Event',
-                    raw_content: JSON.stringify(p.payload),
-                    payload: p.payload,
-                    status: 'DELIVERED',
-                    timestamp: new Date().toISOString()
-                  });
-                  await loadData();
-                  return res;
-                }}
-                onInspectEvent={setForensicEvent}
-                onOpenWarning={setSecurityWarningEvent}
-              />
-            </div>
-          )}
-
-          {/* 4. EMAIL / GMAIL INBOX SANDBOX (FULL INTERACTIVE SIMULATOR) */}
-          {activeChannel === 'email' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-              <div style={{ width: '100%', fontSize: '0.76rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                Simulated Interactive Email / Gmail Client with Folders, Category Tabs, Search, Phishing Detection & Threat Details Modal.
-              </div>
-              <div style={{ width: '100%', height: '650px' }}>
-                <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
-              </div>
-            </div>
-          )}
-
-          {/* 4. WEB & URLS BROWSER SANDBOX */}
-          {activeChannel === 'web' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated Protected Web Browser. Testing URLs are scanned before rendering web viewports.
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'web').map((webItem) => (
-                  <div key={webItem.id} style={{ border: webItem.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-green)', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--bg-subtle)' }}>
-                    {/* Browser Address Bar */}
-                    <div style={{ padding: '8px 12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
-                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }} />
-                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
-                      </div>
-                      <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {webItem.isThreat ? <Lock size={12} color="#ef4444" /> : <Lock size={12} color="#10b981" />}
-                        <span style={{ color: webItem.isThreat ? 'var(--color-danger)' : 'var(--color-green)' }}>{webItem.caption}</span>
-                      </div>
-                      <span className={`badge ${webItem.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                        {webItem.isThreat ? 'BLOCKED MALICIOUS URL' : '✓ PROTECTED BROWSER'}
-                      </span>
-                    </div>
-
-                    {/* Web Content / Screenshot Preview */}
-                    <div style={{ position: 'relative', height: '180px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img src={webItem.mediaUrl} alt={webItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: webItem.isThreat ? 'blur(6px)' : 'none' }} />
-                      {webItem.isThreat && (
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.45)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px', textAlign: 'center' }}>
-                          <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
-                          <strong style={{ fontSize: '0.9rem', color: '#fff' }}>🔴 NAVIGATION BLOCKED BY CYBERSHIELD</strong>
-                          <div style={{ fontSize: '0.72rem', color: '#fee2e2', marginTop: '4px' }}>
-                            Direct IP host with unverified SSL certificate and credential harvesting signature.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 5. PHOTOS & MEDIA GALLERY SANDBOX */}
-          {activeChannel === 'photos' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Photo & Media Gallery Preview with pixel-level Error Level Analysis (ELA) and GAN forgery tags.
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'photos').map((photo) => (
-                  <div key={photo.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: photo.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
-                    <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
-                      <img src={photo.mediaUrl} alt={photo.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: photo.isThreat ? 'blur(3px)' : 'none' }} />
-                      <span className={`badge ${photo.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.6rem' }}>
-                        {photo.isThreat ? `MANIPULATED (${photo.riskScore}/100)` : '✓ SAFE EXIF'}
-                      </span>
-                    </div>
-
-                    <div style={{ padding: '12px' }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                        {photo.title}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        Size: {photo.fileSize} • Type: {photo.fileType}
-                      </div>
-                      <div style={{ fontSize: '0.72rem', color: photo.isThreat ? 'var(--color-danger)' : 'var(--color-green)', marginTop: '4px', fontWeight: 600 }}>
-                        {photo.reasons[0]}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 6. VIDEOS & STREAMS / YOUTUBE SANDBOX */}
-          {activeChannel === 'videos' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated YouTube-style video stream player with deepfake boundary analysis and frame rate forensics.
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'videos').map((vid) => (
-                  <div key={vid.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: vid.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)', background: 'var(--bg-subtle)' }}>
-                    <div style={{ position: 'relative', height: '190px', background: '#000' }}>
-                      {vid.isThreat ? (
-                        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                          <img src={vid.thumbnailUrl} alt={vid.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(5px)' }} />
-                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(239, 68, 68, 0.4)', backdropFilter: 'blur(6px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '14px', textAlign: 'center' }}>
-                            <ShieldAlert size={36} color="#ef4444" style={{ marginBottom: '6px' }} />
-                            <strong style={{ fontSize: '0.85rem', color: '#fff' }}>🔴 DEEPFAKE DETECTED — PLAYBACK QUARANTINED</strong>
-                            <div style={{ fontSize: '0.7rem', color: '#fee2e2', marginTop: '4px' }}>
-                              Temporal frame warping detected across 48 sampled video frames.
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <video src={vid.mediaUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      )}
-                    </div>
-
-                    <div style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{vid.title}</div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>{vid.author} • Duration: {vid.duration}</div>
-                        </div>
-                        <span className={`badge ${vid.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                          {vid.isThreat ? 'DEEPFAKE' : '✓ SAFE STREAM'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 7. NEWS & ARTICLES SANDBOX */}
-          {activeChannel === 'news' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Simulated news & article reader with linguistic distortion and fact-check verification tags.
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'news').map((newsItem) => (
-                  <div key={newsItem.id} style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', border: newsItem.isThreat ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid var(--border-green)', background: 'var(--bg-subtle)', display: 'flex', flexWrap: 'wrap' }}>
-                    <div style={{ width: '220px', minHeight: '140px', position: 'relative' }}>
-                      <img src={newsItem.mediaUrl} alt={newsItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      {newsItem.isThreat && (
-                        <div style={{ position: 'absolute', top: 6, left: 6, background: '#f59e0b', color: '#000', fontSize: '0.55rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
-                          MISINFORMATION
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ flex: 1, padding: '14px', minWidth: '260px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>By {newsItem.author} ({newsItem.handle})</span>
-                        <span className={`badge ${newsItem.isThreat ? 'badge-warning' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                          {newsItem.isThreat ? `FAKE NEWS (${newsItem.riskScore}/100)` : '✓ VERIFIED ARTICLE'}
-                        </span>
-                      </div>
-
-                      <h4 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
-                        {newsItem.title}
-                      </h4>
-
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>
-                        {newsItem.caption}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 8. FILES & STORAGE SANDBOX */}
-          {activeChannel === 'files' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                Files & Storage Vault. Analyzes dangerous macro attachments (.docm, .xlsm), double extensions, and PE headers before download.
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-                {DEMO_MEDIA_CATALOG.filter(m => m.category === 'files').map((fl) => (
-                  <div key={fl.id} style={{ padding: '14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: fl.isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--border-subtle)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <FileText size={20} color={fl.isThreat ? 'var(--color-danger)' : 'var(--color-green)'} />
-                        <div>
-                          <strong style={{ fontSize: '0.84rem', color: 'var(--text-primary)' }}>{fl.title}</strong>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{fl.fileSize} • {fl.fileType}</div>
-                        </div>
-                      </div>
-                      <span className={`badge ${fl.isThreat ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                        {fl.isThreat ? 'QUARANTINED MACRO' : '✓ SAFE FILE'}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '0.72rem', color: fl.isThreat ? 'var(--color-danger)' : 'var(--text-muted)', marginTop: '6px' }}>
-                      {fl.reasons[0]}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ========================================================
           4. INTERACTIVE CLICKABLE CHARTS
@@ -1158,6 +1173,8 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* ========================================================
           6. CYBERSHIELD SECURITY WARNING MODAL (DANGEROUS CONTENT)
