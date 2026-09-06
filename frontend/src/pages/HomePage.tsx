@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -49,6 +49,14 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
 
   // Active Interactive Channel (WhatsApp, Instagram, Messages, Email, Web, Photos, Videos, News, Files)
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
+  const sandboxRef = useRef<HTMLDivElement>(null);
+
+  const handleChannelSelect = (channelId: string) => {
+    setActiveChannel(channelId);
+    setTimeout(() => {
+      sandboxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  };
 
   // Real-Time Security Alert (Smooth Animated Red Notification Toast for Threats)
   const [liveAlert, setLiveAlert] = useState<SecurityEvent | null>(null);
@@ -165,70 +173,88 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
   // Dynamic Calibrated Security Score (e.g. 88 / 100)
   const defenseScore = Math.max(70, Math.min(99, Math.round(100 - (threatsCount / totalEventsCount) * 16)));
 
-  // 9 Protected Channel Definitions with Authentic Logos
+  // 9 Protected Channel Definitions with Authentic Logos & Dynamic Sandbox Subtitles
   const channels = [
     {
       id: 'whatsapp',
       name: 'WhatsApp',
       modality: 'message',
       badge: 'Chat',
-      desc: 'Encrypted chats, media & OTP authentication flows'
+      desc: 'Encrypted chats, media & OTP authentication flows',
+      headerTitle: 'Interactive Receiver: WhatsApp',
+      headerSubtitle: 'Interactive simulated user client with real-time CyberShield zero-trust threat interception'
     },
     {
       id: 'instagram',
       name: 'Instagram',
       modality: 'message',
       badge: 'Social',
-      desc: 'Direct messages, creator inquiries & social bots'
+      desc: 'Direct messages, creator inquiries & social bots',
+      headerTitle: 'Interactive Receiver: Instagram',
+      headerSubtitle: 'Interactive simulated Instagram application with DMs, stories and AI threat interception'
     },
     {
       id: 'messages',
       name: 'Messages / SMS',
       modality: 'message',
       badge: 'SMS',
-      desc: 'SMS prize alerts, banking codes & urgent links'
+      desc: 'SMS prize alerts, banking codes & urgent links',
+      headerTitle: 'Interactive Receiver: Messages / SMS',
+      headerSubtitle: 'Interactive simulated Messages client with real-time CyberShield threat interception'
     },
     {
       id: 'email',
       name: 'Email / Gmail',
       modality: 'email',
       badge: 'Mail',
-      desc: 'Spear-phishing invoices & deceptive attachments'
+      desc: 'Spear-phishing invoices & deceptive attachments',
+      headerTitle: 'Interactive Receiver: Email / Gmail',
+      headerSubtitle: 'Interactive simulated Email client with real-time phishing and threat interception'
     },
     {
       id: 'web',
       name: 'Web & URLs',
       modality: 'url',
       badge: 'Browser',
-      desc: 'Domain reputation, IP hosts & certificate safety'
+      desc: 'Domain reputation, IP hosts & certificate safety',
+      headerTitle: 'Interactive Receiver: Web & URLs',
+      headerSubtitle: 'Interactive simulated web browser with domain reputation and phishing site interception'
     },
     {
       id: 'photos',
       name: 'Photos & Gallery',
       modality: 'image',
       badge: 'Media',
-      desc: 'Error Level Analysis (ELA) & pixel manipulation'
+      desc: 'Error Level Analysis (ELA) & pixel manipulation',
+      headerTitle: 'Interactive Receiver: Photos & Gallery',
+      headerSubtitle: 'Interactive simulated photo gallery with Error Level Analysis (ELA) and forgery detection'
     },
     {
       id: 'videos',
       name: 'Videos & Streams',
       modality: 'video',
       badge: 'Stream',
-      desc: 'Temporal deepfake & facial reenactment scanner'
+      desc: 'Temporal deepfake & facial reenactment scanner',
+      headerTitle: 'Interactive Receiver: Videos & Streams',
+      headerSubtitle: 'Interactive simulated video player with temporal deepfake and facial reenactment detection'
     },
     {
       id: 'news',
       name: 'News & Articles',
       modality: 'news',
       badge: 'Article',
-      desc: 'Misinformation, synthetic claims & fact checking'
+      desc: 'Misinformation, synthetic claims & fact checking',
+      headerTitle: 'Interactive Receiver: News & Articles',
+      headerSubtitle: 'Interactive simulated news reader with misinformation and fact-check verification'
     },
     {
       id: 'files',
       name: 'Files & Storage',
       modality: 'file',
       badge: 'Vault',
-      desc: 'Macro inspection, binary entropy & sandbox isolation'
+      desc: 'Macro inspection, binary entropy & sandbox isolation',
+      headerTitle: 'Interactive Receiver: Files & Storage',
+      headerSubtitle: 'Interactive simulated file storage with macro inspection and sandbox isolation'
     }
   ];
 
@@ -566,36 +592,38 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             return (
               <div
                 key={ch.id}
-                onClick={() => setActiveChannel(isSelected ? null : ch.id)}
+                onClick={() => handleChannelSelect(ch.id)}
                 className={`cyber-card ${isSelected ? 'cyber-card-green' : ''}`}
                 style={{
                   padding: '16px',
                   cursor: 'pointer',
-                  border: isSelected ? '1.5px solid var(--color-green)' : '1px solid var(--border-subtle)',
-                  transition: 'all 0.2s ease',
-                  position: 'relative'
+                  border: isSelected ? '2px solid var(--color-green)' : '1px solid var(--border-subtle)',
+                  boxShadow: isSelected ? '0 0 22px rgba(16, 185, 129, 0.28)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  position: 'relative',
+                  userSelect: 'none'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   {/* Authentic App Launcher Logo */}
                   {getPlatformLogo(ch.id, 42)}
 
-                  <span className={`badge ${channelThreats > 0 ? 'badge-danger' : 'badge-green'}`} style={{ fontSize: '0.6rem' }}>
-                    {channelThreats > 0 ? `${channelThreats} THREATS` : 'ACTIVE'}
+                  <span className={`badge ${isSelected ? 'badge-green' : channelThreats > 0 ? 'badge-danger' : 'badge-neutral'}`} style={{ fontSize: '0.6rem' }}>
+                    {isSelected ? '✓ SELECTED' : channelThreats > 0 ? `${channelThreats} THREATS` : 'ACTIVE'}
                   </span>
                 </div>
 
-                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '3px' }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: isSelected ? 'var(--color-green)' : 'var(--text-primary)', marginBottom: '3px' }}>
                   {ch.name}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '10px', lineHeight: '1.35', minHeight: '32px' }}>
                   {ch.desc}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
                   <span><strong>{channelEvents.length}</strong> Events</span>
-                  <span style={{ color: channelThreats > 0 ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 700 }}>
-                    {channelThreats} Threats
+                  <span style={{ color: isSelected ? 'var(--color-green)' : channelThreats > 0 ? 'var(--color-danger)' : 'var(--color-green)', fontWeight: 700 }}>
+                    {isSelected ? 'Open Sandbox →' : `${channelThreats} Threats`}
                   </span>
                 </div>
               </div>
@@ -608,21 +636,21 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
           INTERACTIVE CHANNEL CONTENT EXPERIENCE & SANDBOX VIEWER
           ======================================================== */}
       {activeChannel && (
-        <div className="cyber-card" style={{ padding: '22px', border: '1.5px solid var(--color-green)', animation: 'fadeIn 0.2s ease' }}>
+        <div ref={sandboxRef} className="cyber-card" style={{ padding: '22px', border: '1.5px solid var(--color-green)', animation: 'fadeIn 0.2s ease' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {getPlatformLogo(activeChannel, 36)}
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  Interactive Receiver: {channels.find(c => c.id === activeChannel)?.name}
+                  {channels.find(c => c.id === activeChannel)?.headerTitle || `Interactive Receiver: ${channels.find(c => c.id === activeChannel)?.name}`}
                 </h3>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  Interactive simulated user client with real-time CyberShield zero-trust threat interception
+                  {channels.find(c => c.id === activeChannel)?.headerSubtitle || 'Interactive simulated user client with real-time CyberShield zero-trust threat interception'}
                 </div>
               </div>
             </div>
 
-            <button onClick={() => setActiveChannel(null)} className="btn btn-outline" style={{ fontSize: '0.74rem', padding: '5px 10px' }}>
+            <button onClick={() => setActiveChannel(null)} className="btn btn-outline" style={{ fontSize: '0.74rem', padding: '5px 12px' }}>
               Close Channel ✕
             </button>
           </div>
