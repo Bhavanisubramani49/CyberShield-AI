@@ -32,11 +32,12 @@ import {
 import { WhatsAppSimulator } from '../components/WhatsAppSimulator';
 import { MessagesSimulator } from '../components/MessagesSimulator';
 import { EmailSimulator } from '../components/EmailSimulator';
+import { InstagramSimulator } from '../components/simulators/InstagramSimulator';
 import { formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 export const ReceiverPage: React.FC = () => {
   // Navigation & View Mode
-  const [activeView, setActiveView] = useState<'whatsapp' | 'messages' | 'email' | 'conversations' | 'telemetry'>('whatsapp');
+  const [activeView, setActiveView] = useState<'whatsapp' | 'instagram' | 'messages' | 'email' | 'conversations' | 'telemetry'>('whatsapp');
 
   // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
   const currentUser = 'user-kavin';
@@ -167,6 +168,13 @@ export const ReceiverPage: React.FC = () => {
               <MessageSquare size={15} color="#4ade80" /> WhatsApp Center
             </button>
             <button
+              onClick={() => setActiveView('instagram')}
+              className={`btn ${activeView === 'instagram' ? 'btn-accent-blue' : 'btn-outline'}`}
+              style={{ fontSize: '0.8rem', padding: '8px 14px', borderColor: activeView === 'instagram' ? '#e1306c' : undefined, background: activeView === 'instagram' ? 'rgba(225,48,108,0.25)' : undefined }}
+            >
+              <Sparkles size={15} color="#e1306c" /> Instagram Sandbox
+            </button>
+            <button
               onClick={() => setActiveView('messages')}
               className={`btn ${activeView === 'messages' ? 'btn-accent-blue' : 'btn-outline'}`}
               style={{ fontSize: '0.8rem', padding: '8px 14px', borderColor: activeView === 'messages' ? '#0b6bcb' : undefined, background: activeView === 'messages' ? 'rgba(11,107,203,0.25)' : undefined }}
@@ -202,6 +210,22 @@ export const ReceiverPage: React.FC = () => {
       {activeView === 'whatsapp' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
           <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+        </div>
+      )}
+
+      {/* 3. INSTAGRAM CONVERSATION & SOCIAL SANDBOX VIEW */}
+      {activeView === 'instagram' && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0', width: '100%' }}>
+          <InstagramSimulator
+            events={events}
+            onSendEvent={async (p) => {
+              const res = await sendConversationMessageAPI('CONV-IG-001', 'user-kavin', p.payload?.text || 'Instagram Interaction');
+              await loadEvents();
+              return res;
+            }}
+            onInspectEvent={setSelectedEventDetails}
+            onOpenWarning={setSelectedEventDetails}
+          />
         </div>
       )}
 

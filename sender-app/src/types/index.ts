@@ -95,3 +95,38 @@ export interface MessageItem {
   event_id?: string;
   created_at?: string;
 }
+
+export interface SecurityEvent {
+  event_id: string;
+  sender_id: string;
+  sender_type?: string;
+  receiver_id: string;
+  receiver_surface?: string;
+  platform: string;
+  content_type: string;
+  content_preview: string;
+  content_reference?: string;
+  raw_content?: string;
+  payload?: Record<string, any>;
+  created_at?: string;
+  received_at?: string;
+  processed_at?: string;
+  timestamp: string;
+  status: string;
+  classification?: string;
+  risk_score?: number;
+  risk_level?: string;
+  confidence?: number;
+  ai_model?: string;
+  forensic_reasons?: string[];
+  recommended_action?: string;
+  final_action?: string;
+  user_action?: string;
+  timeline?: any[];
+  ai_result?: {
+    classification: string;
+    risk_score?: number;
+    risk_level: string;
+    reasons: string[];
+  };
+}

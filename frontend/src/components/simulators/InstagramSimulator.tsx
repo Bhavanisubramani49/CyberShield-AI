@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
+  ArrowLeft,
   Heart, 
   MessageCircle, 
   Send, 
@@ -58,6 +59,17 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
   const [mainSection, setMainSection] = useState<MainSection>('feed');
   const [activeTab, setActiveTab] = useState<FeedTab>('home');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+
+  // Handle browser Back button (popstate) integration
+  useEffect(() => {
+    const handlePopState = () => {
+      setMainSection('feed');
+      setActiveTab('home');
+      setSelectedPost(null);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Posts State (Starts with the 50 dataset posts, dynamic events added on top)
   const [posts, setPosts] = useState<InstagramPost[]>(INSTAGRAM_50_POSTS);
@@ -276,6 +288,31 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
         
         {/* Instagram Branding */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {(activeTab !== 'home' || selectedPost || mainSection !== 'feed') && (
+            <button
+              onClick={() => {
+                setMainSection('feed');
+                setActiveTab('home');
+                setSelectedPost(null);
+              }}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '8px',
+                padding: '5px 10px',
+                color: '#f8fafc',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.78rem',
+                fontWeight: 600
+              }}
+              title="Back to Instagram Feed"
+            >
+              <ArrowLeft size={14} /> Back
+            </button>
+          )}
           <span style={{ fontSize: '1.45rem', fontWeight: 800, fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '-0.5px', background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Instagram
           </span>

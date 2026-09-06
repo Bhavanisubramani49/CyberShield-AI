@@ -44,6 +44,10 @@ class ConversationRepository:
                 if not email_exists:
                     self._seed_email_conversations_only(session)
 
+                ig_exists = session.query(ConversationModel).filter(ConversationModel.conversation_id == "CONV-IG-001").first()
+                if not ig_exists:
+                    self._seed_instagram_conversations_only(session)
+
             contact_count = session.query(UserContactModel).count()
             if contact_count == 0:
                 self._seed_user_contacts(session)
@@ -682,6 +686,180 @@ class ConversationRepository:
                 risk_sc = msg_def.get("risk_score", 10)
                 risk_lv = msg_def.get("risk_level", "LOW")
                 reasons = msg_def.get("reasons", ["Authentic email pattern"])
+
+                msg_model = MessageModel(
+                    message_id=msg_id,
+                    conversation_id=c_def["id"],
+                    sender_id=msg_def["sender"],
+                    content=msg_def["text"],
+                    content_type="text",
+                    timestamp=datetime.now().strftime("%I:%M %p"),
+                    security_status=sec_st,
+                    classification=classif,
+                    risk_score=risk_sc,
+                    risk_level=risk_lv,
+                    confidence=0.96 if sec_st != "SAFE" else 0.98,
+                    forensic_reasons=json.dumps(reasons),
+                    created_at=now
+                )
+                session.add(msg_model)
+
+                for m_uid in c_def["members"]:
+                    if m_uid != msg_def["sender"]:
+                        rec_model = MessageRecipientModel(
+                            message_id=msg_id,
+                            recipient_id=m_uid,
+                            delivery_status="QUARANTINED" if sec_st == "DANGEROUS" else "DELIVERED",
+                            security_action="QUARANTINE" if sec_st == "DANGEROUS" else "ALLOW",
+                            delivered_at=now,
+                            read_at=now
+                        )
+                        session.add(rec_model)
+
+        session.commit()
+
+    def _seed_instagram_conversations_only(self, session: Session):
+        now = datetime.now(timezone.utc).isoformat()
+        ig_defs = [
+            {
+                "id": "CONV-IG-001",
+                "type": "DIRECT",
+                "channel": "INSTAGRAM",
+                "title": "Riya (@riya_design)",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-riya"],
+                "messages": [
+                    {
+                        "sender": "user-riya",
+                        "text": "Hey Kavin! Did you check out the new CyberShield mobile UI mockups on Instagram?",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 8,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic Instagram DM"]
+                    },
+                    {
+                        "sender": "user-kavin",
+                        "text": "Yes Riya, checking them now! The dark mode styling looks clean.",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 5,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic Instagram DM"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-IG-002",
+                "type": "DIRECT",
+                "channel": "INSTAGRAM",
+                "title": "official_bank_support_786",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-arun"],
+                "messages": [
+                    {
+                        "sender": "user-arun",
+                        "text": "URGENT SECURITY ALERT: Your Instagram student account status is marked for deletion. Click link to re-verify password immediately: http://cybershield-auth-verify.com/login",
+                        "sec_status": "DANGEROUS",
+                        "classification": "PHISHING",
+                        "risk_score": 94,
+                        "risk_level": "CRITICAL",
+                        "reasons": ["Deceptive domain signature: cybershield-auth-verify.com", "Suspicious username pattern", "Urgent credential harvesting link"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-IG-003",
+                "type": "DIRECT",
+                "channel": "INSTAGRAM",
+                "title": "Arun (@arun_techlead)",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-arun"],
+                "messages": [
+                    {
+                        "sender": "user-arun",
+                        "text": "Hi Kavin, take a look at the updated architecture post on our project feed.",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 5,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic interaction"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-IG-004",
+                "type": "DIRECT",
+                "channel": "INSTAGRAM",
+                "title": "Priya (@priya_ui)",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-priya"],
+                "messages": [
+                    {
+                        "sender": "user-priya",
+                        "text": "Hey Kavin, just shared the brand guidelines for our presentation deck!",
+                        "sec_status": "SAFE",
+                        "classification": "SAFE",
+                        "risk_score": 6,
+                        "risk_level": "LOW",
+                        "reasons": ["Authentic interaction"]
+                    }
+                ]
+            },
+            {
+                "id": "CONV-IG-005",
+                "type": "DIRECT",
+                "channel": "INSTAGRAM",
+                "title": "Crypto_Giveaway_Bot_99",
+                "created_by": "user-kavin",
+                "members": ["user-kavin", "user-sneha"],
+                "messages": [
+                    {
+                        "sender": "user-sneha",
+                        "text": "FREE CRYPTO AIRDROP: Double your investment instantly! Send 0.1 BTC to receive 0.5 BTC back immediately at http://192.168.1.200/crypto-giveaway.php",
+                        "sec_status": "DANGEROUS",
+                        "classification": "SCAM",
+                        "risk_score": 96,
+                        "risk_level": "CRITICAL",
+                        "reasons": ["Unrealistic financial return claim", "Crypto wallet harvesting URL", "Bot account activity pattern"]
+                    }
+                ]
+            }
+        ]
+
+        for c_def in ig_defs:
+            existing = session.query(ConversationModel).filter(ConversationModel.conversation_id == c_def["id"]).first()
+            if existing:
+                continue
+
+            conv_model = ConversationModel(
+                conversation_id=c_def["id"],
+                conversation_type=c_def["type"],
+                channel="INSTAGRAM",
+                title=c_def["title"],
+                created_by=c_def["created_by"],
+                status="ACTIVE",
+                created_at=now,
+                updated_at=now
+            )
+            session.add(conv_model)
+
+            for m_uid in c_def["members"]:
+                m_model = ConversationMemberModel(
+                    conversation_id=c_def["id"],
+                    user_id=m_uid,
+                    role="OWNER" if m_uid == c_def["created_by"] else "MEMBER",
+                    joined_at=now
+                )
+                session.add(m_model)
+
+            for idx, msg_def in enumerate(c_def["messages"]):
+                msg_id = f"MSG-{c_def['id']}-{idx+1:03d}"
+                sec_st = msg_def.get("sec_status", "SAFE")
+                classif = msg_def.get("classification", "SAFE")
+                risk_sc = msg_def.get("risk_score", 10)
+                risk_lv = msg_def.get("risk_level", "LOW")
+                reasons = msg_def.get("reasons", ["Authentic Instagram pattern"])
 
                 msg_model = MessageModel(
                     message_id=msg_id,
