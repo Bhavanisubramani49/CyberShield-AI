@@ -17,6 +17,13 @@ export interface InstagramPost {
   risk_score: number;
   risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   forensic_reasons: string[];
+  media_type?: 'image' | 'video';
+  video_url?: string;
+  video_metadata?: {
+    duration_sec: number;
+    fps: number;
+    resolution: string;
+  };
 }
 
 export interface InstagramProfile {
@@ -36,10 +43,86 @@ export interface InstagramProfile {
   recentPosts: string[]; // image URLs
 }
 
-// =========================================================================
-// 50 INSTAGRAM IMAGE SAMPLES (25 SAFE / ORIGINAL, 25 MANIPULATED / SCAM)
-// =========================================================================
+export const INSTAGRAM_REELS_POSTS: InstagramPost[] = [
+  {
+    id: "IG-REEL-001",
+    image_path: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
+    thumbnail_path: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&auto=format&fit=crop&q=80",
+    media_type: "video",
+    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    video_metadata: { duration_sec: 15.0, fps: 30.0, resolution: "1080x1920" },
+    expected_classification: "ORIGINAL",
+    source_dataset: "CyberShield_Video_Testbed",
+    detector_type: "deepfake_video_pipeline" as any,
+    username: "@cyber_security_lab",
+    authorName: "Dr. Alex Vance",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    caption: "Real-time AI Video Security Pipeline testing across Instagram Reels media stream. 🛡️",
+    hashtags: ["#reels", "#cybersecurity", "#ai", "#privacy"],
+    likes: 3840,
+    commentsCount: 94,
+    commentsList: [
+      { user: "marcus_r", text: "Zero-trust video inspection working seamlessly!", time: "10m" }
+    ],
+    timestamp: "15m ago",
+    risk_score: 8,
+    risk_level: "LOW",
+    forensic_reasons: ["Authentic temporal frame continuity and video lip sync verified"]
+  },
+  {
+    id: "IG-REEL-002",
+    image_path: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+    thumbnail_path: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    media_type: "video",
+    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    video_metadata: { duration_sec: 22.0, fps: 24.0, resolution: "1080x1920" },
+    expected_classification: "MANIPULATED",
+    source_dataset: "FaceForensics++_Subcorpus",
+    detector_type: "deepfake_video_pipeline" as any,
+    username: "@synthetic_media_hub",
+    authorName: "Synthetic Media Lab",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    caption: "Synthetic face swap & temporal frame warping artifact test reel.",
+    hashtags: ["#deepfake", "#ai", "#forensics", "#warning"],
+    likes: 1205,
+    commentsCount: 45,
+    commentsList: [
+      { user: "sec_officer", text: "Facial boundary blending artifacts flagged.", time: "1h" }
+    ],
+    timestamp: "1h ago",
+    risk_score: 92,
+    risk_level: "HIGH",
+    forensic_reasons: ["Temporal frame inconsistency detected", "Facial boundary warping and blending artifacts"]
+  },
+  {
+    id: "IG-REEL-003",
+    image_path: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&auto=format&fit=crop&q=80",
+    thumbnail_path: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=400&auto=format&fit=crop&q=80",
+    media_type: "video",
+    video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    video_metadata: { duration_sec: 18.0, fps: 30.0, resolution: "1080x1920" },
+    expected_classification: "ORIGINAL",
+    source_dataset: "Authentic_Reels_Sample",
+    detector_type: "deepfake_video_pipeline" as any,
+    username: "@tokyo_wanderer",
+    authorName: "Kenji Takahashi",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    caption: "Midnight stroll through Shinjuku neon alleys. 🌃",
+    hashtags: ["#tokyo", "#japan", "#reels", "#nightdrive"],
+    likes: 5410,
+    commentsCount: 112,
+    commentsList: [
+      { user: "elena_d", text: "The color grading is so crisp!", time: "2h" }
+    ],
+    timestamp: "2h ago",
+    risk_score: 5,
+    risk_level: "LOW",
+    forensic_reasons: ["Standard camera sensor noise profile", "Zero deepfake manipulation artifacts detected"]
+  }
+];
+
 export const INSTAGRAM_50_POSTS: InstagramPost[] = [
+  ...INSTAGRAM_REELS_POSTS,
   // --- 25 SAFE / ORIGINAL POSTS ---
   {
     id: "IG-IMG-001",

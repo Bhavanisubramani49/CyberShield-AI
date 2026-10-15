@@ -40,10 +40,15 @@ def init_db():
     import app.db.models  # Ensure models are imported so Base registers them
     Base.metadata.create_all(bind=engine)
 
-    # Auto-migration for channel column in conversations table if table existed prior
+    # Auto-migration for channel column in conversations table and email column in demo_users table
     with engine.connect() as conn:
         try:
             conn.execute(text("ALTER TABLE conversations ADD COLUMN channel VARCHAR(32) DEFAULT 'WHATSAPP'"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE demo_users ADD COLUMN email VARCHAR(128)"))
             conn.commit()
         except Exception:
             pass

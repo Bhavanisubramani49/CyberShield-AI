@@ -20,11 +20,13 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { 
+  UserProfile,
   SystemHealth, 
   SecurityEvent, 
   SecurityAction,
   NavigationPage 
 } from '../types';
+import { getActiveUser } from '../services/auth';
 import { 
   fetchEventsAPI, 
   submitEventActionAPI,
@@ -40,9 +42,13 @@ import { DEMO_MEDIA_CATALOG } from '../data/demoMedia';
 interface HomePageProps {
   health: SystemHealth | null;
   setPage?: (page: NavigationPage) => void;
+  user?: UserProfile | null;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
+export const HomePage: React.FC<HomePageProps> = ({ health, setPage, user }) => {
+  const currentAuthUser = user || getActiveUser();
+  const activeUserId = currentAuthUser.id;
+
   // Core State
   const [events, setEvents] = useState<SecurityEvent[]>([]);
   const [scanning, setScanning] = useState<boolean>(false);
@@ -440,14 +446,14 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             {/* 1. WHATSAPP CONVERSATION CENTER */}
             {activeChannel === 'whatsapp' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-                <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+                <WhatsAppSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
               </div>
             )}
 
             {/* 2. MESSAGES / SMS CONVERSATION CENTER */}
             {activeChannel === 'messages' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
-                <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
+                <MessagesSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
               </div>
             )}
 
@@ -456,6 +462,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
                 <InstagramSimulator
                   events={events}
+                  currentUser={currentAuthUser}
                   onSendEvent={async (p) => {
                     const res = await sendEventAPI({
                       event_id: `EVT-IG-${Date.now().toString().slice(-4)}`,
@@ -483,7 +490,7 @@ export const HomePage: React.FC<HomePageProps> = ({ health, setPage }) => {
             {activeChannel === 'email' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
                 <div style={{ width: '100%', height: '650px' }}>
-                  <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
+                  <EmailSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
                 </div>
               </div>
             )}

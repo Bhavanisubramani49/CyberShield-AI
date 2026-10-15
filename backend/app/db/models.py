@@ -137,6 +137,7 @@ class DemoUserModel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(String(64), unique=True, index=True, nullable=False)
     name = Column(String(128), nullable=False)
+    email = Column(String(128), nullable=True, index=True)
     avatar = Column(String(255), nullable=False)
     role = Column(String(128), nullable=False, default="Student / Researcher")
     status = Column(String(64), nullable=False, default="online")

@@ -222,287 +222,422 @@ export const EmailSimulator: React.FC<EmailSimulatorProps> = ({
   });
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-100 font-sans border border-slate-800 rounded-xl shadow-2xl overflow-hidden">
-      {/* Top Application Header Bar */}
-      <div className="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0">
-        <div className="flex items-center space-x-4 flex-1 max-w-2xl">
-          <div className="flex items-center space-x-3 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg">
-              <ShieldAlert className="w-5 h-5 text-white" />
+    <div style={{
+      width: '100%',
+      height: '100%',
+      minHeight: '660px',
+      maxHeight: '760px',
+      background: 'var(--email-bg, #0a0e17)',
+      color: 'var(--email-text-primary, #f8fafc)',
+      borderRadius: '14px',
+      border: '1px solid var(--email-border, rgba(255, 255, 255, 0.08))',
+      boxShadow: 'var(--shadow-card, 0 10px 30px rgba(0, 0, 0, 0.5))',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+      position: 'relative',
+      fontFamily: 'var(--font-sans, Segoe UI, Roboto, sans-serif)'
+    }}>
+      {/* Header Bar */}
+      <header style={{
+        height: '60px',
+        background: 'var(--email-header-bg, #0c121e)',
+        borderBottom: '1px solid var(--email-border, rgba(255, 255, 255, 0.08))',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 18px',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, maxWidth: '650px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ShieldAlert size={20} color="#ffffff" />
             </div>
-            <div className="hidden sm:block">
-              <h2 className="font-extrabold text-slate-100 text-sm leading-tight">Sender Email Studio</h2>
-              <p className="text-[11px] text-blue-400 font-semibold">External Dispatcher</p>
+            <div>
+              <h2 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--email-text-primary, #f8fafc)', margin: 0, lineHeight: 1.2 }}>
+                Sender Email Studio
+              </h2>
+              <div style={{ fontSize: '0.68rem', color: '#60a5fa', fontWeight: 600 }}>
+                External Dispatcher
+              </div>
             </div>
           </div>
 
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--email-placeholder, #64748b)' }} />
             <input
               type="text"
               placeholder="Search mail by subject, recipient, or content..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+              style={{
+                width: '100%',
+                padding: '8px 12px 8px 36px',
+                background: 'var(--email-input-bg, #070b14)',
+                border: '1px solid var(--email-border, rgba(255, 255, 255, 0.1))',
+                borderRadius: '8px',
+                color: 'var(--email-input-text, #f8fafc)',
+                fontSize: '0.78rem',
+                outline: 'none'
+              }}
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 pl-4">
-          <span className="text-xs font-semibold text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 hidden md:inline font-mono">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--email-text-muted, #64748b)', fontFamily: 'var(--font-mono, monospace)', background: 'var(--email-bg, #0a0e17)', padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--email-border)' }}>
             {liveClock}
           </span>
-          <div className="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 to-indigo-600 flex items-center justify-center font-bold text-white text-[11px]">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--email-surface, #131c2e)', padding: '4px 10px', borderRadius: '8px', border: '1px solid var(--email-border)' }}>
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'linear-gradient(135deg, #f43f5e, #6366f1)', color: '#fff', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               S
             </div>
-            <span className="text-xs font-semibold text-slate-300 hidden sm:inline">Sender App Console</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--email-text-primary, #e2e8f0)' }}>Sender App Console</span>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar */}
-        <div className="w-60 bg-slate-950 border-r border-slate-800 flex flex-col p-3 space-y-5 shrink-0 hidden md:flex">
+        <aside style={{
+          width: '220px',
+          background: 'var(--email-sidebar-bg, #0c121e)',
+          borderRight: '1px solid var(--email-border, rgba(255, 255, 255, 0.08))',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '14px 10px',
+          gap: '14px',
+          flexShrink: 0
+        }}>
           <button
             onClick={() => setShowComposeModal(true)}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-950/40 transition duration-150 text-xs"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '10px',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)'
+            }}
           >
-            <Plus className="w-4 h-4" />
-            <span>Compose Email</span>
+            <Plus size={16} color="#ffffff" /> Compose Email
           </button>
 
-          <div className="space-y-1">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-1">Folders</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--email-text-muted, #64748b)', padding: '0 8px', marginBottom: '4px' }}>Folders</div>
             <button
               onClick={() => { setActiveFolder('inbox'); setActiveScreen('home'); }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                activeFolder === 'inbox' && activeScreen === 'home'
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: activeFolder === 'inbox' && activeScreen === 'home' ? 700 : 500,
+                color: activeFolder === 'inbox' && activeScreen === 'home' ? '#60a5fa' : 'var(--email-text-secondary, #94a3b8)',
+                background: activeFolder === 'inbox' && activeScreen === 'home' ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                border: activeFolder === 'inbox' && activeScreen === 'home' ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
+                cursor: 'pointer'
+              }}
             >
-              <div className="flex items-center space-x-2.5">
-                <Inbox className="w-4 h-4" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Inbox size={15} />
                 <span>Inbox</span>
               </div>
-              <span className="bg-slate-800 text-[10px] font-bold px-2 py-0.5 rounded-full text-slate-300">
+              <span style={{ fontSize: '0.68rem', background: 'var(--email-bg, #0a0e17)', color: 'var(--email-text-primary, #cbd5e1)', padding: '2px 6px', borderRadius: '10px', fontWeight: 700 }}>
                 {conversations.length}
               </span>
             </button>
 
             <button
               onClick={() => { setActiveFolder('sent'); setActiveScreen('home'); }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition ${
-                activeFolder === 'sent'
-                  ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
-                  : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                fontSize: '0.78rem',
+                fontWeight: activeFolder === 'sent' ? 700 : 500,
+                color: activeFolder === 'sent' ? '#818cf8' : 'var(--email-text-secondary, #94a3b8)',
+                background: activeFolder === 'sent' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                border: activeFolder === 'sent' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid transparent',
+                cursor: 'pointer'
+              }}
             >
-              <div className="flex items-center space-x-2.5">
-                <SentIcon className="w-4 h-4" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <SentIcon size={15} />
                 <span>Sent Mail</span>
               </div>
             </button>
           </div>
-        </div>
+        </aside>
 
-        {/* Right Email Work Area */}
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-900">
-          <div className="flex-1 overflow-y-auto">
-            {activeScreen === 'home' ? (
-              <div className="divide-y divide-slate-800">
-                {filteredConversations.map((conv) => {
-                  const otherParticipant =
-                    conv.members?.find((m) => m.user_id !== activeUserId)?.name || conv.title;
+        {/* Right Work Area */}
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--email-surface, #0f172a)' }}>
+          {activeScreen === 'home' ? (
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {filteredConversations.map((conv) => {
+                const otherParticipant =
+                  conv.members?.find((m) => m.user_id !== activeUserId)?.name || conv.title;
 
-                  return (
-                    <div
-                      key={conv.conversation_id}
-                      onClick={() => handleOpenThread(conv.conversation_id)}
-                      className="p-3.5 hover:bg-slate-800/60 cursor-pointer transition flex items-start space-x-3.5"
-                    >
-                      <Star className="w-4 h-4 text-slate-600 hover:text-amber-400 mt-1 shrink-0 transition" />
-                      <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 font-bold text-slate-300 text-xs">
-                        {otherParticipant.charAt(0)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-200 text-xs truncate">
-                            {otherParticipant}
-                          </span>
-                          <span className="text-[11px] text-slate-400 whitespace-nowrap ml-2 font-mono">
-                            {conv.latest_message?.timestamp || formatConversationDate(conv.updated_at)}
-                          </span>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-100 truncate block mt-0.5">
-                          {conv.title}
-                        </span>
-                        <p className="text-[11px] text-slate-400 truncate mt-1">
-                          {conv.latest_message?.content || 'No preview available.'}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Reading View */
-              <div className="p-5 max-w-4xl mx-auto space-y-5">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <button
-                    onClick={handleBackNavigation}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center space-x-2 border border-slate-700"
+                return (
+                  <div
+                    key={conv.conversation_id}
+                    onClick={() => handleOpenThread(conv.conversation_id)}
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid var(--email-row-border, rgba(255, 255, 255, 0.06))',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px'
+                    }}
                   >
-                    <ArrowLeft className="w-4 h-4 text-blue-400" />
-                    <span>Back to Email List</span>
-                  </button>
-                  <span className="text-xs text-slate-400 font-mono">Thread ID: {selectedConvId}</span>
-                </div>
-
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h1 className="text-lg font-extrabold text-slate-100 leading-snug">{currentConv?.title}</h1>
+                    <Star size={16} color="var(--email-text-muted, #64748b)" style={{ marginTop: '2px' }} />
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'var(--email-surface, #131c2e)',
+                      border: '1px solid var(--email-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      color: 'var(--email-text-primary, #e2e8f0)',
+                      flexShrink: 0
+                    }}>
+                      {otherParticipant.charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--email-text-primary, #f8fafc)' }}>
+                          {otherParticipant}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--email-text-muted, #94a3b8)', fontFamily: 'var(--font-mono, monospace)' }}>
+                          {conv.latest_message?.timestamp || formatConversationDate(conv.updated_at)}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--email-text-primary, #e2e8f0)', marginTop: '2px' }}>
+                        {conv.title}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--email-text-secondary, #94a3b8)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: '3px' }}>
+                        {conv.latest_message?.content || 'No preview available.'}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Thread View */
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', marginBottom: '16px', borderBottom: '1px solid var(--email-border)' }}>
+                <button
+                  onClick={handleBackNavigation}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '7px 14px',
+                    background: 'var(--email-surface, #131c2e)',
+                    border: '1px solid var(--email-border)',
+                    borderRadius: '8px',
+                    color: 'var(--email-text-primary, #f8fafc)',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ArrowLeft size={16} color="#60a5fa" /> Back to Email List
+                </button>
+                <span style={{ fontSize: '0.72rem', color: 'var(--email-text-muted, #64748b)', fontFamily: 'var(--font-mono, monospace)' }}>
+                  Thread ID: {selectedConvId}
+                </span>
+              </div>
 
-                {messages.map((msg) => (
-                  <div key={msg.message_id} className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-200 text-xs">
-                          {msg.sender_name?.charAt(0) || 'S'}
-                        </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-bold text-slate-100 text-xs">{msg.sender_name}</span>
-                            <span className="text-[11px] text-slate-400 font-mono">&lt;{msg.sender_id}@cybershield.ai&gt;</span>
-                          </div>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--email-text-primary, #f8fafc)', marginBottom: '16px' }}>
+                {currentConv?.title}
+              </h1>
+
+              {messages.map((msg) => (
+                <div
+                  key={msg.message_id}
+                  style={{
+                    background: 'var(--email-card-bg, rgba(19, 28, 46, 0.85))',
+                    border: '1px solid var(--email-border)',
+                    borderRadius: '12px',
+                    padding: '18px',
+                    marginBottom: '16px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--email-surface, #131c2e)', border: '1px solid var(--email-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--email-text-primary, #f8fafc)', fontSize: '0.85rem' }}>
+                        {msg.sender_name?.charAt(0) || 'S'}
+                      </div>
+                      <div>
+                        <strong style={{ fontSize: '0.85rem', color: 'var(--email-text-primary, #f8fafc)' }}>{msg.sender_name}</strong>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--email-text-muted, #64748b)', fontFamily: 'var(--font-mono, monospace)' }}>
+                          &lt;{msg.sender_id}@cybershield.ai&gt;
                         </div>
                       </div>
-                      <span className="text-xs text-slate-400 font-mono">{msg.timestamp || 'Today'}</span>
                     </div>
-
-                    <div className="text-slate-200 text-xs whitespace-pre-wrap leading-relaxed border-t border-slate-900 pt-3 font-mono">
-                      {msg.content}
-                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--email-text-muted, #94a3b8)', fontFamily: 'var(--font-mono, monospace)' }}>
+                      {msg.timestamp || 'Today'}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+
+                  <div style={{ fontSize: '0.82rem', color: 'var(--email-text-primary, #e2e8f0)', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono, monospace)', borderTop: '1px solid var(--email-border)', paddingTop: '12px' }}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Compose Modal */}
       {showComposeModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden animate-fade-in">
-            <div className="bg-slate-950 px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
-                <Send className="w-4 h-4 text-blue-400" />
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            width: '90%',
+            maxWidth: '560px',
+            background: 'var(--email-modal-bg, #0f172a)',
+            border: '1px solid var(--email-border-strong, rgba(255, 255, 255, 0.18))',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{ padding: '14px 18px', background: 'var(--email-sidebar-bg, #0c121e)', borderBottom: '1px solid var(--email-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 800, color: 'var(--email-text-primary, #f8fafc)' }}>
+                <Send size={16} color="#60a5fa" />
                 <span>Transmit External Email</span>
-              </h3>
-              <button
-                onClick={() => setShowComposeModal(false)}
-                className="text-slate-400 hover:text-slate-200 p-1 rounded-lg transition"
-              >
-                <X className="w-5 h-5" />
+              </div>
+              <button onClick={() => setShowComposeModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--email-text-muted, #94a3b8)', cursor: 'pointer' }}>
+                <X size={18} />
               </button>
             </div>
 
-            <div className="bg-slate-950/60 px-5 py-2 border-b border-slate-800/60 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">Quick Test Payloads:</span>
-              <div className="flex items-center space-x-2">
+            <div style={{ padding: '8px 18px', background: 'var(--email-surface, rgba(0, 0, 0, 0.3))', borderBottom: '1px solid var(--email-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--email-text-muted, #94a3b8)' }}>Quick Test Payloads:</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => loadPresetPayload('PHISHING')}
-                  className="px-2.5 py-1 rounded bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-[10px] font-extrabold transition"
+                  style={{ padding: '3px 8px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer' }}
                 >
                   Phishing Payload
                 </button>
                 <button
                   onClick={() => loadPresetPayload('SAFE')}
-                  className="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-300 text-[10px] font-extrabold transition"
+                  style={{ padding: '3px 8px', background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', color: '#34d399', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 800, cursor: 'pointer' }}
                 >
-                  Safe Email Payload
+                  Safe Payload
                 </button>
               </div>
             </div>
 
-            <div className="p-5 space-y-3">
+            <div style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">To</label>
+                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--email-text-secondary, #94a3b8)', display: 'block', marginBottom: '4px' }}>To</label>
                 <input
                   type="text"
                   value={composeRecipient}
                   onChange={(e) => setComposeRecipient(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition font-mono"
+                  style={{ width: '100%', padding: '8px 12px', background: 'var(--email-input-bg, #070b14)', border: '1px solid var(--email-border)', borderRadius: '8px', color: 'var(--email-input-text, #f8fafc)', fontSize: '0.8rem', fontFamily: 'var(--font-mono, monospace)', outline: 'none' }}
                   placeholder="user-kavin@cybershield.ai"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">Subject</label>
+                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--email-text-secondary, #94a3b8)', display: 'block', marginBottom: '4px' }}>Subject</label>
                 <input
                   type="text"
                   value={composeSubject}
                   onChange={(e) => setComposeSubject(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition"
+                  style={{ width: '100%', padding: '8px 12px', background: 'var(--email-input-bg, #070b14)', border: '1px solid var(--email-border)', borderRadius: '8px', color: 'var(--email-input-text, #f8fafc)', fontSize: '0.8rem', outline: 'none' }}
                   placeholder="Email subject line..."
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-400 mb-1">Message Body</label>
+                <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--email-text-secondary, #94a3b8)', display: 'block', marginBottom: '4px' }}>Message Body</label>
                 <textarea
                   rows={5}
                   value={composeBody}
                   onChange={(e) => setComposeBody(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition font-mono"
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--email-input-bg, #070b14)', border: '1px solid var(--email-border)', borderRadius: '8px', color: 'var(--email-input-text, #f8fafc)', fontSize: '0.8rem', fontFamily: 'var(--font-mono, monospace)', outline: 'none', resize: 'vertical' }}
                   placeholder="Write email content..."
                 />
               </div>
 
-              <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                <div className="flex items-center space-x-2">
-                  <Paperclip className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs text-slate-300">
-                    {selectedAttachment ? selectedAttachment : 'No attachment selected'}
-                  </span>
+              <div style={{ padding: '10px 12px', background: 'var(--email-surface, #131c2e)', border: '1px solid var(--email-border)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--email-text-primary, #e2e8f0)' }}>
+                  <Paperclip size={15} color="#60a5fa" />
+                  <span>{selectedAttachment ? selectedAttachment : 'No attachment selected'}</span>
                 </div>
-                <div className="flex items-center space-x-1.5">
+                <div style={{ display: 'flex', gap: '6px' }}>
                   <button
                     type="button"
                     onClick={() => setSelectedAttachment('Project_Report_v2.pdf')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-[10px] text-slate-300 rounded border border-slate-700"
+                    style={{ padding: '3px 8px', background: 'var(--email-sidebar-bg, #0c121e)', border: '1px solid var(--email-border)', color: 'var(--email-text-secondary, #cbd5e1)', borderRadius: '4px', fontSize: '0.68rem', cursor: 'pointer' }}
                   >
-                    + Add .pdf
+                    + .pdf
                   </button>
                   <button
                     type="button"
                     onClick={() => setSelectedAttachment('Invoice_Urgent_March.docm')}
-                    className="px-2 py-1 bg-rose-950 hover:bg-rose-900 text-[10px] text-rose-300 rounded border border-rose-800 font-bold"
+                    style={{ padding: '3px 8px', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer' }}
                   >
-                    + Add .docm
+                    + .docm
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-950 px-5 py-3 border-t border-slate-800 flex items-center justify-between">
-              <button
-                onClick={() => setShowComposeModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition"
-              >
+            <div style={{ padding: '12px 18px', background: 'var(--email-sidebar-bg, #0c121e)', borderTop: '1px solid var(--email-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button onClick={() => setShowComposeModal(false)} style={{ padding: '7px 14px', background: 'transparent', border: 'none', color: 'var(--email-text-muted, #94a3b8)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>
                 Cancel
               </button>
               <button
                 onClick={handleSendMessage}
                 disabled={sending || !composeBody.trim()}
-                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold px-5 py-2 rounded-xl text-xs flex items-center space-x-2 transition shadow-lg shadow-blue-950/40"
+                style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #2563eb, #4f46e5)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: sending || !composeBody.trim() ? 0.5 : 1 }}
               >
-                <Send className="w-4 h-4" />
-                <span>{sending ? 'Transmitting...' : 'Send Email'}</span>
+                <Send size={14} color="#ffffff" /> {sending ? 'Transmitting...' : 'Send Email'}
               </button>
             </div>
           </div>

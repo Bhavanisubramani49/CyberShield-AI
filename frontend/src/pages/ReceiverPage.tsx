@@ -20,7 +20,8 @@ import {
   Search,
   ArrowLeft
 } from 'lucide-react';
-import { SecurityEvent, SecurityAction, ConversationSummary, MessageItem } from '../types';
+import { UserProfile, SecurityEvent, SecurityAction, ConversationSummary, MessageItem } from '../types';
+import { getActiveUser } from '../services/auth';
 import { 
   fetchEventsAPI, 
   updateEventActionAPI,
@@ -35,12 +36,18 @@ import { EmailSimulator } from '../components/EmailSimulator';
 import { InstagramSimulator } from '../components/simulators/InstagramSimulator';
 import { formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
-export const ReceiverPage: React.FC = () => {
+interface ReceiverPageProps {
+  user?: UserProfile | null;
+}
+
+export const ReceiverPage: React.FC<ReceiverPageProps> = ({ user }) => {
   // Navigation & View Mode
   const [activeView, setActiveView] = useState<'whatsapp' | 'instagram' | 'messages' | 'email' | 'conversations' | 'telemetry'>('whatsapp');
 
-  // Multi-User Conversations State (Kavin is the fixed Primary Protected Receiver)
-  const currentUser = 'user-kavin';
+  // Multi-User Conversations State (Derived from logged-in CyberShield user)
+  const currentAuthUser = user || getActiveUser();
+  const activeUserId = currentAuthUser.id;
+  const accountOwnerName = currentAuthUser.fullName;
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [selectedConvId, setSelectedConvId] = useState<string>('CONV-003');
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -75,7 +82,7 @@ export const ReceiverPage: React.FC = () => {
   }, [selectedConvId]);
 
   const loadConversations = async () => {
-    const list = await fetchConversationsAPI(currentUser);
+    const list = await fetchConversationsAPI(activeUserId);
     setConversations(list);
     if (!selectedConvId && list.length > 0) {
       setSelectedConvId(list[0].conversation_id);
@@ -98,7 +105,7 @@ export const ReceiverPage: React.FC = () => {
 
     setSendingMsg(true);
     try {
-      await sendConversationMessageAPI(selectedConvId, currentUser, replyContent);
+      await sendConversationMessageAPI(selectedConvId, activeUserId, replyContent);
       setReplyContent('');
       await loadMessages(selectedConvId);
       await loadConversations();
@@ -209,7 +216,7 @@ export const ReceiverPage: React.FC = () => {
       {/* 2. WHATSAPP CONVERSATION CENTER VIEW */}
       {activeView === 'whatsapp' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
-          <WhatsAppSimulator activeUserId="user-kavin" isReceiverView={true} />
+          <WhatsAppSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
         </div>
       )}
 
@@ -218,8 +225,9 @@ export const ReceiverPage: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0', width: '100%' }}>
           <InstagramSimulator
             events={events}
+            currentUser={currentAuthUser}
             onSendEvent={async (p) => {
-              const res = await sendConversationMessageAPI('CONV-IG-001', 'user-kavin', p.payload?.text || 'Instagram Interaction');
+              const res = await sendConversationMessageAPI('CONV-IG-001', activeUserId, p.payload?.text || 'Instagram Interaction');
               await loadEvents();
               return res;
             }}
@@ -232,14 +240,14 @@ export const ReceiverPage: React.FC = () => {
       {/* 3. MESSAGES / SMS CONVERSATION CENTER VIEW */}
       {activeView === 'messages' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
-          <MessagesSimulator activeUserId="user-kavin" isReceiverView={true} />
+          <MessagesSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
         </div>
       )}
 
       {/* 4. EMAIL / GMAIL CONVERSATION CENTER VIEW */}
       {activeView === 'email' && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0', width: '100%', height: '680px' }}>
-          <EmailSimulator activeUserId="user-kavin" isReceiverView={true} />
+          <EmailSimulator activeUserId={activeUserId} currentUser={currentAuthUser} isReceiverView={true} />
         </div>
       )}
 
@@ -256,7 +264,7 @@ export const ReceiverPage: React.FC = () => {
                 Primary Protected Receiver
               </div>
               <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#f8fafc', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <User size={16} color="#4ade80" /> Kavin (Primary Student)
+                <User size={16} color="#4ade80" /> {accountOwnerName} (Primary Receiver)
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                 🟢 Receiver Defense Engine Active
@@ -412,7 +420,7 @@ export const ReceiverPage: React.FC = () => {
                 messages.map((msg) => {
                   const isThreat = msg.security_status !== 'SAFE';
                   const isCritical = msg.risk_level === 'CRITICAL' || msg.risk_level === 'HIGH';
-                  const isMe = msg.sender_id === currentUser;
+                  const isMe = msg.sender_id === activeUserId || msg.sender_name === accountOwnerName;
 
                   return (
                     <div
@@ -484,7 +492,7 @@ export const ReceiverPage: React.FC = () => {
                                   event_id: msg.event_id || msg.message_id,
                                   sender_id: msg.sender_name,
                                   sender_type: 'simulated_attacker',
-                                  receiver_id: currentUser,
+                                  receiver_id: activeUserId,
                                   receiver_surface: currentConv?.title || 'Messaging',
                                   platform: 'whatsapp',
                                   content_type: msg.content_type,
@@ -574,7 +582,7 @@ export const ReceiverPage: React.FC = () => {
               <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '10px' }}>
                 <input
                   type="text"
-                  placeholder="Send message as Kavin..."
+                  placeholder={`Send message as ${accountOwnerName}...`}
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
                   style={{

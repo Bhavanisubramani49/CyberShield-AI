@@ -46,7 +46,7 @@ interface InstagramSimulatorProps {
 }
 
 type MainSection = 'feed' | 'profile_scanner';
-type FeedTab = 'home' | 'explore' | 'create' | 'dms' | 'activity';
+type FeedTab = 'home' | 'explore' | 'reels' | 'create' | 'dms' | 'activity';
 type ViewMode = 'grid' | 'feed';
 
 export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({

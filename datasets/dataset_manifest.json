@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "generator_version": "2.0_large_scale",
+  "generation_seed": 42,
+  "users": 50,
+  "platforms": {
+    "whatsapp": {
+      "record_count": 15610,
+      "train": 10959,
+      "validation": 2359,
+      "test": 2292
+    },
+    "instagram": {
+      "record_count": 2600,
+      "train": 1827,
+      "validation": 399,
+      "test": 374
+    },
+    "sms": {
+      "record_count": 10431,
+      "train": 7313,
+      "validation": 1550,
+      "test": 1568
+    },
+    "email": {
+      "record_count": 14266,
+      "train": 9961,
+      "validation": 2128,
+      "test": 2177
+    },
+    "news": {
+      "record_count": 2600,
+      "train": 1821,
+      "validation": 395,
+      "test": 384
+    },
+    "web": {
+      "record_count": 2600,
+      "train": 1819,
+      "validation": 388,
+      "test": 393
+    },
+    "photos": {
+      "record_count": 2600,
+      "train": 1801,
+      "validation": 404,
+      "test": 395
+    },
+    "youtube": {
+      "record_count": 2600,
+      "train": 1808,
+      "validation": 391,
+      "test": 401
+    },
+    "videos": {
+      "record_count": 2600,
+      "train": 1795,
+      "validation": 395,
+      "test": 410
+    },
+    "files": {
+      "record_count": 2600,
+      "train": 1801,
+      "validation": 402,
+      "test": 397
+    }
+  },
+  "attack_chains": {
+    "chains_created": 200,
+    "records_tagged": 440,
+    "by_pattern": {
+      "whatsapp -> files": 40,
+      "youtube -> news": 40,
+      "email -> files": 40,
+      "sms -> web": 40,
+      "instagram -> web -> email": 40
+    }
+  },
+  "generated_in_seconds": 6.94
+}

@@ -53,7 +53,7 @@ export async function transmitEventToCore(
 // Multi-User Conversation Ecosystem Functions for Sender App
 const API_V1_URL = 'http://127.0.0.1:8000/api/v1';
 
-export async function fetchDemoUsersSenderAPI(excludeUserId: string = 'user-kavin') {
+export async function fetchDemoUsersSenderAPI(excludeUserId: string = '') {
   try {
     const url = excludeUserId 
       ? `${API_V1_URL}/conversations/users?exclude_user_id=${encodeURIComponent(excludeUserId)}`

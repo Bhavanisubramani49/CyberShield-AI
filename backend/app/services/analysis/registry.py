@@ -36,31 +36,23 @@ class ModelRegistry:
         res = []
         for detector in unique_detectors.values():
             meta = ml_engine.get_model_info(detector.modality)
-            status = "TRAINED" if meta else "FALLBACK"
-            algorithm = meta.get("algorithm", "Heuristic + NLP Rule Engine") if meta else "Baseline Prototype"
-            metrics = meta.get("metrics", {
-                "accuracy": 0.96,
-                "precision": 0.95,
-                "recall": 0.94,
-                "macro_f1": 0.945
-            }) if meta else {
-                "accuracy": 0.95,
-                "precision": 0.94,
-                "recall": 0.93,
-                "macro_f1": 0.935
-            }
+            has_meta = bool(meta)
+
+            status = meta.get("status", "TRAINED") if has_meta else "MODEL_NOT_TRAINED"
+            algorithm = meta.get("algorithm", "ML Detection Engine") if has_meta else "Pipeline Structure Ready (Awaiting Model Training)"
+            metrics = meta.get("metrics", None) if has_meta else None
 
             res.append({
                 "name": detector.name,
                 "modality": detector.modality,
-                "version": meta.get("version", detector.version) if meta else detector.version,
+                "version": meta.get("version", detector.version) if has_meta else detector.version,
                 "status": status,
                 "type": algorithm,
                 "description": detector.description,
-                "accuracy": metrics.get("accuracy", 0.96),
-                "precision": metrics.get("precision", 0.95),
-                "recall": metrics.get("recall", 0.94),
-                "f1_score": metrics.get("macro_f1", 0.945)
+                "accuracy": metrics.get("accuracy") if metrics else None,
+                "precision": metrics.get("precision") if metrics else None,
+                "recall": metrics.get("recall") if metrics else None,
+                "f1_score": metrics.get("macro_f1") if metrics else None
             })
         return res
 

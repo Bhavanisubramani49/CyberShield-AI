@@ -21,7 +21,8 @@ import {
   User, 
   Sparkles
 } from 'lucide-react';
-import { ConversationSummary, MessageItem, UserContact } from '../types';
+import { UserProfile, ConversationSummary, MessageItem, UserContact } from '../types';
+import { getActiveUser } from '../services/auth';
 import { 
   fetchConversationsAPI, 
   fetchConversationMessagesAPI, 
@@ -32,16 +33,22 @@ import {
 import { useLiveClock, formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 interface WhatsAppSimulatorProps {
-  activeUserId: string;
+  activeUserId?: string;
+  currentUser?: UserProfile | null;
   isReceiverView?: boolean;
   onSelectEventDetails?: (eventId: string) => void;
 }
 
 export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   activeUserId,
+  currentUser,
   isReceiverView = true,
   onSelectEventDetails
 }) => {
+  const currentAuthUser = currentUser || getActiveUser();
+  const effectiveUserId = activeUserId || currentAuthUser.id;
+  const accountOwnerName = currentAuthUser.fullName;
+
   const liveClock = useLiveClock();
   // Navigation & Screen View
   const [activeTab, setActiveTab] = useState<'chats' | 'updates' | 'calls'>('chats');
@@ -132,7 +139,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       clearInterval(interval);
       if (eventSource) eventSource.close();
     };
-  }, [activeUserId, selectedConvId]);
+  }, [effectiveUserId, selectedConvId]);
 
   useEffect(() => {
     if (selectedConvId) {
@@ -149,12 +156,12 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   const loadContacts = async () => {
-    const list = await fetchUserContactsAPI(activeUserId);
+    const list = await fetchUserContactsAPI(effectiveUserId);
     setContacts(list);
   };
 
   const loadConversations = async () => {
-    const list = await fetchConversationsAPI(activeUserId, 'WHATSAPP');
+    const list = await fetchConversationsAPI(effectiveUserId, 'WHATSAPP');
     setConversations(list);
     if (!selectedConvId && list.length > 0) {
       setSelectedConvId(list[0].conversation_id);
@@ -172,7 +179,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
     setSending(true);
     try {
-      await sendConversationMessageAPI(selectedConvId, activeUserId, text, contentType);
+      await sendConversationMessageAPI(selectedConvId, effectiveUserId, text, contentType);
       setMessageText('');
       setShowAttachmentMenu(false);
       await loadMessages(selectedConvId);
@@ -241,7 +248,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   <span style={{ color: '#00a884' }}>WhatsApp</span>
                 </h1>
                 <div style={{ fontSize: '0.68rem', color: isReceiverView ? '#00a884' : '#60a5fa', fontWeight: 600, marginTop: '2px' }}>
-                  {isReceiverView ? '🛡 CyberShield Receiver Defense Active (Kavin)' : '📱 External Sender Simulation'}
+                  {isReceiverView ? `🛡 CyberShield Receiver Defense Active (${accountOwnerName})` : '📱 External Sender Simulation'}
                 </div>
               </div>
 
@@ -469,7 +476,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             </div>
 
             {messages.map((m) => {
-              const isOutgoing = m.sender_id === activeUserId;
+              const isOutgoing = m.sender_id === effectiveUserId || m.sender_id === currentAuthUser.id || m.sender_name === accountOwnerName;
               const isDangerous = m.security_status === 'DANGEROUS';
               const isBlocked = m.security_status === 'BLOCKED';
 

@@ -5,10 +5,10 @@ const THEME_STORAGE_KEY = 'cybershield_theme_mode';
 
 // Pre-seeded default demonstration profile
 const DEFAULT_USER: UserProfile = {
-  id: 'USR-8821',
-  fullName: 'Dr. Alex Vance',
-  email: 'officer@cybershield.ai',
-  role: 'Lead Cybersecurity Architect',
+  id: 'USER_000010',
+  fullName: 'Kavin',
+  email: 'kavin@cybershield.local',
+  role: 'Lead Cybersecurity Student',
   accountStatus: 'ACTIVE_PROTECTED',
   createdAt: '2026-01-15T08:00:00Z',
 };
@@ -47,13 +47,40 @@ export function setStoredTheme(theme: 'dark' | 'light'): void {
 }
 
 export async function loginUser(email: string, _password: string, _rememberMe: boolean): Promise<UserProfile> {
-  // Simulate professional API loading delay (400ms)
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 300));
+
+  const cleanInput = email.trim();
+  const prefix = cleanInput.split('@')[0].replace('.', ' ');
+  const nameFromEmail = prefix.replace(/\b\w/g, l => l.toUpperCase()) || 'CyberShield Officer';
+
+  let userId = cleanInput.split('@')[0];
+  let fullName = nameFromEmail;
+  let userEmail = cleanInput.includes('@') ? cleanInput : `${cleanInput.toLowerCase()}@cybershield.local`;
+
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/v1/conversations/users');
+    if (res.ok) {
+      const demoUsers = await res.json();
+      const matched = demoUsers.find((u: any) => 
+        u.user_id?.toLowerCase() === cleanInput.toLowerCase() ||
+        u.email?.toLowerCase() === cleanInput.toLowerCase() ||
+        u.name?.toLowerCase() === cleanInput.toLowerCase() ||
+        u.name?.toLowerCase() === prefix.toLowerCase()
+      );
+      if (matched) {
+        userId = matched.user_id;
+        fullName = matched.name;
+        userEmail = matched.email || userEmail;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not fetch demo users during login:', e);
+  }
 
   const user: UserProfile = {
-    id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
-    fullName: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'CyberShield Officer',
-    email: email,
+    id: userId,
+    fullName: fullName,
+    email: userEmail,
     role: 'Cybersecurity Analyst',
     accountStatus: 'ACTIVE_PROTECTED',
     createdAt: new Date().toISOString(),
@@ -86,6 +113,10 @@ export async function sendPasswordReset(email: string): Promise<boolean> {
 
 export function logoutUser(): void {
   setStoredUser(null);
+}
+
+export function getActiveUser(): UserProfile {
+  return getStoredUser() || DEFAULT_USER;
 }
 
 export { DEFAULT_USER };

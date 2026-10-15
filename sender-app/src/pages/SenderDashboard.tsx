@@ -271,7 +271,7 @@ export const SenderDashboard: React.FC<SenderDashboardProps> = ({ onLogout }) =>
   }, [selectedConvId]);
 
   const loadEcoData = async () => {
-    const users = await fetchDemoUsersSenderAPI('user-kavin');
+    const users = await fetchDemoUsersSenderAPI('');
     setDemoUsers(users);
     if (users.length > 0 && !users.some((u: any) => u.user_id === activeSenderId)) {
       setActiveSenderId(users[0].user_id);

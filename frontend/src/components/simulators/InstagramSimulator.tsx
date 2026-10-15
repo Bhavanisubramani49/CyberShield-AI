@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ArrowLeft,
   Heart, 
@@ -20,9 +20,14 @@ import {
   CheckCircle,
   AlertTriangle,
   ExternalLink,
-  Shield
+  Shield,
+  Video,
+  Info,
+  Ban,
+  Check
 } from 'lucide-react';
-import { SecurityEvent } from '../../types';
+import { SecurityEvent, UserProfile } from '../../types';
+import { getActiveUser } from '../../services/auth';
 import { 
   INSTAGRAM_50_POSTS, 
   INSTAGRAM_20_PROFILES, 
@@ -32,6 +37,7 @@ import {
 
 interface InstagramSimulatorProps {
   events: SecurityEvent[];
+  currentUser?: UserProfile | null;
   onSendEvent: (payload: {
     platform: string;
     sender_id: string;
@@ -46,15 +52,20 @@ interface InstagramSimulatorProps {
 }
 
 type MainSection = 'feed' | 'profile_scanner';
-type FeedTab = 'home' | 'explore' | 'create' | 'dms' | 'activity';
+type FeedTab = 'home' | 'explore' | 'reels' | 'create' | 'dms' | 'activity';
 type ViewMode = 'grid' | 'feed';
 
 export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
   events,
+  currentUser,
   onSendEvent,
   onInspectEvent,
   onOpenWarning
 }) => {
+  const currentAuthUser = currentUser || getActiveUser();
+  const accountOwnerName = currentAuthUser.fullName;
+  const accountHandle = `@${accountOwnerName.toLowerCase().replace(/\s+/g, '_')}`;
+
   // Navigation State
   const [mainSection, setMainSection] = useState<MainSection>('feed');
   const [activeTab, setActiveTab] = useState<FeedTab>('home');
@@ -71,10 +82,103 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Posts State (Starts with the 50 dataset posts, dynamic events added on top)
+  // Posts State (Starts with dataset posts, dynamic events added on top)
   const [posts, setPosts] = useState<InstagramPost[]>(INSTAGRAM_50_POSTS);
   const [selectedPost, setSelectedPost] = useState<InstagramPost | null>(null);
   const [activeStory, setActiveStory] = useState<any | null>(null);
+
+  // Video Analysis State & Single-Trigger Deduplication Ref
+  const analyzedVideoIdsRef = useRef<Set<string>>(new Set());
+  const [videoAnalysisMap, setVideoAnalysisMap] = useState<Record<string, {
+    model_status: string;
+    classification: string;
+    risk_score: number;
+    risk_level: string;
+    forensic_reasons: string[];
+  }>>({});
+  const [videoActionsMap, setVideoActionsMap] = useState<Record<string, 'ALLOW' | 'BLOCK'>>({});
+
+  const analyzeReelVideo = async (post: InstagramPost) => {
+    if (!post || post.media_type !== 'video' || analyzedVideoIdsRef.current.has(post.id)) {
+      return;
+    }
+
+    analyzedVideoIdsRef.current.add(post.id);
+
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/v1/video/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: `${post.id}.mp4`,
+          source_platform: 'instagram',
+          sender_id: post.username,
+          sender_name: post.authorName,
+          sender_type: post.expected_classification !== 'ORIGINAL' ? 'simulated_attacker' : 'normal_user',
+          duration_sec: post.video_metadata?.duration_sec || 15.0,
+          fps: post.video_metadata?.fps || 30.0
+        })
+      });
+
+      if (!res.ok) throw new Error(`Video API status ${res.status}`);
+      const data = await res.json();
+
+      setVideoAnalysisMap(prev => ({
+        ...prev,
+        [post.id]: {
+          model_status: data.model_status || 'MODEL_NOT_TRAINED',
+          classification: data.classification || 'MODEL_NOT_TRAINED',
+          risk_score: data.risk_score || 0,
+          risk_level: data.risk_level || 'MODEL_NOT_TRAINED',
+          forensic_reasons: data.forensic_reasons || []
+        }
+      }));
+
+      const isThreat = data.classification === 'MANIPULATED' || data.classification === 'DEEPFAKE';
+      if (isThreat) {
+        const syntheticEvent: SecurityEvent = {
+          event_id: post.id,
+          sender_id: post.username,
+          sender_type: 'simulated_attacker',
+          receiver_id: 'RCV-IG-001',
+          receiver_surface: 'Instagram Reels',
+          platform: 'instagram',
+          content_type: 'video',
+          content_preview: post.caption,
+          content_reference: post.video_url || post.image_path,
+          created_at: new Date().toISOString(),
+          received_at: new Date().toISOString(),
+          processed_at: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
+          status: 'analyzed',
+          classification: data.classification,
+          risk_score: data.risk_score || 92,
+          risk_level: data.risk_level || 'HIGH',
+          confidence: 0.96,
+          ai_model: 'deepfake_video_pipeline',
+          forensic_reasons: data.forensic_reasons || ['Deepfake video warping artifacts detected'],
+          recommended_action: 'QUARANTINE',
+          final_action: 'QUARANTINE',
+          timeline: []
+        };
+
+        onInspectEvent(syntheticEvent);
+        onOpenWarning(syntheticEvent);
+      }
+    } catch (err) {
+      console.error("Video security pipeline call error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'reels') {
+      const reelPosts = posts.filter(p => p.media_type === 'video');
+      reelPosts.forEach(p => analyzeReelVideo(p));
+    }
+    if (selectedPost && selectedPost.media_type === 'video') {
+      analyzeReelVideo(selectedPost);
+    }
+  }, [activeTab, selectedPost, posts]);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -163,7 +267,7 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
   // Add Comment to Post
   const handleAddComment = (postId: string) => {
     if (!commentInput.trim()) return;
-    const newComment = { user: "dr_alex_vance", text: commentInput.trim(), time: "Just now" };
+    const newComment = { user: accountHandle.replace('@', ''), text: commentInput.trim(), time: "Just now" };
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         return {
@@ -225,8 +329,8 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
         expected_classification: isThreat ? 'MANIPULATED' : 'ORIGINAL',
         source_dataset: 'User_Uploaded_Live_Stream',
         detector_type: 'image_manipulation_ai',
-        username: '@dr_alex_vance',
-        authorName: 'Dr. Alex Vance',
+        username: accountHandle,
+        authorName: accountOwnerName,
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         caption: createCaption || selectedTemplate.caption,
         hashtags: ['#cybershield', '#protection', '#verified'],
@@ -454,7 +558,141 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
           )}
 
           {/* Tab Content */}
-          {activeTab === 'home' || activeTab === 'explore' ? (
+          {activeTab === 'reels' ? (
+            <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Video size={22} color="#ec4899" /> Instagram Reels Video Stream
+              </div>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                Real-time MP4 video frame sampling & CyberShield Video Security Pipeline integration (<code style={{ color: '#ec4899' }}>deepfake_video_pipeline</code>).
+              </div>
+
+              {posts.filter(p => p.media_type === 'video').map(post => {
+                const vAnalysis = videoAnalysisMap[post.id];
+                const isBlocked = videoActionsMap[post.id] === 'BLOCK';
+                const isAllowed = videoActionsMap[post.id] === 'ALLOW';
+
+                const isModelNotTrained = vAnalysis?.model_status === 'MODEL_NOT_TRAINED' || !vAnalysis;
+                const isThreat = !isModelNotTrained && (vAnalysis?.classification === 'DEEPFAKE' || vAnalysis?.classification === 'MANIPULATED') && !isAllowed;
+
+                return (
+                  <div
+                    key={post.id}
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.8)',
+                      border: isThreat ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '14px',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* Reel Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img src={post.avatarUrl} alt={post.authorName} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+                        <div>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f8fafc' }}>{post.username}</div>
+                          <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{post.authorName} • {post.timestamp}</div>
+                        </div>
+                      </div>
+
+                      {/* Pipeline Status Indicator */}
+                      <div style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.68rem', fontWeight: 700, background: isModelNotTrained ? 'rgba(59, 130, 246, 0.15)' : isThreat ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)', color: isModelNotTrained ? '#60a5fa' : isThreat ? '#f87171' : '#4ade80', border: `1px solid ${isModelNotTrained ? 'rgba(59,130,246,0.3)' : isThreat ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)'}` }}>
+                        {isModelNotTrained ? 'ℹ️ PIPELINE: MODEL_NOT_TRAINED' : isThreat ? '🚨 DEEPFAKE / THREAT' : '✓ REAL / SAFE'}
+                      </div>
+                    </div>
+
+                    {/* Reel Video Player / Intercept Area */}
+                    <div style={{ position: 'relative', width: '100%', background: '#000' }}>
+                      {isBlocked ? (
+                        <div style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(239, 68, 68, 0.15)', color: '#f87171' }}>
+                          <Ban size={36} color="#f87171" style={{ marginBottom: '10px' }} />
+                          <div style={{ fontSize: '1rem', fontWeight: 800 }}>🚫 Reel Blocked by CyberShield Policy</div>
+                          <div style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '4px' }}>Sender {post.username} blocked on Instagram channel.</div>
+                          <button
+                            onClick={() => setVideoActionsMap(prev => ({ ...prev, [post.id]: 'ALLOW' }))}
+                            style={{ marginTop: '12px', padding: '6px 14px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: '#fff', fontSize: '0.75rem', cursor: 'pointer' }}
+                          >
+                            Unblock / Allow Playback
+                          </button>
+                        </div>
+                      ) : isThreat ? (
+                        /* THREAT / DEEPFAKE INTERCEPTED OVERLAY (Requirement 5) */
+                        <div style={{ padding: '30px 20px', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(239, 68, 68, 0.5)', color: '#fff' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#f87171', fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>
+                            <ShieldAlert size={24} color="#f87171" /> 🚨 DEEPFAKE / MANIPULATED REEL INTERCEPTED
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.15)', borderRadius: '8px', marginBottom: '12px' }}>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#f87171' }}>
+                              Classification: {vAnalysis.classification}
+                            </span>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f87171' }}>
+                              Risk Score: {vAnalysis.risk_score}/100 ({vAnalysis.risk_level})
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px' }}>
+                            Why is this dangerous?
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
+                            {vAnalysis.forensic_reasons.map((reason, idx) => (
+                              <div key={idx} style={{ fontSize: '0.74rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ color: '#f87171' }}>•</span> {reason}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                              onClick={() => setVideoActionsMap(prev => ({ ...prev, [post.id]: 'BLOCK' }))}
+                              style={{ flex: 1, padding: '10px', background: '#ef4444', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            >
+                              <Ban size={16} /> BLOCK SENDER
+                            </button>
+                            <button
+                              onClick={() => setVideoActionsMap(prev => ({ ...prev, [post.id]: 'ALLOW' }))}
+                              style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            >
+                              <Check size={16} /> ALLOW PLAYBACK
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* NORMAL / SAFE OR MODEL_NOT_TRAINED VIDEO PLAYBACK (Requirement 2 & 4) */
+                        <div style={{ position: 'relative', width: '100%', background: '#000' }}>
+                          <video
+                            src={post.video_url}
+                            poster={post.thumbnail_path}
+                            controls
+                            loop
+                            playsInline
+                            style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', display: 'block' }}
+                          />
+
+                          {isModelNotTrained && (
+                            <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', padding: '6px 10px', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', borderRadius: '6px', fontSize: '0.7rem', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Info size={12} color="#60a5fa" />
+                              <span>Video Security Pipeline: Awaiting Model Training (MODEL_NOT_TRAINED) — Playing normally</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions & Caption */}
+                    <div style={{ padding: '12px 14px' }}>
+                      <div style={{ fontSize: '0.82rem', color: '#e2e8f0', marginBottom: '6px' }}>
+                        <strong>{post.username}</strong> {post.caption}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#ec4899' }}>
+                        {post.hashtags.join(' ')}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : activeTab === 'home' || activeTab === 'explore' ? (
             <div>
               {/* Stories Tray */}
               <div style={{ display: 'flex', gap: '14px', padding: '14px 20px', overflowX: 'auto', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -848,6 +1086,14 @@ export const InstagramSimulator: React.FC<InstagramSimulatorProps> = ({
             >
               <Compass size={20} />
               <span style={{ fontSize: '0.62rem', fontWeight: 600 }}>Explore</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('reels')}
+              style={{ background: 'none', border: 'none', color: activeTab === 'reels' ? '#ec4899' : '#94a3b8', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
+            >
+              <Video size={20} color={activeTab === 'reels' ? '#ec4899' : '#94a3b8'} />
+              <span style={{ fontSize: '0.62rem', fontWeight: 600 }}>Reels</span>
             </button>
 
             <button

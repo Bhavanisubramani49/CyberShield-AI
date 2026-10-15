@@ -25,7 +25,8 @@ def get_datasets_manifest() -> List[Dict[str, Any]]:
         ("urls/url_threat_dataset.csv", "url", "url_threat_meta.json"),
         ("fake_news/fake_news_dataset.csv", "news", "fake_news_meta.json"),
         ("profiles/profile_anomaly_dataset.csv", "profile", "profile_anomaly_meta.json"),
-        ("files/file_security_dataset.csv", "file", "file_security_meta.json")
+        ("files/file_security_dataset.csv", "file", "file_security_meta.json"),
+        ("video_security/metadata.csv", "video", "video_security_meta.json")
     ]
 
     for rel_csv, modality, meta_file in dataset_mappings:
@@ -41,6 +42,16 @@ def get_datasets_manifest() -> List[Dict[str, Any]]:
             except Exception:
                 pass
 
+        has_trained_meta = bool(meta_data)
+        model_status = meta_data.get("status", "TRAINED") if has_trained_meta else "MODEL_NOT_TRAINED"
+        algorithm = meta_data.get("algorithm", "ML Classification Baseline") if has_trained_meta else "Pipeline Structure Ready (Awaiting Model Training)"
+        metrics = meta_data.get("metrics", None) if has_trained_meta else {
+            "accuracy": None,
+            "precision": None,
+            "recall": None,
+            "macro_f1": None
+        }
+
         manifest.append({
             "dataset_name": csv_path.name if csv_path.exists() else rel_csv,
             "modality": modality,
@@ -49,15 +60,10 @@ def get_datasets_manifest() -> List[Dict[str, Any]]:
             "classes": val_rep.get("classes", []),
             "class_distribution": val_rep.get("class_distribution", {}),
             "status": "VALID_AND_CONNECTED" if val_rep.get("usable_rows", 0) > 0 else "READY_FOR_DATASET",
-            "trained_model": meta_data.get("model_name", f"{modality}_model"),
-            "model_status": meta_data.get("status", "TRAINED"),
-            "algorithm": meta_data.get("algorithm", "ML Classification Baseline"),
-            "metrics": meta_data.get("metrics", {
-                "accuracy": 0.98,
-                "precision": 0.97,
-                "recall": 0.96,
-                "macro_f1": 0.965
-            })
+            "trained_model": meta_data.get("model_name", f"{modality}_model") if has_trained_meta else f"{modality}_security_pipeline",
+            "model_status": model_status,
+            "algorithm": algorithm,
+            "metrics": metrics
         })
 
     return manifest

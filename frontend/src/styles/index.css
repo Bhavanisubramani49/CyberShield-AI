@@ -46,6 +46,28 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
+
+  /* Email Sandbox Dedicated Theme Tokens - Dark Theme */
+  --email-bg: #0a0e17;
+  --email-surface: #0f172a;
+  --email-surface-hover: rgba(30, 41, 59, 0.95);
+  --email-sidebar-bg: #0c121e;
+  --email-header-bg: #0c121e;
+  --email-card-bg: rgba(19, 28, 46, 0.85);
+  --email-modal-bg: #0f172a;
+  --email-text-primary: #f8fafc;
+  --email-text-secondary: #cbd5e1;
+  --email-text-muted: #94a3b8;
+  --email-border: rgba(255, 255, 255, 0.08);
+  --email-border-strong: rgba(255, 255, 255, 0.18);
+  --email-input-bg: #070b14;
+  --email-input-text: #f8fafc;
+  --email-placeholder: #64748b;
+  --email-row-hover: rgba(30, 41, 59, 0.6);
+  --email-row-border: rgba(255, 255, 255, 0.06);
+  --email-threat-bg: rgba(239, 68, 68, 0.12);
+  --email-threat-text: #fee2e2;
+  --email-threat-border: rgba(239, 68, 68, 0.4);
 }
 
 /* Light Theme Overrides */
@@ -84,6 +106,28 @@
   --shadow-card: 0 4px 16px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
   --shadow-green: 0 2px 10px rgba(5, 150, 105, 0.12);
   --shadow-blue: 0 2px 10px rgba(37, 99, 235, 0.12);
+
+  /* Email Sandbox Dedicated Theme Tokens - Light Theme Overrides */
+  --email-bg: #f5f7fa;
+  --email-surface: #ffffff;
+  --email-surface-hover: #f1f5f9;
+  --email-sidebar-bg: #ffffff;
+  --email-header-bg: #ffffff;
+  --email-card-bg: #ffffff;
+  --email-modal-bg: #ffffff;
+  --email-text-primary: #172033;
+  --email-text-secondary: #475467;
+  --email-text-muted: #667085;
+  --email-border: #d0d5dd;
+  --email-border-strong: #b0b7c3;
+  --email-input-bg: #f8fafc;
+  --email-input-text: #172033;
+  --email-placeholder: #667085;
+  --email-row-hover: #f2f4f7;
+  --email-row-border: #eaecf0;
+  --email-threat-bg: #fef2f2;
+  --email-threat-text: #991b1b;
+  --email-threat-border: #fca5a5;
 }
 
 * {

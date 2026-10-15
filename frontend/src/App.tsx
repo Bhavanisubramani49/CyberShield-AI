@@ -145,10 +145,10 @@ export const App: React.FC = () => {
               {/* Main Content Viewport */}
               <main className="main-viewport">
                 <div className="page-container">
-                  {currentPage === 'home' && <HomePage health={health} setPage={setPage} />}
-                  {currentPage === 'receiver' && <ReceiverPage />}
+                  {currentPage === 'home' && <HomePage health={health} setPage={setPage} user={user} />}
+                  {currentPage === 'receiver' && <ReceiverPage user={user} />}
                   {currentPage === 'monitor' && <MonitorPage />}
-                  {currentPage === 'dashboard' && <DashboardPage health={health} />}
+                  {currentPage === 'dashboard' && <DashboardPage health={health} user={user} />}
                   {currentPage === 'history' && <HistoryPage />}
                   {currentPage === 'notifications' && <NotificationsPage />}
                   {currentPage === 'permissions' && <PermissionsPage />}

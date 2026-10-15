@@ -1,0 +1,3 @@
+Suspicious Archive Metadata — FILE_000009
+
+This is a synthetic, harmless document generated for CyberShield AI training. It contains no real personal data, credentials, or executable code. Category: suspicious_archive_metadata.

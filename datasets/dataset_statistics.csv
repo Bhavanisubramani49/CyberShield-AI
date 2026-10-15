@@ -1,0 +1,11 @@
+platform,total_records,avg_risk_score,median_risk_score,unique_users,train,validation,test
+email,600,39.97,28,50,428,83,89
+files,150,32.41,16,48,98,26,26
+instagram,600,41.04,31,50,444,83,73
+news,600,43.92,42,50,425,103,72
+photos,240,41.18,36,37,180,32,28
+sms,600,43.12,36,50,410,103,87
+videos,30,28.4,27,10,25,3,2
+web,600,44.01,48,50,405,99,96
+whatsapp,600,43.64,39,50,445,79,76
+youtube,30,32.27,21,25,27,2,1

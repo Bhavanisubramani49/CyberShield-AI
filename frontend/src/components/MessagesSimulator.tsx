@@ -18,11 +18,12 @@ import {
   Users, 
   User, 
   Plus,
-  MessageSquare,
   Sparkles,
-  Ban
+  Ban,
+  ShieldCheck
 } from 'lucide-react';
-import { ConversationSummary, MessageItem, UserContact } from '../types';
+import { UserProfile, ConversationSummary, MessageItem, UserContact } from '../types';
+import { getActiveUser } from '../services/auth';
 import { 
   fetchConversationsAPI, 
   fetchConversationMessagesAPI, 
@@ -33,30 +34,39 @@ import {
 import { useLiveClock, formatMessageTime, formatConversationDate } from '../utils/timeUtils';
 
 interface MessagesSimulatorProps {
-  activeUserId: string;
+  activeUserId?: string;
+  currentUser?: UserProfile | null;
   isReceiverView?: boolean;
   onSelectEventDetails?: (eventId: string) => void;
 }
 
 export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
-  activeUserId = 'user-kavin',
+  activeUserId,
+  currentUser,
   isReceiverView = true,
   onSelectEventDetails
 }) => {
+  const currentAuthUser = currentUser || getActiveUser();
+  const effectiveUserId = activeUserId || currentAuthUser.id;
+  const accountOwnerName = currentAuthUser.fullName;
+
   const liveClock = useLiveClock();
   if (!isReceiverView || onSelectEventDetails) console.log('receiverMode');
+
   // Navigation & Screen View
   const [activeScreen, setActiveScreen] = useState<'home' | 'chat'>('home');
+  const [activeTab, setActiveTab] = useState<'chats' | 'services' | 'threats'>('chats');
 
   // Contacts & Conversations State
   const [contacts, setContacts] = useState<UserContact[]>([]);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [selectedConvId, setSelectedConvId] = useState<string>('CONV-SMS-001');
+  const [selectedConvId, setSelectedConvId] = useState<string>('');
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [messageText, setMessageText] = useState<string>('');
   const [sending, setSending] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAttachmentMenu, setShowAttachmentMenu] = useState<boolean>(false);
+  const [showNewChatModal, setShowNewChatModal] = useState<boolean>(false);
 
   // Security Threat Explanations & Notification State
   const [dismissedNotifications, setDismissedNotifications] = useState<Record<string, boolean>>({});
@@ -80,7 +90,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
     try {
       window.history.pushState({ screen: 'chat', convId }, '');
     } catch (e) {
-      // Fallback if pushState fails
+      // Fallback
     }
   };
 
@@ -94,6 +104,14 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
       }
     }
   };
+
+  // Reset & load on effectiveUserId change
+  useEffect(() => {
+    setSelectedConvId('');
+    setActiveScreen('home');
+    loadContacts();
+    loadConversations();
+  }, [effectiveUserId]);
 
   useEffect(() => {
     loadContacts();
@@ -110,21 +128,23 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
     // SSE Real-Time Stream
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}&channel=SMS`);
-      eventSource.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'SMS')) {
-            setMessages((prev: MessageItem[]) => {
-              if (prev.some((m: MessageItem) => m.message_id === data.message_id || (data.event_id && m.event_id === data.event_id))) return prev;
-              return [...prev, data];
-            });
-            loadConversations();
+      if (selectedConvId) {
+        eventSource = new EventSource(`http://127.0.0.1:8000/api/v1/conversations/stream?conversation_id=${encodeURIComponent(selectedConvId)}&channel=SMS`);
+        eventSource.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            if (data.type !== 'connected' && data.conversation_id === selectedConvId && (!data.channel || data.channel === 'SMS')) {
+              setMessages((prev: MessageItem[]) => {
+                if (prev.some((m: MessageItem) => m.message_id === data.message_id || (data.event_id && m.event_id === data.event_id))) return prev;
+                return [...prev, data];
+              });
+              loadConversations();
+            }
+          } catch (err) {
+            // Silent parse catch
           }
-        } catch (err) {
-          // Silent parse catch
-        }
-      };
+        };
+      }
     } catch (e) {
       console.warn('SSE stream unavailable, relying on polling fallback');
     }
@@ -133,7 +153,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
       clearInterval(interval);
       if (eventSource) eventSource.close();
     };
-  }, [activeUserId, selectedConvId]);
+  }, [effectiveUserId, selectedConvId]);
 
   useEffect(() => {
     if (selectedConvId) {
@@ -142,27 +162,32 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
   }, [selectedConvId]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (activeScreen === 'chat') {
+      scrollToBottom();
+    }
+  }, [messages, activeScreen]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const loadContacts = async () => {
-    const list = await fetchUserContactsAPI(activeUserId);
+    const list = await fetchUserContactsAPI(effectiveUserId);
     setContacts(list);
   };
 
   const loadConversations = async () => {
-    const list = await fetchConversationsAPI(activeUserId, 'SMS');
+    const list = await fetchConversationsAPI(effectiveUserId, 'SMS');
     setConversations(list);
-    if (list.length > 0 && !list.some((c: ConversationSummary) => c.conversation_id === selectedConvId)) {
-      setSelectedConvId(list[0].conversation_id);
+    if (list.length > 0) {
+      if (!selectedConvId || !list.some((c: ConversationSummary) => c.conversation_id === selectedConvId)) {
+        setSelectedConvId(list[0].conversation_id);
+      }
     }
   };
 
   const loadMessages = async (convId: string) => {
+    if (!convId) return;
     const msgs = await fetchConversationMessagesAPI(convId);
     setMessages(msgs);
   };
@@ -173,7 +198,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 
     setSending(true);
     try {
-      await sendConversationMessageAPI(selectedConvId, activeUserId, text, contentType);
+      await sendConversationMessageAPI(selectedConvId, effectiveUserId, text, contentType);
       setMessageText('');
       setShowAttachmentMenu(false);
       await loadMessages(selectedConvId);
@@ -200,15 +225,54 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
     }
   };
 
-  const currentConv = conversations.find((c: ConversationSummary) => c.conversation_id === selectedConvId);
-  const otherMember = currentConv?.members.find((m: any) => m.user_id !== activeUserId);
-  const targetContact = contacts.find(c => c.contact_user_id === otherMember?.user_id);
-  const displayPhoneNumber = targetContact?.phone_number || '+91 98765 43210';
+  const startNewChat = (contact: UserContact) => {
+    setShowNewChatModal(false);
+    const existing = conversations.find(c => c.members.some(m => m.user_id === contact.contact_user_id) || c.title === contact.display_name);
+    if (existing) {
+      handleOpenConversation(existing.conversation_id);
+    } else {
+      const newConvId = `CONV-SMS-${effectiveUserId}-${contact.contact_user_id}`;
+      setSelectedConvId(newConvId);
+      setActiveScreen('chat');
+    }
+  };
 
-  const filteredConversations = conversations.filter((c: ConversationSummary) => {
+  const currentConv = conversations.find((c: ConversationSummary) => c.conversation_id === selectedConvId);
+  const otherMember = currentConv?.members.find((m: any) => m.user_id !== effectiveUserId && m.user_id !== currentAuthUser.id);
+  const targetContact = contacts.find(c => c.contact_user_id === otherMember?.user_id || c.display_name === currentConv?.title);
+  const displayPhoneNumber = targetContact?.phone_number || (currentConv?.title?.includes('Bank') || currentConv?.title?.includes('Service') || currentConv?.title?.includes('Notice') ? `AD-${currentConv.title.slice(0, 4).toUpperCase()}AL` : '+91 98765 43210');
+
+  // Helper for deterministic avatar color & initial
+  const getAvatarBadge = (name: string) => {
+    const colors = ['#2563eb', '#0284c7', '#7c3aed', '#d97706', '#059669', '#dc2626', '#4f46e5'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const color = colors[Math.abs(hash) % colors.length];
+    const initial = name ? name.charAt(0).toUpperCase() : 'S';
+    return { color, initial };
+  };
+
+  // Tab Filtering
+  const isServiceConv = (c: ConversationSummary) => {
+    const t = c.title.toLowerCase();
+    return t.includes('bank') || t.includes('service') || t.includes('otp') || t.includes('care') || t.includes('express') || t.includes('office') || t.includes('notice') || t.includes('alert') || t.includes('delivery') || t.includes('provider');
+  };
+
+  const tabFilteredConversations = conversations.filter((c: ConversationSummary) => {
+    if (activeTab === 'services') {
+      return isServiceConv(c);
+    }
+    if (activeTab === 'threats') {
+      return c.threat_count > 0 || (c.latest_message && c.latest_message.security_status !== 'SAFE');
+    }
+    return true; // 'chats' tab = all
+  });
+
+  const filteredConversations = tabFilteredConversations.filter((c: ConversationSummary) => {
+    if (!searchTerm.trim()) return true;
     const searchLower = searchTerm.toLowerCase();
-    const contactInfo = contacts.find(cnt => cnt.contact_user_id === c.members.find((m: any) => m.user_id !== activeUserId)?.user_id);
-    const phoneMatch = contactInfo?.phone_number.toLowerCase().includes(searchLower);
+    const contactInfo = contacts.find(cnt => cnt.contact_user_id === c.members.find((m: any) => m.user_id !== effectiveUserId)?.user_id);
+    const phoneMatch = contactInfo?.phone_number?.toLowerCase().includes(searchLower);
     return (
       c.title.toLowerCase().includes(searchLower) ||
       c.members.some((m: any) => m.name.toLowerCase().includes(searchLower)) ||
@@ -217,9 +281,13 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
     );
   });
 
-  // Single active dangerous message notification per conversation thread (idempotent, non-duplicated)
+  const serviceCount = conversations.filter(isServiceConv).length;
+  const threatCountTotal = conversations.filter(c => c.threat_count > 0 || (c.latest_message && c.latest_message.security_status !== 'SAFE')).length;
+
   const activeDangerousMessage = messages.find(
-    m => m.security_status === 'DANGEROUS' && 
+    m => (m.security_status === 'DANGEROUS' || m.risk_level === 'CRITICAL' || m.classification !== 'SAFE') && 
+         m.security_status !== 'ALLOWED' &&
+         m.security_status !== 'BLOCKED' &&
          !dismissedNotifications[`sms-threat-${m.message_id}`]
   );
 
@@ -239,10 +307,10 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
       position: 'relative'
     }}>
 
-      {/* TOP ANDROID HEADER BAR */}
-      <header style={{ background: '#0b6bcb', color: '#ffffff', padding: '12px 16px 10px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+      {/* TOP MOBILE HEADER BAR */}
+      <header style={{ background: '#0b6bcb', color: '#ffffff', padding: '12px 16px 0px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
         {/* Status Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '0.72rem', opacity: 0.9 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '0.72rem', opacity: 0.9 }}>
           <span>{liveClock}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.2)', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>5G</span>
@@ -252,68 +320,161 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
 
         {activeScreen === 'home' ? (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div>
-                <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MessageSquare size={22} color="#ffffff" />
-                  <span>Messages</span>
+                <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={22} color="#4ade80" />
+                  <span>CyberShield Messages</span>
                 </h1>
-                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.85)', marginTop: '2px', fontWeight: 600 }}>
-                  🛡 Protected Receiver: Kavin • SMS Center
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.9)', marginTop: '2px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: '#4ade80' }}></span>
+                  Protected: {accountOwnerName} • {conversations.length} SMS Threads
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#ffffff' }}>
-                <Search size={20} style={{ cursor: 'pointer' }} />
+                <Search size={20} style={{ cursor: 'pointer' }} onClick={() => {}} />
                 <MoreVertical size={20} style={{ cursor: 'pointer' }} />
               </div>
             </div>
+
+            {/* MOBILE TABS (Chats | Services | Threats) */}
+            <div style={{ display: 'flex', borderBottom: '2px solid transparent', gap: '4px', marginTop: '6px' }}>
+              <button
+                onClick={() => setActiveTab('chats')}
+                style={{
+                  flex: 1,
+                  padding: '8px 4px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'chats' ? '3px solid #ffffff' : '3px solid transparent',
+                  color: activeTab === 'chats' ? '#ffffff' : 'rgba(255,255,255,0.7)',
+                  fontWeight: activeTab === 'chats' ? 800 : 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>Chats</span>
+                <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '10px' }}>
+                  {conversations.length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('services')}
+                style={{
+                  flex: 1,
+                  padding: '8px 4px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'services' ? '3px solid #ffffff' : '3px solid transparent',
+                  color: activeTab === 'services' ? '#ffffff' : 'rgba(255,255,255,0.7)',
+                  fontWeight: activeTab === 'services' ? 800 : 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>Services</span>
+                <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.2)', padding: '1px 6px', borderRadius: '10px' }}>
+                  {serviceCount}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('threats')}
+                style={{
+                  flex: 1,
+                  padding: '8px 4px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: activeTab === 'threats' ? '3px solid #ef4444' : '3px solid transparent',
+                  color: activeTab === 'threats' ? '#f87171' : 'rgba(255,255,255,0.7)',
+                  fontWeight: activeTab === 'threats' ? 800 : 600,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>Threats</span>
+                {threatCountTotal > 0 && (
+                  <span style={{ fontSize: '0.65rem', background: '#ef4444', color: '#fff', padding: '1px 6px', borderRadius: '10px', fontWeight: 800 }}>
+                    {threatCountTotal}
+                  </span>
+                )}
+              </button>
+            </div>
+
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
                 onClick={handleBackNavigation}
                 aria-label="Back to SMS conversation list"
                 style={{
-                  width: '40px',
-                  height: '40px',
-                  minWidth: '40px',
-                  minHeight: '40px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   border: 'none',
-                  background: 'rgba(255, 255, 255, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.18)',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
                   padding: 0,
-                  transition: 'all 0.2s ease',
                   flexShrink: 0
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)')}
               >
-                <ArrowLeft size={22} color="#ffffff" />
+                <ArrowLeft size={20} color="#ffffff" />
               </button>
-              <img
-                src={otherMember?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                alt="Avatar"
-                style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }}
-              />
-              <div>
-                <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
+              
+              {otherMember?.avatar || targetContact?.avatar ? (
+                <img
+                  src={otherMember?.avatar || targetContact?.avatar}
+                  alt="Avatar"
+                  style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)' }}
+                />
+              ) : (
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: getAvatarBadge(currentConv?.title || 'S').color,
+                  color: '#fff',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem'
+                }}>
+                  {getAvatarBadge(currentConv?.title || 'S').initial}
+                </div>
+              )}
+
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }}>
                   {currentConv?.title || 'SMS Conversation'}
                 </div>
-                <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.85)', marginTop: '2px', fontWeight: 600 }}>
-                  Mobile • {displayPhoneNumber}
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.85)', marginTop: '2px', fontWeight: 600 }}>
+                  SMS • {displayPhoneNumber}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: '#ffffff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', color: '#ffffff' }}>
               <Phone size={19} style={{ cursor: 'pointer' }} />
               <MoreVertical size={19} style={{ cursor: 'pointer' }} />
             </div>
@@ -326,81 +487,115 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#0a0f1d', overflowY: 'auto', position: 'relative' }}>
           
           {/* Search Bar */}
-          <div style={{ padding: '12px 14px 6px 14px' }}>
+          <div style={{ padding: '10px 14px 4px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '8px 14px', gap: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
               <Search size={16} color="#94a3b8" />
               <input
                 type="text"
-                placeholder="Search messages & phone numbers..."
+                placeholder="Search chats, phone numbers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ background: 'none', border: 'none', color: '#f8fafc', fontSize: '0.84rem', width: '100%', outline: 'none' }}
               />
+              {searchTerm && (
+                <X size={16} color="#94a3b8" style={{ cursor: 'pointer' }} onClick={() => setSearchTerm('')} />
+              )}
             </div>
           </div>
 
           {/* Conversations Thread List */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {filteredConversations.map((conv: ConversationSummary) => {
-              const isGroup = conv.conversation_type === 'GROUP';
-              const isSelected = conv.conversation_id === selectedConvId;
-              const contactInfo = contacts.find(cnt => cnt.contact_user_id === conv.members.find((m: any) => m.user_id !== activeUserId)?.user_id);
-              const phone = contactInfo?.phone_number || '+91 98765 43210';
-              const hasThreat = conv.threat_count > 0;
+            {filteredConversations.length === 0 ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.86rem' }}>
+                No SMS threads found in <strong>{activeTab}</strong> tab for {searchTerm || accountOwnerName}.
+              </div>
+            ) : (
+              filteredConversations.map((conv: ConversationSummary) => {
+                const isGroup = conv.conversation_type === 'GROUP';
+                const isSelected = conv.conversation_id === selectedConvId;
+                const contactInfo = contacts.find(cnt => cnt.contact_user_id === conv.members.find((m: any) => m.user_id !== effectiveUserId)?.user_id);
+                const phone = contactInfo?.phone_number || (conv.title.includes('Bank') || conv.title.includes('Service') || conv.title.includes('Notice') ? `AD-${conv.title.slice(0, 4).toUpperCase()}AL` : '+91 98765 43210');
+                const hasThreat = conv.threat_count > 0 || (conv.latest_message && conv.latest_message.security_status !== 'SAFE');
+                const avatarUrl = conv.members.find((m: any) => m.user_id !== effectiveUserId)?.avatar || contactInfo?.avatar;
+                const badge = getAvatarBadge(conv.title);
 
-              return (
-                <div
-                  key={conv.conversation_id}
-                  onClick={() => handleOpenConversation(conv.conversation_id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '14px 16px',
-                    gap: '14px',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    background: isSelected ? 'rgba(11, 107, 203, 0.15)' : 'transparent',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <img
-                    src={conv.members.find((m: any) => m.user_id !== activeUserId)?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                    alt="Avatar"
-                    style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {isGroup ? <Users size={15} color="#38bdf8" /> : <User size={15} color="#60a5fa" />}
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.title}</span>
+                return (
+                  <div
+                    key={conv.conversation_id}
+                    onClick={() => handleOpenConversation(conv.conversation_id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      gap: '14px',
+                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      background: isSelected ? 'rgba(11, 107, 203, 0.18)' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        background: badge.color,
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '1.1rem',
+                        flexShrink: 0
+                      }}>
+                        {badge.initial}
                       </div>
-                      <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                        {formatConversationDate(conv.latest_message?.created_at || conv.latest_message?.timestamp)}
-                      </span>
-                    </div>
+                    )}
 
-                    <div style={{ fontSize: '0.72rem', color: '#38bdf8', marginTop: '2px', fontWeight: 600 }}>
-                      {phone}
-                    </div>
-
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
-                        {conv.latest_message ? `${conv.latest_message.sender_id.replace('user-', '')}: ${conv.latest_message.content}` : 'Tap to message'}
-                      </span>
-                      {hasThreat && (
-                        <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.62rem', fontWeight: 800, padding: '1px 6px', borderRadius: '10px', marginLeft: '6px' }}>
-                          🚨 Threat
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                          {isGroup ? <Users size={14} color="#38bdf8" /> : <User size={14} color="#60a5fa" />}
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.title}</span>
+                        </div>
+                        <span style={{ fontSize: '0.68rem', color: '#94a3b8', flexShrink: 0, marginLeft: '6px' }}>
+                          {formatConversationDate(conv.latest_message?.created_at || conv.latest_message?.timestamp)}
                         </span>
-                      )}
+                      </div>
+
+                      <div style={{ fontSize: '0.72rem', color: '#38bdf8', marginTop: '1px', fontWeight: 600 }}>
+                        {phone}
+                      </div>
+
+                      <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+                          {conv.latest_message ? conv.latest_message.content : 'Tap to view conversation'}
+                        </span>
+                        {hasThreat && (
+                          <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.6rem', fontWeight: 800, padding: '1px 6px', borderRadius: '10px', flexShrink: 0 }}>
+                            🚨 Threat
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* Floating Action Button — Start Chat / Compose */}
           <button
-            onClick={() => setActiveScreen('chat')}
+            onClick={() => setShowNewChatModal(true)}
+            aria-label="Start new SMS conversation"
             style={{
               position: 'absolute',
               bottom: '24px',
@@ -415,7 +610,8 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 8px 20px rgba(11, 107, 203, 0.4)',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              zIndex: 20
             }}
           >
             <Plus size={24} />
@@ -452,12 +648,13 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
           {/* Thread Scroll View */}
           <div style={{ flex: 1, padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ alignSelf: 'center', background: '#1e293b', color: '#94a3b8', fontSize: '0.68rem', padding: '3px 12px', borderRadius: '12px', margin: '4px 0', fontWeight: 600 }}>
-              Today • SMS Thread
+              Today • SMS Thread ({messages.length} messages)
             </div>
 
             {messages.map((m: MessageItem) => {
-              const isOutgoing = m.sender_id === activeUserId;
+              const isOutgoing = m.sender_id === effectiveUserId || m.sender_id === currentAuthUser.id || m.sender_name === accountOwnerName;
               const isBlocked = m.security_status === 'BLOCKED';
+              const isThreat = (m.security_status === 'DANGEROUS' || m.risk_level === 'CRITICAL' || m.classification !== 'SAFE') && !isBlocked && m.security_status !== 'ALLOWED';
 
               return (
                 <div
@@ -476,14 +673,14 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                     </span>
                   )}
 
-                  {/* Message Bubble — Clean Alignment Without Duplicate Cards */}
+                  {/* Message Bubble */}
                   <div
                     style={{
                       padding: '10px 14px',
                       borderRadius: isOutgoing ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
-                      background: isBlocked ? 'rgba(239, 68, 68, 0.15)' : isOutgoing ? '#0b6bcb' : '#f1f5f9',
-                      border: isBlocked ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(255,255,255,0.1)',
-                      color: isOutgoing ? '#ffffff' : '#0f172a',
+                      background: isBlocked ? 'rgba(239, 68, 68, 0.15)' : isOutgoing ? '#0b6bcb' : '#1e293b',
+                      border: isBlocked ? '1px solid rgba(239, 68, 68, 0.4)' : isOutgoing ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                      color: isOutgoing ? '#ffffff' : '#f8fafc',
                       fontSize: '0.86rem',
                       boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                     }}
@@ -501,11 +698,70 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                       <div style={{ wordBreak: 'break-word', lineHeight: 1.35 }}>{m.content}</div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.62rem', color: isOutgoing ? 'rgba(255,255,255,0.75)' : '#64748b' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.62rem', color: isOutgoing ? 'rgba(255,255,255,0.75)' : '#94a3b8' }}>
                       <span>{formatMessageTime(m.created_at || m.timestamp)}</span>
                       {isOutgoing && <CheckCheck size={14} color="#38bdf8" />}
                     </div>
                   </div>
+
+                  {/* Inline Security Threat Card */}
+                  {isThreat && (
+                    <div style={{
+                      marginTop: '6px',
+                      background: '#0f172a',
+                      border: '1px solid rgba(239, 68, 68, 0.5)',
+                      borderRadius: '12px',
+                      padding: '10px 12px',
+                      width: '100%',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.4)',
+                      color: '#f8fafc'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#f87171', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <AlertTriangle size={15} /> CyberShield Alert: {m.classification}
+                        </span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, background: '#ef4444', color: '#fff', padding: '1px 6px', borderRadius: '4px' }}>
+                          Risk {m.risk_score}/100
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginBottom: '8px', lineHeight: 1.3 }}>
+                        Suspicious link or scam pattern detected in this SMS.
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => handleSecurityAction(m.message_id, 'BLOCK')}
+                          style={{
+                            flex: 1,
+                            padding: '6px 10px',
+                            background: '#ef4444',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: '#ffffff',
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Block Sender
+                        </button>
+                        <button
+                          onClick={() => handleSecurityAction(m.message_id, 'ALLOW')}
+                          style={{
+                            padding: '6px 12px',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '6px',
+                            color: '#ffffff',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Allow
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               );
@@ -527,7 +783,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f87171', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <AlertTriangle size={16} /> 🚨 CyberShield Warning: {activeDangerousMessage.classification}
+                  <AlertTriangle size={16} /> 🚨 CyberShield Interception: {activeDangerousMessage.classification}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '6px' }}>
@@ -544,7 +800,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
               </div>
 
               <div style={{ fontSize: '0.74rem', color: '#cbd5e1', marginBottom: '10px', lineHeight: 1.35 }}>
-                Suspicious financial request or scam URL detected in this incoming SMS message.
+                Suspicious SMS detected containing phishing link or unverified lure.
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -669,6 +925,75 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
         </div>
       )}
 
+      {/* NEW CHAT / CONTACT SELECTOR MODAL */}
+      {showNewChatModal && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 90,
+          padding: '16px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', color: '#f8fafc' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Start New SMS Chat</h3>
+            <X size={20} style={{ cursor: 'pointer' }} onClick={() => setShowNewChatModal(false)} />
+          </div>
+
+          <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '12px' }}>
+            Select from {accountOwnerName}'s dataset SMS contacts ({contacts.length} available):
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {contacts.map((cnt: UserContact) => (
+              <div
+                key={cnt.contact_user_id}
+                onClick={() => startNewChat(cnt)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '10px 14px',
+                  background: '#1e293b',
+                  borderRadius: '12px',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255,255,255,0.06)'
+                }}
+              >
+                {cnt.avatar ? (
+                  <img
+                    src={cnt.avatar}
+                    alt={cnt.display_name}
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: getAvatarBadge(cnt.display_name).color,
+                    color: '#fff',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {getAvatarBadge(cnt.display_name).initial}
+                  </div>
+                )}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc' }}>{cnt.display_name}</div>
+                  <div style={{ fontSize: '0.74rem', color: '#38bdf8' }}>{cnt.phone_number}</div>
+                </div>
+                <Send size={16} color="#60a5fa" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* THREAT DETAILS EXPLANATION MODAL */}
       {selectedThreatMessage && (
         <div style={{
@@ -739,7 +1064,7 @@ export const MessagesSimulator: React.FC<MessagesSimulatorProps> = ({
                   cursor: 'pointer'
                 }}
               >
-                BLOCK MESSAGE
+                BLOCK SENDER
               </button>
               <button
                 onClick={() => handleSecurityAction(selectedThreatMessage.message_id, 'ALLOW')}

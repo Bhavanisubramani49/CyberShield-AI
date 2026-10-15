@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 class DemoUserSchema(BaseModel):
     user_id: str
     name: str
+    email: Optional[str] = None
     avatar: str
     role: str
     status: str = "online"

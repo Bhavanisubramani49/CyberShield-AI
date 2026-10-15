@@ -1,0 +1,452 @@
+[
+  {
+    "user_id": "USER_000001",
+    "name": "Riya",
+    "email": "riya@cybershield.local",
+    "phone": "+919769460585",
+    "whatsapp_handle": "riya",
+    "instagram_handle": "riya",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000002",
+    "name": "Karthik",
+    "email": "karthik@cybershield.local",
+    "phone": "+918178976791",
+    "whatsapp_handle": "karthik",
+    "instagram_handle": "karthik",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000003",
+    "name": "Dinesh",
+    "email": "dinesh@cybershield.local",
+    "phone": "+917924327657",
+    "whatsapp_handle": "dinesh",
+    "instagram_handle": "dinesh_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000004",
+    "name": "Zaid",
+    "email": "zaid@cybershield.local",
+    "phone": "+919592541087",
+    "whatsapp_handle": "zaid",
+    "instagram_handle": "zaid",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000005",
+    "name": "Mariam",
+    "email": "mariam@cybershield.local",
+    "phone": "+918785684131",
+    "whatsapp_handle": "mariam",
+    "instagram_handle": "mariam",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000006",
+    "name": "Soorya",
+    "email": "soorya@cybershield.local",
+    "phone": "+919720676548",
+    "whatsapp_handle": "soorya",
+    "instagram_handle": "soorya",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000007",
+    "name": "Pavel",
+    "email": "pavel@cybershield.local",
+    "phone": "+919596795937",
+    "whatsapp_handle": "pavel",
+    "instagram_handle": "pavel",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000008",
+    "name": "Katarzyna",
+    "email": "katarzyna@cybershield.local",
+    "phone": "+918495204135",
+    "whatsapp_handle": "katarzyna",
+    "instagram_handle": "katarzyna",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000009",
+    "name": "Aishwarya",
+    "email": "aishwarya@cybershield.local",
+    "phone": "+918626604627",
+    "whatsapp_handle": "aishwarya",
+    "instagram_handle": "aishwarya",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000010",
+    "name": "Alexander",
+    "email": "alexander@cybershield.local",
+    "phone": "+919014067853",
+    "whatsapp_handle": "alexander",
+    "instagram_handle": "alexander_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000011",
+    "name": "Jing",
+    "email": "jing@cybershield.local",
+    "phone": "+917075010566",
+    "whatsapp_handle": "jing",
+    "instagram_handle": "jing_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000012",
+    "name": "Tariro",
+    "email": "tariro@cybershield.local",
+    "phone": "+918827021842",
+    "whatsapp_handle": "tariro",
+    "instagram_handle": "tariro",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000013",
+    "name": "Haruto",
+    "email": "haruto@cybershield.local",
+    "phone": "+917723448222",
+    "whatsapp_handle": "haruto",
+    "instagram_handle": "haruto",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000014",
+    "name": "Ethan",
+    "email": "ethan@cybershield.local",
+    "phone": "+918633371097",
+    "whatsapp_handle": "ethan",
+    "instagram_handle": "ethan",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000015",
+    "name": "Giulia",
+    "email": "giulia@cybershield.local",
+    "phone": "+919141345734",
+    "whatsapp_handle": "giulia",
+    "instagram_handle": "giulia",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000016",
+    "name": "Mateo",
+    "email": "mateo@cybershield.local",
+    "phone": "+918818564629",
+    "whatsapp_handle": "mateo",
+    "instagram_handle": "mateo",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000017",
+    "name": "Ganesh",
+    "email": "ganesh@cybershield.local",
+    "phone": "+919668942551",
+    "whatsapp_handle": "ganesh",
+    "instagram_handle": "ganesh_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000018",
+    "name": "Lucas",
+    "email": "lucas@cybershield.local",
+    "phone": "+918734914419",
+    "whatsapp_handle": "lucas",
+    "instagram_handle": "lucas",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000019",
+    "name": "Camila",
+    "email": "camila@cybershield.local",
+    "phone": "+918424619607",
+    "whatsapp_handle": "camila",
+    "instagram_handle": "camila",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000020",
+    "name": "Chidimma",
+    "email": "chidimma@cybershield.local",
+    "phone": "+917711653754",
+    "whatsapp_handle": "chidimma",
+    "instagram_handle": "chidimma_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000021",
+    "name": "Apinya",
+    "email": "apinya@cybershield.local",
+    "phone": "+918223056981",
+    "whatsapp_handle": "apinya",
+    "instagram_handle": "apinya_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000022",
+    "name": "Ananya",
+    "email": "ananya@cybershield.local",
+    "phone": "+918893991108",
+    "whatsapp_handle": "ananya",
+    "instagram_handle": "ananya",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000023",
+    "name": "Noor",
+    "email": "noor@cybershield.local",
+    "phone": "+918865616200",
+    "whatsapp_handle": "noor",
+    "instagram_handle": "noor",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000024",
+    "name": "Shalini",
+    "email": "shalini@cybershield.local",
+    "phone": "+919990593360",
+    "whatsapp_handle": "shalini",
+    "instagram_handle": "shalini",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000025",
+    "name": "Salma",
+    "email": "salma@cybershield.local",
+    "phone": "+918553539124",
+    "whatsapp_handle": "salma",
+    "instagram_handle": "salma",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000026",
+    "name": "Anu",
+    "email": "anu@cybershield.local",
+    "phone": "+918781782672",
+    "whatsapp_handle": "anu",
+    "instagram_handle": "anu",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000027",
+    "name": "Ishaan",
+    "email": "ishaan@cybershield.local",
+    "phone": "+919568766526",
+    "whatsapp_handle": "ishaan",
+    "instagram_handle": "ishaan",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000028",
+    "name": "Chen",
+    "email": "chen@cybershield.local",
+    "phone": "+917962932064",
+    "whatsapp_handle": "chen",
+    "instagram_handle": "chen",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000029",
+    "name": "Dimitri",
+    "email": "dimitri@cybershield.local",
+    "phone": "+917691388181",
+    "whatsapp_handle": "dimitri",
+    "instagram_handle": "dimitri",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000030",
+    "name": "Budi",
+    "email": "budi@cybershield.local",
+    "phone": "+917832584665",
+    "whatsapp_handle": "budi",
+    "instagram_handle": "budi_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000031",
+    "name": "Santiago",
+    "email": "santiago@cybershield.local",
+    "phone": "+919622245442",
+    "whatsapp_handle": "santiago",
+    "instagram_handle": "santiago_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000032",
+    "name": "Girish",
+    "email": "girish@cybershield.local",
+    "phone": "+918133225246",
+    "whatsapp_handle": "girish",
+    "instagram_handle": "girish",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000033",
+    "name": "Moana",
+    "email": "moana@cybershield.local",
+    "phone": "+919057731572",
+    "whatsapp_handle": "moana",
+    "instagram_handle": "moana",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000034",
+    "name": "Wei",
+    "email": "wei@cybershield.local",
+    "phone": "+917810861642",
+    "whatsapp_handle": "wei",
+    "instagram_handle": "wei",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000035",
+    "name": "Sakura",
+    "email": "sakura@cybershield.local",
+    "phone": "+917807998962",
+    "whatsapp_handle": "sakura",
+    "instagram_handle": "sakura_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000036",
+    "name": "Vihaan",
+    "email": "vihaan@cybershield.local",
+    "phone": "+917048381223",
+    "whatsapp_handle": "vihaan",
+    "instagram_handle": "vihaan",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000037",
+    "name": "Noah",
+    "email": "noah@cybershield.local",
+    "phone": "+918442011761",
+    "whatsapp_handle": "noah",
+    "instagram_handle": "noah_official",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000038",
+    "name": "Kenji",
+    "email": "kenji@cybershield.local",
+    "phone": "+917147315803",
+    "whatsapp_handle": "kenji",
+    "instagram_handle": "kenji",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000039",
+    "name": "Reyansh",
+    "email": "reyansh@cybershield.local",
+    "phone": "+917290421407",
+    "whatsapp_handle": "reyansh",
+    "instagram_handle": "reyansh",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000040",
+    "name": "Ashwin",
+    "email": "ashwin@cybershield.local",
+    "phone": "+919045143278",
+    "whatsapp_handle": "ashwin",
+    "instagram_handle": "ashwin",
+    "split_group": "train"
+  },
+  {
+    "user_id": "USER_000041",
+    "name": "Fatima",
+    "email": "fatima@cybershield.local",
+    "phone": "+919727149979",
+    "whatsapp_handle": "fatima",
+    "instagram_handle": "fatima",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000042",
+    "name": "Amara",
+    "email": "amara@cybershield.local",
+    "phone": "+917065706897",
+    "whatsapp_handle": "amara",
+    "instagram_handle": "amara",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000043",
+    "name": "Min",
+    "email": "min@cybershield.local",
+    "phone": "+918258755693",
+    "whatsapp_handle": "min",
+    "instagram_handle": "min",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000044",
+    "name": "Siti",
+    "email": "siti@cybershield.local",
+    "phone": "+917445613543",
+    "whatsapp_handle": "siti",
+    "instagram_handle": "siti_official",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000045",
+    "name": "Malathi",
+    "email": "malathi@cybershield.local",
+    "phone": "+917797490468",
+    "whatsapp_handle": "malathi",
+    "instagram_handle": "malathi",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000046",
+    "name": "Kofi",
+    "email": "kofi@cybershield.local",
+    "phone": "+917940476179",
+    "whatsapp_handle": "kofi",
+    "instagram_handle": "kofi",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000047",
+    "name": "Zoe",
+    "email": "zoe@cybershield.local",
+    "phone": "+918146161889",
+    "whatsapp_handle": "zoe",
+    "instagram_handle": "zoe",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000048",
+    "name": "Hana",
+    "email": "hana@cybershield.local",
+    "phone": "+917397217182",
+    "whatsapp_handle": "hana",
+    "instagram_handle": "hana",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000049",
+    "name": "Obinna",
+    "email": "obinna@cybershield.local",
+    "phone": "+918233418554",
+    "whatsapp_handle": "obinna",
+    "instagram_handle": "obinna",
+    "split_group": "holdout_test"
+  },
+  {
+    "user_id": "USER_000050",
+    "name": "Diya",
+    "email": "diya@cybershield.local",
+    "phone": "+917603749193",
+    "whatsapp_handle": "diya",
+    "instagram_handle": "diya",
+    "split_group": "holdout_test"
+  }
+]

@@ -1,0 +1,289 @@
+[
+  {
+    "platform": "email",
+    "total_records": 600,
+    "classification_distribution": {
+      "safe": 285,
+      "suspicious": 123,
+      "phishing": 60,
+      "malicious": 104,
+      "manipulated": 28
+    },
+    "threat_type_distribution": {
+      "none": 285,
+      "business_email_compromise_simulation": 67,
+      "unverified_sender": 56,
+      "macro_document_simulation": 42,
+      "malicious_attachment": 32,
+      "invoice_scam": 30,
+      "spoofed_display_name": 28,
+      "fake_password_reset": 23,
+      "credential_harvesting": 20,
+      "fake_account_verification": 17
+    },
+    "content_type_distribution": {
+      "email": 600
+    },
+    "unique_users": 50,
+    "avg_risk_score": 39.97,
+    "median_risk_score": 28,
+    "train": 428,
+    "validation": 83,
+    "test": 89
+  },
+  {
+    "platform": "files",
+    "total_records": 150,
+    "classification_distribution": {
+      "safe": 98,
+      "malicious": 30,
+      "suspicious": 22
+    },
+    "threat_type_distribution": {
+      "none": 98,
+      "altered_document": 18,
+      "executable_like_metadata": 14,
+      "suspicious_macro_document": 10,
+      "suspicious_archive_metadata": 10
+    },
+    "content_type_distribution": {
+      "document": 150
+    },
+    "unique_users": 48,
+    "avg_risk_score": 32.41,
+    "median_risk_score": 16,
+    "train": 98,
+    "validation": 26,
+    "test": 26
+  },
+  {
+    "platform": "instagram",
+    "total_records": 600,
+    "classification_distribution": {
+      "suspicious": 143,
+      "malicious": 110,
+      "safe": 267,
+      "manipulated": 24,
+      "phishing": 56
+    },
+    "threat_type_distribution": {
+      "none": 267,
+      "impersonation": 74,
+      "unverified_giveaway": 69,
+      "fake_sponsorship": 58,
+      "malicious_link": 52,
+      "account_recovery_scam": 20,
+      "fake_verification": 19,
+      "phishing_dm": 17,
+      "deepfake_video": 13,
+      "manipulated_image": 11
+    },
+    "content_type_distribution": {
+      "reel": 122,
+      "story": 120,
+      "direct_message": 124,
+      "post": 109,
+      "comment": 125
+    },
+    "unique_users": 50,
+    "avg_risk_score": 41.04,
+    "median_risk_score": 31,
+    "train": 444,
+    "validation": 83,
+    "test": 73
+  },
+  {
+    "platform": "news",
+    "total_records": 600,
+    "classification_distribution": {
+      "manipulated": 33,
+      "safe": 259,
+      "suspicious": 114,
+      "malicious": 127,
+      "phishing": 67
+    },
+    "threat_type_distribution": {
+      "none": 259,
+      "impersonated_source": 67,
+      "synthetic_article": 64,
+      "fabricated_news": 63,
+      "manipulated_quote": 60,
+      "false_claim": 54,
+      "misleading_headline": 19,
+      "manipulated_image": 14
+    },
+    "content_type_distribution": {
+      "article": 600
+    },
+    "unique_users": 50,
+    "avg_risk_score": 43.92,
+    "median_risk_score": 42,
+    "train": 425,
+    "validation": 103,
+    "test": 72
+  },
+  {
+    "platform": "photos",
+    "total_records": 240,
+    "classification_distribution": {
+      "safe": 36,
+      "suspicious": 144,
+      "manipulated": 36,
+      "malicious": 24
+    },
+    "threat_type_distribution": {
+      "null": 240
+    },
+    "content_type_distribution": {
+      "image": 240
+    },
+    "unique_users": 37,
+    "avg_risk_score": 41.18,
+    "median_risk_score": 36,
+    "train": 180,
+    "validation": 32,
+    "test": 28
+  },
+  {
+    "platform": "sms",
+    "total_records": 600,
+    "classification_distribution": {
+      "safe": 264,
+      "phishing": 75,
+      "suspicious": 128,
+      "malicious": 118,
+      "manipulated": 15
+    },
+    "threat_type_distribution": {
+      "none": 264,
+      "unverified_offer": 81,
+      "malicious_link": 66,
+      "fake_parcel_scam": 52,
+      "impersonation": 47,
+      "fake_lottery_message": 26,
+      "fake_kyc_request": 25,
+      "fake_bank_alert": 24,
+      "spoofed_sender_id": 15
+    },
+    "content_type_distribution": {
+      "text": 600
+    },
+    "unique_users": 50,
+    "avg_risk_score": 43.12,
+    "median_risk_score": 36,
+    "train": 410,
+    "validation": 103,
+    "test": 87
+  },
+  {
+    "platform": "videos",
+    "total_records": 30,
+    "classification_distribution": {
+      "safe": 9,
+      "suspicious": 20,
+      "manipulated": 1
+    },
+    "threat_type_distribution": {
+      "duplicate_content_variant": 20,
+      "none": 9,
+      "lip_sync_manipulation": 1
+    },
+    "content_type_distribution": {
+      "video": 30
+    },
+    "unique_users": 10,
+    "avg_risk_score": 28.4,
+    "median_risk_score": 27,
+    "train": 25,
+    "validation": 3,
+    "test": 2
+  },
+  {
+    "platform": "web",
+    "total_records": 600,
+    "classification_distribution": {
+      "manipulated": 28,
+      "safe": 285,
+      "suspicious": 111,
+      "phishing": 138,
+      "malicious": 38
+    },
+    "threat_type_distribution": {
+      "none": 285,
+      "PHISHING": 138,
+      "SUSPICIOUS": 111,
+      "MALICIOUS": 38,
+      "MANIPULATED": 28
+    },
+    "content_type_distribution": {
+      "url": 600
+    },
+    "unique_users": 50,
+    "avg_risk_score": 44.01,
+    "median_risk_score": 48,
+    "train": 405,
+    "validation": 99,
+    "test": 96
+  },
+  {
+    "platform": "whatsapp",
+    "total_records": 600,
+    "classification_distribution": {
+      "manipulated": 33,
+      "safe": 259,
+      "malicious": 132,
+      "suspicious": 109,
+      "phishing": 67
+    },
+    "threat_type_distribution": {
+      "none": 259,
+      "malicious_url": 52,
+      "unknown_sender_request": 48,
+      "account_takeover_attempt": 47,
+      "social_engineering": 34,
+      "forwarded_manipulated_media": 33,
+      "suspicious_attachment": 33,
+      "urgency_manipulation": 27,
+      "otp_scam": 19,
+      "fake_bank_alert": 18
+    },
+    "content_type_distribution": {
+      "voice_note": 70,
+      "image": 73,
+      "text": 224,
+      "document": 75,
+      "link": 76,
+      "video": 82
+    },
+    "unique_users": 50,
+    "avg_risk_score": 43.64,
+    "median_risk_score": 39,
+    "train": 445,
+    "validation": 79,
+    "test": 76
+  },
+  {
+    "platform": "youtube",
+    "total_records": 30,
+    "classification_distribution": {
+      "safe": 21,
+      "manipulated": 9
+    },
+    "threat_type_distribution": {
+      "none": 21,
+      "lip_sync_manipulation": 5,
+      "ai_generated_speaker": 2,
+      "misleading_edit": 1,
+      "deepfake_face": 1
+    },
+    "content_type_distribution": {
+      "video": 30
+    },
+    "unique_users": 25,
+    "avg_risk_score": 32.27,
+    "median_risk_score": 21,
+    "train": 27,
+    "validation": 2,
+    "test": 1
+  }
+]

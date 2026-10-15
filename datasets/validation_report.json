@@ -1,0 +1,112 @@
+{
+  "email": {
+    "platform": "email",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "files": {
+    "platform": "files",
+    "records": 150,
+    "valid": 150,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 150,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "instagram": {
+    "platform": "instagram",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "news": {
+    "platform": "news",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "photos": {
+    "platform": "photos",
+    "records": 240,
+    "valid": 240,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 240,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "sms": {
+    "platform": "sms",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "videos": {
+    "platform": "videos",
+    "records": 30,
+    "valid": 30,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 30,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "web": {
+    "platform": "web",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "whatsapp": {
+    "platform": "whatsapp",
+    "records": 600,
+    "valid": 600,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 0,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  },
+  "youtube": {
+    "platform": "youtube",
+    "records": 30,
+    "valid": 30,
+    "invalid": 0,
+    "errors": [],
+    "asset_checked": 30,
+    "asset_missing": 0,
+    "leakage_groups_found": 0,
+    "leakage_examples": []
+  }
+}

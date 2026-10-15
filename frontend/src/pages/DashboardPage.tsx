@@ -18,11 +18,12 @@ import {
   Clock,
   Radio
 } from 'lucide-react';
-import { DashboardSummaryData, SystemHealth, RecentThreatItem } from '../types';
+import { UserProfile, DashboardSummaryData, SystemHealth, RecentThreatItem } from '../types';
 import { fetchDashboardSummaryAPI } from '../services/api';
 
 interface DashboardPageProps {
   health?: SystemHealth | null;
+  user?: UserProfile | null;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = () => {
